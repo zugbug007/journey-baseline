@@ -2,6 +2,7 @@ library(adobeanalyticsr)
 library(tidyverse)
 library(kableExtra)
 library(zoo)
+library(CausalImpact)
 #Test Token has been refreshed and is upto date.
 #aw_token()
 rm(list = ls()) # Clear the environment before running the code
@@ -95,7 +96,7 @@ browsers_by_device <- aw_freeform_table(date_range = date_range,
                   top = c(10, 1000))
 
 
-
+date_range = c(Sys.Date() - 3, Sys.Date() - 1)
 journey_with_segment_visits <- aw_freeform_table(date_range = date_range,
                                           dimensions = "daterangeday",
                                           segmentId = "s1957_6076f28b40d50e441ab3f0bd", # Segment Name: Membership Completion
@@ -109,11 +110,21 @@ journey_with_segment_visits <- journey_with_segment_visits %>%
           Visits_30_DA = zoo::rollmean(visits, k = 30, fill = NA))  %>%
   mutate(Visit_change_day_pct_chg = 100*((visits - lag(visits)))/lag(visits)) %>% ungroup()
 
+#for loop test
+page_segments <- aw_segments %>% 
+  filter(owner == "200133838") %>% #my segment ID.
+  slice(1:3)
 
+output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
+for (i in 1:nrow(page_segments)) {
+ output[[i]] <- aw_freeform_table(date_range = date_range,
+                    dimensions = "daterangeday",
+                    segmentId = page_segments$id[[i]], # Segment Name: Membership Completion
+                    metrics = "visits") %>% arrange(daterangeday)
+page_segments$name[[i]]
+}
 
 plot(journey_with_segment_visits$daterangeday, journey_with_segment_visits$visits)
-
-
 
 
 monitorEndTime_baseline <- Sys.time()
