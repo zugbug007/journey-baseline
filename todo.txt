@@ -1,0 +1,4 @@
+Category will be required for Before or After journey type and need to be added to for loop for journey identification
+Add category in custom segment data pull when journey groups have been created
+Segment naming convension to be defined but must include sercahable and idetifiable way of pulling before/after segements by journey or category type.
+

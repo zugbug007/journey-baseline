@@ -3,30 +3,20 @@ library(tidyverse)
 library(kableExtra)
 library(zoo)
 library(CausalImpact)
+library(openxlsx)
+library(openxlsx)
+require(ggplot2)
+
 #Test Token has been refreshed and is upto date.
 #aw_token()
-rm(list = ls()) # Clear the environment before running the code
+#rm(list = ls()) # Clear the environment before running the code
 monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
-
-#Set Date range for Adobe Data pull below
-
-#Last x days starting from yesterday
-date_range = c(Sys.Date() - 90, Sys.Date() - 1)
-
-#Specific Start Date, End Date of yesterday.
-#date_range = c(as.Date("2021-06-17"), Sys.Date() - 1)
-
-# Setup for Adobe Data
-aw_metrics <- aw_get_metrics()
-aw_dims <- aw_get_dimensions()
-aw_reportsuites <- aw_get_reportsuites()
-aw_calculatedmetrics <- aw_get_calculatedmetrics()
- aw_segments <- aw_get_segments(
+aw_segments <- aw_get_segments(
   company_id = Sys.getenv("AW_COMPANY_ID"),
   rsids = Sys.getenv("AW_REPORTSUITE_ID"),
   segmentFilter = NA,
-  name = NA,
+  name = "journey",
   tagNames = NA,
   filterByPublishedSegments = "all",
   limit = 10000,
@@ -38,96 +28,68 @@ aw_calculatedmetrics <- aw_get_calculatedmetrics()
   debug = FALSE
 )
 
-
-pagestats <- aw_freeform_table(
-  company_id = Sys.getenv("AW_COMPANY_ID"),
-  rsid = Sys.getenv("AW_REPORTSUITE_ID"),
-  date_range = date_range,
-  dimensions = c("evar26"),
-  metrics = c("pageviews","visits", "visitors"),
-  top = c(50),
-  page = 0,
-  filterType = "breakdown",
-  #segmentId = "s1957_6076f28b40d50e441ab3f0bd", # Segment Name: Membership Completion
-  metricSort = "desc",
-  include_unspecified = FALSE,
-  search = NA,
-  prettynames = FALSE,
-  debug = FALSE
-)
-
-# Output the results as a formatted table
-#pagestats %>% kable()
-
-
-visits_by_day <- aw_freeform_table(date_range = date_range,
-                  dimensions = "daterangeday",
-                  metrics = "visits") %>% arrange(daterangeday)
-
-device_type <- aw_freeform_table(date_range = date_range,
-                  dimensions = "mobiledevicetype",
-                  metrics = c("visits", "pageviews", "visitors"),
-                  prettynames = TRUE)
-
-device_type_by_day <- aw_freeform_table(date_range = date_range,
-                        dimensions = c("daterangeday", "mobiledevicetype"),
-                        metrics = "visits",
-                        top = c(0, 3)) %>% arrange(daterangeday)
-
-
-device_types <- aw_freeform_table(date_range = date_range,
-                                  dimensions = "mobiledevicetype",
-                                  metrics = "visits",
-                                  # The default of 5 is probably going to get all of them,
-                                  # but set a higher cutoff just in case.
-                                  top = 10)
-
-browsers <- aw_freeform_table(date_range = date_range,
-                              dimensions = "browser",
-                              metrics = "visits",
-                              # We want to get all of the browsers, so set top as a high 
-                              # value rather than the default of "5"
-                              top = 1000)
-
-
-browsers_by_device <- aw_freeform_table(date_range = date_range,
-                  dimensions = c("mobiledevicetype", "browser"),
-                  metrics = "visits",
-                  top = c(10, 1000))
-
-
-date_range = c(Sys.Date() - 3, Sys.Date() - 1)
-journey_with_segment_visits <- aw_freeform_table(date_range = date_range,
-                                          dimensions = "daterangeday",
-                                          segmentId = "s1957_6076f28b40d50e441ab3f0bd", # Segment Name: Membership Completion
-                                          metrics = "visits") %>% arrange(daterangeday)
-
-journey_with_segment_visits <- journey_with_segment_visits %>% 
-  arrange(desc(daterangeday)) %>%
-  mutate(Visits_3_DA = zoo::rollmean(visits, k = 3, fill = NA), 
-          Visits_7_DA = zoo::rollmean(visits, k = 7, fill = NA), 
-          Visits_14_DA = zoo::rollmean(visits, k = 14, fill = NA), 
-          Visits_30_DA = zoo::rollmean(visits, k = 30, fill = NA))  %>%
-  mutate(Visit_change_day_pct_chg = 100*((visits - lag(visits)))/lag(visits)) %>% ungroup()
+#Last x days starting from yesterday
+date_range = c(Sys.Date() - 90, Sys.Date() - 1)
+#Function Calls Setup
+get_segment_data <- function(segment_id) {
+  adobeanalyticsr::aw_freeform_table(date_range = date_range,
+                                     dimensions = "daterangeday",
+                                     segmentId = segment_id, # Segment Name: Membership Completion
+                                     prettynames = FALSE,
+                                     metrics = c("visits","pageviews","visitors"))
+  
+}
+calculate_means <- function(journey_data) {
+  journey_data %>% arrange(desc(daterangeday)) %>%
+    mutate(visit_change_day_pct_chg = (((visits))/lead(visits))-1)  %>%
+    mutate(pageviews_change_day_pct_chg = (((pageviews))/lead(pageviews))-1)  %>%
+    mutate(uniquevisitors_change_day_pct_chg = (((visitors))/lead(visitors))-1)  %>%
+    mutate(visits_3_DA = zoo::rollmean(visits, k = 3, fill = NA, align ='left'), 
+           visits_7_DA = zoo::rollmean(visits, k = 7, fill = NA, align ='left'), 
+           visits_14_DA = zoo::rollmean(visits, k = 14, fill = NA, align ='left'),
+           visits_30_DA = zoo::rollmean(visits, k = 30, fill = NA, align ='left'),
+           visits_60_DA = zoo::rollmean(visits, k = 60, fill = NA, align ='left'),
+           visits_90_DA = zoo::rollmean(visits, k = 90, fill = NA, align ='left'))  %>% ungroup()
+}
+#Set Date range for Adobe Data pull below
 
 #for loop test
 page_segments <- aw_segments %>% 
-  filter(owner == "200133838") %>% #my segment ID.
-  slice(1:3)
+  filter(owner == "200133838") %>% #my segment ID top x
+  slice(1:5)
 
-output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
+#output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
+datalist = list()
 for (i in 1:nrow(page_segments)) {
- output[[i]] <- aw_freeform_table(date_range = date_range,
-                    dimensions = "daterangeday",
-                    segmentId = page_segments$id[[i]], # Segment Name: Membership Completion
-                    metrics = "visits") %>% arrange(daterangeday)
-page_segments$name[[i]]
+      journey_data <- get_segment_data(page_segments$id[i])
+      journey_data$journey_name <- page_segments$name[i]
+      journey_data$journey_desc <- page_segments$description[i]
+      journey_data <- calculate_means(journey_data)
+      datalist[[i]] <- journey_data
 }
+journey_data <- data.table::rbindlist(datalist)
+journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name)
+  # Move Journey Name for neatness
 
-plot(journey_with_segment_visits$daterangeday, journey_with_segment_visits$visits)
+# Sort by Date (Messy because of journey name)
 
+# Create Workbook Output 
+#####################################################################################################################################
+wb <- createWorkbook()
+options("openxlsx.borderColour" = "#4F80BD")
+options("openxlsx.borderStyle" = "thin")
+modifyBaseFont(wb, fontSize = 10, fontName = "Calibri")
 
+addWorksheet(wb, sheetName = "journey_data", gridLines = FALSE)
+freezePane(wb, sheet = 1, firstRow = TRUE, firstCol = TRUE) ## freeze first row and column
+writeDataTable(wb, sheet = 1, x = journey_data, colNames = TRUE, rowNames = TRUE, tableStyle = "TableStyleLight9")
+
+saveWorkbook(wb, "testx1.xlsx", overwrite = TRUE) ## save to working directory
+
+# Process Timing
+######################################################################################################################################
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
 lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
 lastrunTime_baseline
+
