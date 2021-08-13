@@ -6,20 +6,22 @@ library(CausalImpact)
 library(openxlsx)
 library(openxlsx)
 require(ggplot2)
+library(googlesheets4)
+library(ggalt)
 
 #Test Token has been refreshed and is upto date.
 #aw_token()
 #rm(list = ls()) # Clear the environment before running the code
 monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
-aw_segments <- aw_get_segments(
+aw_segments_temp <- aw_get_segments(
   company_id = Sys.getenv("AW_COMPANY_ID"),
   rsids = Sys.getenv("AW_REPORTSUITE_ID"),
   segmentFilter = NA,
-  name = "journey",
+  name = NA,
   tagNames = NA,
   filterByPublishedSegments = "all",
-  limit = 10000,
+  limit = 1000,
   page = 0,
   sortDirection = "DESC",
   sortProperty = "modified_date",
@@ -29,16 +31,17 @@ aw_segments <- aw_get_segments(
 )
 
 #Last x days starting from yesterday
-date_range = c(Sys.Date() - 90, Sys.Date() - 1)
+date_range = c(Sys.Date() - 30, Sys.Date() - 1)
 #Function Calls Setup
 get_segment_data <- function(segment_id) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
-                                     segmentId = segment_id, # Segment Name: Membership Completion
-                                     prettynames = FALSE,
+                                     segmentId = segment_id, # catch passed segment ID to pull data against. 
+                                     prettynames = FALSE, # Don't change this as many following variables names depend on this naming
                                      metrics = c("visits","pageviews","visitors"))
   
 }
+
 calculate_means <- function(journey_data) {
   journey_data %>% arrange(desc(daterangeday)) %>%
     mutate(visit_change_day_pct_chg = (((visits))/lead(visits))-1)  %>%
@@ -53,25 +56,33 @@ calculate_means <- function(journey_data) {
 }
 #Set Date range for Adobe Data pull below
 
+journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
+
 #for loop test
-page_segments <- aw_segments %>% 
-  filter(owner == "200133838") %>% #my segment ID top x
-  slice(1:5)
+page_segments <- journey_segments_googlesheet %>% slice(1:1)
+# test dual/multiple segment IDs - 
+#page_segments2 <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "test")
+# Load Config Sheet - Journey tab
 
 #output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
 datalist = list()
 for (i in 1:nrow(page_segments)) {
       journey_data <- get_segment_data(page_segments$id[i])
-      journey_data$journey_name <- page_segments$name[i]
-      journey_data$journey_desc <- page_segments$description[i]
+      journey_data$journey_name <- page_segments$journey_name[i]
+      journey_data$journey_desc <- page_segments$journey_desc[i]
+      journey_data$segments_applied <- page_segments$id[i]
       journey_data <- calculate_means(journey_data)
       datalist[[i]] <- journey_data
 }
 journey_data <- data.table::rbindlist(datalist)
-journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name)
-  # Move Journey Name for neatness
+journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name) %>% relocate(segments_applied, .after =journey_name)
+# Move Journey Name for neatness
 
 # Sort by Date (Messy because of journey name)
+
+
+
+
 
 # Create Workbook Output 
 #####################################################################################################################################
