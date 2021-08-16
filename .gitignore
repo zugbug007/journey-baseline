@@ -32,3 +32,5 @@ causalimpactreference.nb.html
 *.xlsx
 causalimpactreference.Rmd
 *.xlsm
+*.png
+*.pdf

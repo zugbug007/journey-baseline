@@ -1,14 +1,16 @@
 library(adobeanalyticsr)
-library(tidyverse)
-library(kableExtra)
-library(zoo)
-library(CausalImpact)
-library(openxlsx)
-library(openxlsx)
-require(ggplot2)
-library(googlesheets4)
-library(ggalt)
-
+library(tidyverse)    
+library(kableExtra)   # Build neat tables to display complex data
+library(zoo)          # Time series manipulation and formatting
+library(CausalImpact) # Understand the Causal impact from the data
+library(openxlsx)     # Used for Exporting Excel docs
+require(ggplot2)      # Build Graphics
+library(googlesheets4)# Import and manipulate Google Sheets docs
+library(ggalt)        # Extend GGPLOT with ability to do dumbell plots
+library(flow)         # Draw Flow diagrams from the code
+library(plantuml)     # For use with Flow as alternative engine
+library(anomalize)    # Build Anomalies from the data
+library(rpivotTable)  # Build Pivot Tables
 #Test Token has been refreshed and is upto date.
 #aw_token()
 #rm(list = ls()) # Clear the environment before running the code
@@ -33,13 +35,15 @@ aw_segments_temp <- aw_get_segments(
 #Last x days starting from yesterday
 date_range = c(Sys.Date() - 30, Sys.Date() - 1)
 #Function Calls Setup
+#flow_view(aw_freeform_table, engine = "plantuml")
+
 get_segment_data <- function(segment_id) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
                                      segmentId = segment_id, # catch passed segment ID to pull data against. 
                                      prettynames = FALSE, # Don't change this as many following variables names depend on this naming
-                                     metrics = c("visits","pageviews","visitors"))
-  
+                                     metrics = c("visits","pageviews","visitors"),
+                                     debug = FALSE)
 }
 
 calculate_means <- function(journey_data) {
@@ -55,11 +59,9 @@ calculate_means <- function(journey_data) {
            visits_90_DA = zoo::rollmean(visits, k = 90, fill = NA, align ='left'))  %>% ungroup()
 }
 #Set Date range for Adobe Data pull below
-
+#flow_view(calculate_means, engine = "plantuml")
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
-
-#for loop test
-page_segments <- journey_segments_googlesheet %>% slice(1:1)
+page_segments <- journey_segments_googlesheet %>% slice(1:3)
 # test dual/multiple segment IDs - 
 #page_segments2 <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "test")
 # Load Config Sheet - Journey tab
@@ -67,22 +69,43 @@ page_segments <- journey_segments_googlesheet %>% slice(1:1)
 #output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
 datalist = list()
 for (i in 1:nrow(page_segments)) {
-      journey_data <- get_segment_data(page_segments$id[i])
+  segment_group = c()
+      segment_group <- as.character(page_segments$id[i])            # Pass the segment id of the first journey
+            if(!is.na(page_segments$secondary_segment_id[i])){      # This statement looks to see if a second segment is required to be applied
+              secondary_seg <- page_segments$secondary_segment_id[i]# to the journey, if it is add it to the group to be sent to the data request
+              segment_group <- c(segment_group, secondary_seg)      # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
+            }
+            
+            if(!is.na(page_segments$third_segment_id[i])){      # This statement looks to see if a second segment is required to be applied
+              third_seg <- page_segments$third_segment_id[i]# to the journey, if it is add it to the group to be sent to the data request
+              segment_group <- c(segment_group, third_seg)      # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
+            }
+      
+      segment_group <- c(segment_group)
+      journey_data <- get_segment_data(segment_group)
       journey_data$journey_name <- page_segments$journey_name[i]
       journey_data$journey_desc <- page_segments$journey_desc[i]
-      journey_data$segments_applied <- page_segments$id[i]
+      journey_data$journey_applied <- segment_group[1]
+      journey_data$secondary_segment_1_id <- segment_group[2]
+      segment_group <- NULL
+
+      # Calculations for Daily Averages for Visit Data
       journey_data <- calculate_means(journey_data)
-      datalist[[i]] <- journey_data
+      datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
 }
 journey_data <- data.table::rbindlist(datalist)
-journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name) %>% relocate(segments_applied, .after =journey_name)
+journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name) %>% relocate(journey_applied, .after =journey_name)
 # Move Journey Name for neatness
 
-# Sort by Date (Messy because of journey name)
 
 
 
 
+rpivotTable(journey_data)
+
+
+# Visualise the R Script
+flow_view("baseline.r")
 
 # Create Workbook Output 
 #####################################################################################################################################
