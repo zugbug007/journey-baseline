@@ -10,7 +10,7 @@
 aw_metrics <- aw_get_metrics()
 aw_dims <- aw_get_dimensions()
 aw_reportsuites <- aw_get_reportsuites()
-aw_calculatedmetrics <- aw_get_calculatedmetrics()
+aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
 aw_segments <- aw_get_segments(
   company_id = Sys.getenv("AW_COMPANY_ID"),
   rsids = Sys.getenv("AW_REPORTSUITE_ID"),
@@ -27,6 +27,21 @@ aw_segments <- aw_get_segments(
   debug = FALSE
 )
 
+aw_segments_temp <- aw_get_segments(
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  rsids = Sys.getenv("AW_REPORTSUITE_ID"),
+  segmentFilter = NA,
+  name = NA,
+  tagNames = NA,
+  filterByPublishedSegments = "all",
+  limit = 1000,
+  page = 0,
+  sortDirection = "DESC",
+  sortProperty = "modified_date",
+  expansion = NA,
+  includeType = "all",
+  debug = FALSE
+)
 
 pagestats <- aw_freeform_table(
   company_id = Sys.getenv("AW_COMPANY_ID"),

@@ -10,10 +10,10 @@
 library(tidyverse)
 library(tidyquant)
 library(ggalt)
+library(dplyr)
 
 # DATA ----
 mpg
-
 # 1.0 DATA WRANGLING ----
 # - Learn dplyr in R for Business Analysis DS4B 101-R Course
 

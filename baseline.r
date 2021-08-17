@@ -14,98 +14,95 @@ library(rpivotTable)  # Build Pivot Tables
 #Test Token has been refreshed and is upto date.
 #aw_token()
 #rm(list = ls()) # Clear the environment before running the code
-monitorStartTime_baseline <- Sys.time()
+#monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
-aw_segments_temp <- aw_get_segments(
-  company_id = Sys.getenv("AW_COMPANY_ID"),
-  rsids = Sys.getenv("AW_REPORTSUITE_ID"),
-  segmentFilter = NA,
-  name = NA,
-  tagNames = NA,
-  filterByPublishedSegments = "all",
-  limit = 1000,
-  page = 0,
-  sortDirection = "DESC",
-  sortProperty = "modified_date",
-  expansion = NA,
-  includeType = "all",
-  debug = FALSE
-)
-
+#aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
 #Last x days starting from yesterday
-date_range = c(Sys.Date() - 30, Sys.Date() - 1)
-#Function Calls Setup
-#flow_view(aw_freeform_table, engine = "plantuml")
+date_range = c(Sys.Date() - 90, Sys.Date() - 1)
 
-get_segment_data <- function(segment_id) {
+journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
+journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
+
+journey_segments <- journey_segments_googlesheet %>% slice(1:3)
+
+#Function Calls Setup
+get_segment_data <- function(segment_id, metrics) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
-                                     segmentId = segment_id, # catch passed segment ID to pull data against. 
-                                     prettynames = FALSE, # Don't change this as many following variables names depend on this naming
-                                     metrics = c("visits","pageviews","visitors"),
+                                     segmentId = segment_id, # catch passed segment IDs to pull data against. 
+                                     prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
+                                     metrics = metrics,  #  catch the group of metrics specified for this journey
                                      debug = FALSE)
 }
 
 calculate_means <- function(journey_data) {
-  journey_data %>% arrange(desc(daterangeday)) %>%
-    mutate(visit_change_day_pct_chg = (((visits))/lead(visits))-1)  %>%
-    mutate(pageviews_change_day_pct_chg = (((pageviews))/lead(pageviews))-1)  %>%
-    mutate(uniquevisitors_change_day_pct_chg = (((visitors))/lead(visitors))-1)  %>%
-    mutate(visits_3_DA = zoo::rollmean(visits, k = 3, fill = NA, align ='left'), 
-           visits_7_DA = zoo::rollmean(visits, k = 7, fill = NA, align ='left'), 
-           visits_14_DA = zoo::rollmean(visits, k = 14, fill = NA, align ='left'),
-           visits_30_DA = zoo::rollmean(visits, k = 30, fill = NA, align ='left'),
-           visits_60_DA = zoo::rollmean(visits, k = 60, fill = NA, align ='left'),
-           visits_90_DA = zoo::rollmean(visits, k = 90, fill = NA, align ='left'))  %>% ungroup()
+  journey_data %>% arrange(desc(Day)) %>%
+    mutate(visit_change_day_pct_chg = round((((Visits))/lead(Visits))-1,2))  %>%
+    mutate(pageviews_change_day_pct_chg = round((((`Page Views`))/lead(`Page Views`))-1,2))  %>%
+    mutate(uniquevisitors_change_day_pct_chg = round((((`Unique Visitors`))/lead(`Unique Visitors`))-1,2))  %>%
+    mutate(visits_3_DA = round(zoo::rollmean(Visits, k = 3, fill = NA, align ='left'),digits = 0), # Calculate Daily Averages from main metrics data.
+           visits_7_DA = round(zoo::rollmean(Visits, k = 7, fill = NA, align ='left'), digits = 0),
+           visits_14_DA = round(zoo::rollmean(Visits, k = 14, fill = NA, align ='left'),digits = 0),
+           visits_30_DA = round(zoo::rollmean(Visits, k = 30, fill = NA, align ='left'),digits = 0),
+           visits_60_DA = round(zoo::rollmean(Visits, k = 60, fill = NA, align ='left'),digits = 0),
+           visits_90_DA = round(zoo::rollmean(Visits, k = 90, fill = NA, align ='left'),digits = 0))  %>% ungroup()
 }
-#Set Date range for Adobe Data pull below
-#flow_view(calculate_means, engine = "plantuml")
-journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
-page_segments <- journey_segments_googlesheet %>% slice(1:3)
-# test dual/multiple segment IDs - 
-#page_segments2 <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "test")
-# Load Config Sheet - Journey tab
 
-#output <- as.data.frame(matrix(0, nrow(a), ncol(a) - 1))
 datalist = list()
-for (i in 1:nrow(page_segments)) {
+for (i in 1:nrow(journey_segments)) {
+
+metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
+
   segment_group = c()
-      segment_group <- as.character(page_segments$id[i])            # Pass the segment id of the first journey
-            if(!is.na(page_segments$secondary_segment_id[i])){      # This statement looks to see if a second segment is required to be applied
-              secondary_seg <- page_segments$secondary_segment_id[i]# to the journey, if it is add it to the group to be sent to the data request
-              segment_group <- c(segment_group, secondary_seg)      # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
+      segment_group <- as.character(journey_segments$id[i])                     # Pass the segment id of the first journey
+            if(!is.na(journey_segments$secondary_segment_id[i])){               # This statement looks to see if a second segment is required to be applied
+              secondary_seg <- journey_segments$secondary_segment_id[i]         # to the journey, if it is add it to the group to be sent to the data request
+              secondary_seg_name <- journey_segments$secondary_segment_name[i]  # add name of the segment for readability
+              segment_group <- c(segment_group, secondary_seg)                  # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
             }
             
-            if(!is.na(page_segments$third_segment_id[i])){      # This statement looks to see if a second segment is required to be applied
-              third_seg <- page_segments$third_segment_id[i]# to the journey, if it is add it to the group to be sent to the data request
-              segment_group <- c(segment_group, third_seg)      # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
+            if(!is.na(journey_segments$third_segment_id[i])){                   # This statement looks to see if a third segment is required to be applied
+              third_seg <- journey_segments$third_segment_id[i]                 # to the journey, if it is add it to the group to be sent to the data request
+              third_seg_name <- journey_segments$third_segment_name[i]
+              segment_group <- c(segment_group, third_seg)                      # segments are AND'ed together as if they were added to the header of an Analysis Workspace panel. 
             }
       
       segment_group <- c(segment_group)
-      journey_data <- get_segment_data(segment_group)
-      journey_data$journey_name <- page_segments$journey_name[i]
-      journey_data$journey_desc <- page_segments$journey_desc[i]
+      journey_data <- get_segment_data(segment_group, metrics_list)
+      journey_data$journey_name <- journey_segments$journey_name[i]
+      journey_data$journey_desc <- journey_segments$journey_desc[i]
       journey_data$journey_applied <- segment_group[1]
-      journey_data$secondary_segment_1_id <- segment_group[2]
-      segment_group <- NULL
+      journey_data$secondary_segment_1_name <- journey_segments$secondary_segment_name[i]
+      journey_data$secondary_segment_2_name <- journey_segments$third_segment_name[i]
+      
+      segment_group <- NULL                                                     # Clear the segment group at the end of the loop
 
       # Calculations for Daily Averages for Visit Data
       journey_data <- calculate_means(journey_data)
       datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
 }
 journey_data <- data.table::rbindlist(datalist)
-journey_data <- journey_data %>% relocate(journey_name, .after = daterangeday) %>% relocate(journey_desc, .after = journey_name) %>% relocate(journey_applied, .after =journey_name)
-# Move Journey Name for neatness
 
 
+journey_data <- journey_data %>%        # Organise column order for data clarity
+  relocate(journey_name, .after = Day) %>% 
+  relocate(journey_desc, .after = journey_name) %>% 
+  relocate(journey_applied, .after =journey_desc) %>%
+  relocate(secondary_segment_1_name, .after = journey_applied) %>%
+  relocate(secondary_segment_2_name, .after = secondary_segment_1_name)
 
 
+# Create new table with all pre-change metrics 
+pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
 
-rpivotTable(journey_data)
+#Output to the Google Sheet
+write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+
+#rpivotTable(journey_data)
 
 
 # Visualise the R Script
-flow_view("baseline.r")
+#flow_view("baseline.r")
 
 # Create Workbook Output 
 #####################################################################################################################################
@@ -118,8 +115,9 @@ addWorksheet(wb, sheetName = "journey_data", gridLines = FALSE)
 freezePane(wb, sheet = 1, firstRow = TRUE, firstCol = TRUE) ## freeze first row and column
 writeDataTable(wb, sheet = 1, x = journey_data, colNames = TRUE, rowNames = TRUE, tableStyle = "TableStyleLight9")
 
-saveWorkbook(wb, "testx1.xlsx", overwrite = TRUE) ## save to working directory
+saveWorkbook(wb, "journey_data.xlsx", overwrite = TRUE) ## save to working directory
 
+#writexl::write_xlsx(aw_calculatedmetrics, path = "cal_metrics.xlsx")
 # Process Timing
 ######################################################################################################################################
 monitorEndTime_baseline <- Sys.time()

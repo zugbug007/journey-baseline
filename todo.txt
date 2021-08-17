@@ -2,9 +2,10 @@ Category will be required for Before or After journey type and need to be added 
 Add category in custom segment data pull when journey groups have been created
 Segment naming convension to be defined but must include sercahable and idetifiable way of pulling before/after segements by journey or category type.
 
-Add functionality to enable two segments to be ANDed together for a data pull against a journey.
+Add journey to be compared against
+Add normalisation routines
+Add visuals for before /after
 
-Google sheet setup for main segement data and journey groupings. 
 
 Animate any journey using 
 https://www.connorrothschild.com/post/tidy-tuesday-powerlifting
