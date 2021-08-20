@@ -18,18 +18,26 @@ library(rpivotTable)  # Build Pivot Tables
 #delete the aa.auth file in WD if issues
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
 #Last x days starting from yesterday
-date_range = c(Sys.Date() - 90, Sys.Date() - 1)
+pre_start_date <- Sys.Date() - 180
+pre_end_date <- Sys.Date() - 91
+pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
+# Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
+post_start_date <- Sys.Date() - 90
+post_end_date <- Sys.Date() - 1
+post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
+  
+  
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
 journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
 
-journey_segments <- journey_segments_googlesheet %>% slice(1:3)
+journey_segments <- journey_segments_googlesheet %>% slice(1:36)
 
 #Function Calls Setup
-get_segment_data <- function(segment_id, metrics) {
+get_segment_data <- function(segment_ids, metrics, date_range) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
-                                     segmentId = segment_id, # catch passed segment IDs to pull data against. 
+                                     segmentId = segment_ids, # catch passed segment IDs to pull data against. 
                                      prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
                                      metrics = metrics,  #  catch the group of metrics specified for this journey
                                      debug = FALSE)
@@ -37,22 +45,28 @@ get_segment_data <- function(segment_id, metrics) {
 
 calculate_means <- function(journey_data) {
   journey_data %>% arrange(desc(Day)) %>%
-    mutate(visit_change_day_pct_chg = round((((Visits))/lead(Visits))-1,2))  %>%
-    mutate(pageviews_change_day_pct_chg = round((((`Page Views`))/lead(`Page Views`))-1,2))  %>%
-    mutate(uniquevisitors_change_day_pct_chg = round((((`Unique Visitors`))/lead(`Unique Visitors`))-1,2))  %>%
-    mutate(visits_3_DA = round(zoo::rollmean(Visits, k = 3, fill = NA, align ='left'),digits = 0), # Calculate Daily Averages from main metrics data.
+    #mutate(visit_change_day_pct_chg = round((((Visits))/lead(Visits))-1, digits = 2))  %>%
+    #mutate(pageviews_change_day_pct_chg = round((((`Page Views`))/lead(`Page Views`))-1, digits = 2))  %>%
+    #mutate(uniquevisitors_change_day_pct_chg = round((((`Unique Visitors`))/lead(`Unique Visitors`))-1, digits = 2))  %>%
+    mutate(visits_3_DA = round(zoo::rollmean(Visits, k = 3, fill = NA, align ='left'), digits = 0), # Calculate Daily Averages from main metrics data.
            visits_7_DA = round(zoo::rollmean(Visits, k = 7, fill = NA, align ='left'), digits = 0),
-           visits_14_DA = round(zoo::rollmean(Visits, k = 14, fill = NA, align ='left'),digits = 0),
-           visits_30_DA = round(zoo::rollmean(Visits, k = 30, fill = NA, align ='left'),digits = 0),
-           visits_60_DA = round(zoo::rollmean(Visits, k = 60, fill = NA, align ='left'),digits = 0),
-           visits_90_DA = round(zoo::rollmean(Visits, k = 90, fill = NA, align ='left'),digits = 0))  %>% ungroup()
+           visits_14_DA = round(zoo::rollmean(Visits, k = 14, fill = NA, align ='left'), digits = 0),
+           visits_30_DA = round(zoo::rollmean(Visits, k = 30, fill = NA, align ='left'), digits = 0),
+           visits_60_DA = round(zoo::rollmean(Visits, k = 60, fill = NA, align ='left'), digits = 0),
+           visits_90_DA = round(zoo::rollmean(Visits, k = 90, fill = NA, align ='left'), digits = 0))  %>% ungroup()
 }
 
 datalist = list()
 for (i in 1:nrow(journey_segments)) {
-
+  
 metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
-
+            if(journey_segments$journey_type[i] == "pre") {
+              date_range <- pre_date_range  
+            }
+            if(journey_segments$journey_type[i] =="post") {
+              date_range <- post_date_range
+            }
+  
   segment_group = c()
       segment_group <- as.character(journey_segments$id[i])                     # Pass the segment id of the first journey
             if(!is.na(journey_segments$secondary_segment_id[i])){               # This statement looks to see if a second segment is required to be applied
@@ -68,7 +82,8 @@ metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, i
             }
       
       segment_group <- c(segment_group)
-      journey_data <- get_segment_data(segment_group, metrics_list)
+      journey_data <- get_segment_data(segment_group, metrics_list, date_range)
+      journey_data$journey_type <- journey_segments$journey_type[i]
       journey_data$journey_name <- journey_segments$journey_name[i]
       journey_data$journey_desc <- journey_segments$journey_desc[i]
       journey_data$journey_applied <- segment_group[1]
@@ -80,12 +95,14 @@ metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, i
       # Calculations for Daily Averages for Visit Data
       journey_data <- calculate_means(journey_data)
       datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
+      print(journey_segments$journey_name[i])
 }
 journey_data <- data.table::rbindlist(datalist)
-
+#journey_data
 
 journey_data <- journey_data %>%        # Organise column order for data clarity
   relocate(journey_name, .after = Day) %>% 
+  relocate(journey_type, .before = journey_name) %>%
   relocate(journey_desc, .after = journey_name) %>% 
   relocate(journey_applied, .after =journey_desc) %>%
   relocate(secondary_segment_1_name, .after = journey_applied) %>%
@@ -93,7 +110,7 @@ journey_data <- journey_data %>%        # Organise column order for data clarity
 
 
 # Create new table with all pre-change metrics 
-pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
+#pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
 
 #Output to the Google Sheet
 write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
@@ -102,7 +119,7 @@ write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc
 
 
 # Visualise the R Script
-#flow_view("baseline.r")
+flow_view("baseline.r")
 
 # Create Workbook Output 
 #####################################################################################################################################
@@ -125,3 +142,11 @@ monitorEndTime_baseline <- Sys.time()
 lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
 lastrunTime_baseline
 
+# date_range = c(Sys.Date() - 366, Sys.Date() - 1)
+# Sam <- adobeanalyticsr::aw_freeform_table(date_range = date_range,
+#                                    dimensions = "daterangeday",
+#                                    segmentId = "s1957_611e66cab501e00d15ba4e3f", # catch passed segment IDs to pull data against. 
+#                                    prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
+#                                    metrics = metrics_list,  #  catch the group of metrics specified for this journey
+#                                    debug = FALSE)
+# write_sheet(Sam, ss=NULL, sheet = NULL)
