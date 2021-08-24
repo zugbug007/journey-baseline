@@ -14,12 +14,12 @@ library(rpivotTable)  # Build Pivot Tables
 #Test Token has been refreshed and is upto date.
 #aw_token()
 #rm(list = ls()) # Clear the environment before running the code
-#monitorStartTime_baseline <- Sys.time()
+monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
 #Last x days starting from yesterday
 pre_start_date <- Sys.Date() - 180
-pre_end_date <- Sys.Date() - 91
+pre_end_date <- Sys.Date() - 90
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
@@ -31,7 +31,7 @@ post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
 journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
 
-journey_segments <- journey_segments_googlesheet %>% slice(1:36)
+journey_segments <- journey_segments_googlesheet #%>% slice(1:3)
 
 #Function Calls Setup
 get_segment_data <- function(segment_ids, metrics, date_range) {
@@ -45,9 +45,9 @@ get_segment_data <- function(segment_ids, metrics, date_range) {
 
 calculate_means <- function(journey_data) {
   journey_data %>% arrange(desc(Day)) %>%
-    #mutate(visit_change_day_pct_chg = round((((Visits))/lead(Visits))-1, digits = 2))  %>%
-    #mutate(pageviews_change_day_pct_chg = round((((`Page Views`))/lead(`Page Views`))-1, digits = 2))  %>%
-    #mutate(uniquevisitors_change_day_pct_chg = round((((`Unique Visitors`))/lead(`Unique Visitors`))-1, digits = 2))  %>%
+    mutate(visit_change_day_pct_chg = ifelse(lead(Visits) < 1, 0, signif((((Visits))/lead(Visits))-1, 2))) %>%
+    mutate(pageviews_change_day_pct_chg = ifelse(lead(`Page Views`) < 1, 0, signif((((`Page Views`))/lead(`Page Views`))-1, 2))) %>%
+    mutate(uniquevisitors_change_day_pct_chg = ifelse(lead(`Unique Visitors`) < 1, 0, signif((((`Unique Visitors`))/lead(`Unique Visitors`))-1, 2))) %>%
     mutate(visits_3_DA = round(zoo::rollmean(Visits, k = 3, fill = NA, align ='left'), digits = 0), # Calculate Daily Averages from main metrics data.
            visits_7_DA = round(zoo::rollmean(Visits, k = 7, fill = NA, align ='left'), digits = 0),
            visits_14_DA = round(zoo::rollmean(Visits, k = 14, fill = NA, align ='left'), digits = 0),
@@ -57,8 +57,9 @@ calculate_means <- function(journey_data) {
 }
 
 datalist = list()
+journey_count <- nrow(journey_segments)
 for (i in 1:nrow(journey_segments)) {
-  
+# Build list of metrics from row item (metric group) in the config table
 metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
             if(journey_segments$journey_type[i] == "pre") {
               date_range <- pre_date_range  
@@ -66,7 +67,7 @@ metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, i
             if(journey_segments$journey_type[i] =="post") {
               date_range <- post_date_range
             }
-  
+# Select the correct date range for the journey. Get pre/post value from the row item in the config table and select the correct one to be fed into the data pull request.
   segment_group = c()
       segment_group <- as.character(journey_segments$id[i])                     # Pass the segment id of the first journey
             if(!is.na(journey_segments$secondary_segment_id[i])){               # This statement looks to see if a second segment is required to be applied
@@ -95,7 +96,7 @@ metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, i
       # Calculations for Daily Averages for Visit Data
       journey_data <- calculate_means(journey_data)
       datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
-      print(journey_segments$journey_name[i])
+      print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i]))
 }
 journey_data <- data.table::rbindlist(datalist)
 #journey_data
@@ -113,13 +114,22 @@ journey_data <- journey_data %>%        # Organise column order for data clarity
 #pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
 
 #Output to the Google Sheet
-write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+ write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
 
 #rpivotTable(journey_data)
 
 
 # Visualise the R Script
-flow_view("baseline.r")
+#flow_view("baseline.r")
+
+
+# Process Timing
+######################################################################################################################################
+monitorEndTime_baseline <- Sys.time()
+# Write out to the console how long it took for the entire process to run.
+lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
+lastrunTime_baseline
+
 
 # Create Workbook Output 
 #####################################################################################################################################
@@ -135,12 +145,6 @@ writeDataTable(wb, sheet = 1, x = journey_data, colNames = TRUE, rowNames = TRUE
 saveWorkbook(wb, "journey_data.xlsx", overwrite = TRUE) ## save to working directory
 
 #writexl::write_xlsx(aw_calculatedmetrics, path = "cal_metrics.xlsx")
-# Process Timing
-######################################################################################################################################
-monitorEndTime_baseline <- Sys.time()
-# Write out to the console how long it took for the entire process to run.
-lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
-lastrunTime_baseline
 
 # date_range = c(Sys.Date() - 366, Sys.Date() - 1)
 # Sam <- adobeanalyticsr::aw_freeform_table(date_range = date_range,
