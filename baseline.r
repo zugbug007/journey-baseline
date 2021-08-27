@@ -31,22 +31,35 @@ post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
 journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
 
-journey_segments <- journey_segments_googlesheet #%>% slice(1:3)
+journey_segments <- journey_segments_googlesheet %>% slice(1:36)
 
 #Function Calls Setup
 get_segment_data <- function(segment_ids, metrics, date_range) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
-                                     segmentId = segment_ids, # catch passed segment IDs to pull data against. 
-                                     prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
-                                     metrics = metrics,  #  catch the group of metrics specified for this journey
+                                     segmentId = segment_ids, # catch passed comma separated vector segment IDs group to pull data against. 
+                                     prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
+                                     metrics = metrics,       # catch the comma separated vector group of metrics specified for this journey
+                                     debug = FALSE
+  )
+  
+}
+
+get_anomaly_data <- function(segment_ids, metrics, data_range){
+  adobeanalyticsr::aw_anomaly_report(date_range = date_range,
+                                     metrics = "pageviews",
+                                     segmentId = segment_ids,
+                                     granularity = "day",
+                                     quickView = FALSE,
+                                     anomalyDetection = TRUE,
+                                     countRepeatInstances = TRUE,
                                      debug = FALSE)
 }
 
 calculate_means <- function(journey_data) {
   journey_data %>% arrange(desc(Day)) %>%
-    mutate(visit_change_day_pct_chg = ifelse(lead(Visits) < 1, 0, signif((((Visits))/lead(Visits))-1, 2))) %>%
-    mutate(pageviews_change_day_pct_chg = ifelse(lead(`Page Views`) < 1, 0, signif((((`Page Views`))/lead(`Page Views`))-1, 2))) %>%
+    mutate(visit_change_day_pct_chg = ifelse(lead(Visits) < 1, 0, signif((((Visits))/lead(Visits))-1, 2))) %>%                          # Calculation creates new column and checks that value to be divided by is not 0, 
+    mutate(pageviews_change_day_pct_chg = ifelse(lead(`Page Views`) < 1, 0, signif((((`Page Views`))/lead(`Page Views`))-1, 2))) %>%    # if zero then calculation result is set to 0 then rounds to 2 D.P.
     mutate(uniquevisitors_change_day_pct_chg = ifelse(lead(`Unique Visitors`) < 1, 0, signif((((`Unique Visitors`))/lead(`Unique Visitors`))-1, 2))) %>%
     mutate(visits_3_DA = round(zoo::rollmean(Visits, k = 3, fill = NA, align ='left'), digits = 0), # Calculate Daily Averages from main metrics data.
            visits_7_DA = round(zoo::rollmean(Visits, k = 7, fill = NA, align ='left'), digits = 0),
@@ -91,11 +104,23 @@ metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, i
       journey_data$secondary_segment_1_name <- journey_segments$secondary_segment_name[i]
       journey_data$secondary_segment_2_name <- journey_segments$third_segment_name[i]
       
+      # anomaly_data <- get_anomaly_data(segment_group, metrics_list, date_range)
+      # anomaly_data$journey_type
+      # anomaly_data$journey_type <- journey_segments$journey_type[i]
+      # anomaly_data$journey_name <- journey_segments$journey_name[i]
+      # anomaly_data$journey_desc <- journey_segments$journey_desc[i]
+      # anomaly_data$journey_applied <- segment_group[1]
+      # anomaly_data$secondary_segment_1_name <- journey_segments$secondary_segment_name[i]
+      # anomaly_data$secondary_segment_2_name <- journey_segments$third_segment_name[i]
+      
       segment_group <- NULL                                                     # Clear the segment group at the end of the loop
+
+
 
       # Calculations for Daily Averages for Visit Data
       journey_data <- calculate_means(journey_data)
       datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
+     
       print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i]))
 }
 journey_data <- data.table::rbindlist(datalist)
@@ -114,10 +139,91 @@ journey_data <- journey_data %>%        # Organise column order for data clarity
 #pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
 
 #Output to the Google Sheet
- write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+ #write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
 
 #rpivotTable(journey_data)
 
+
+library(dplyr)
+library(ggplot2)
+ggplot(journey_data) +
+ aes(x = Day, y = Visits, group = journey_type) +
+ geom_line(size = 0.5, colour = "#112446") +
+ theme_minimal() +
+ facet_wrap(vars(journey_name))
+
+journey_data %>%
+ filter(journey_type %in% "pre") %>%
+ ggplot() +
+ aes(x = Day, y = Visits, colour = journey_type) +
+ geom_line(size = 0.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
+
+ggplot(journey_data) +
+ aes(x = Day, y = Visits, colour = journey_type) +
+ geom_line(size = 0.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
+
+journey_data %>%
+ filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+ ggplot() +
+ aes(x = Day, y = Visits, colour = journey_type) +
+ geom_line(size = 0.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free_x", ncol = 10L, nrow = 10L)
+
+journey_data %>%
+ filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+ ggplot() +
+ aes(x = Day, y = Visits, colour = journey_type) +
+ geom_line(size = 0.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free_x", ncol = 10L, nrow = 10L)
+
+journey_data %>%
+ filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+ ggplot() +
+ aes(x = Day, y = `Unique Visitors`, colour = journey_type) +
+ geom_line(size = 0.5) +
+ scale_color_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free_x", 
+ ncol = 10L, nrow = 10L)
+
+journey_data %>%
+ filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+ ggplot() +
+ aes(x = Day, y = visit_change_day_pct_chg, fill = journey_type) +
+ geom_area(size = 1.5) +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(journey_name), scales = "free_x", 
+ ncol = 10L, nrow = 10L)
+
+
+
+data <- anomaly_data %>% dplyr::filter(metric == 'pageviews')
+table <- anomaly_data %>% dplyr::filter(metric == 'pageviews' & dataAnomalyDetected == T)
+anomaly_data %>%
+  dplyr::filter(metric == 'pageviews') %>%
+  ggplot2::ggplot(aes_string(x = "day")) +
+  ggplot2::geom_line(aes_string( y = 'data')) +
+  ggplot2::geom_point(data = anomaly_data %>% dplyr::filter(metric == 'pageviews' & dataAnomalyDetected == T),
+                      ggplot2::aes_string(y ='data')) +
+  ggplot2::geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  ggplot2::labs(title = 'pageviews',
+                subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == 'pageviews' & dataAnomalyDetected == T)), ' anomalies.'),
+                caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == 'pageviews' & dataAnomalyDetected == T)), ' anomalies.')) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  ggplot2::scale_y_continuous(labels = scales::comma) +
+  ggplot2::expand_limits(y=0)
 
 # Visualise the R Script
 #flow_view("baseline.r")
