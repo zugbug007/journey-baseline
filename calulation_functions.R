@@ -11,8 +11,8 @@ dat <- aw_anomaly_report(
 
 
 anomaly_data <- aw_anomaly_report(
-  date_range = date_range,
-  metrics = "pageviews",
+  date_range = post_date_range,
+  metrics = "visits",
   granularity = "day",
   segmentId = NA,
   quickView = FALSE,
