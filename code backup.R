@@ -200,3 +200,15 @@ anomaly_data <- aw_anomaly_report(
   countRepeatInstances = TRUE,
   debug = FALSE
 )
+
+
+relative_change %>% dplyr::filter(journey_name == "ALL Visits") %>% 
+  ggplot2::ggplot(aes_string(x = "Day")) +
+  ggplot2::geom_line(aes_string( y = 'diff_to_mean')) +
+  ggplot2::geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype=4, lwd = .8, alpha=0.5) +
+  geom_hline(yintercept=0, linetype=3, col = 'blue', lwd = .8, alpha=0.5) +# annotate("text", x = 0, y= as.Date(pre_end_date, "%Y-%m-%d"), label = "Baseline", vjust = -0.5) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  ggplot2::scale_y_continuous(labels = scales::comma) +
+  ggplot2::expand_limits(y=0) +
+  ggplot2::facet_wrap(~journey_name, dir = "v")

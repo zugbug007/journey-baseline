@@ -14,7 +14,7 @@ library(anomalize)    # Build Anomalies from the data
 library(rpivotTable)  # Build Pivot Tables
 library(forecast)     # Use the TSOutliers function to detect anomalies in the data set: https://robjhyndman.com/hyndsight/tsoutliers/
 library(plotly)       # Plotly for interactive graphs
-
+library(scales)       # Format labels as percents
 #Test Token has been refreshed and is upto date.
 #aw_token()
 #rm(list = ls()) # Clear the environment before running the code
@@ -143,7 +143,8 @@ journey_data <- data.table::rbindlist(journey_datalist, fill = TRUE)
 anomaly_data <- data.table::rbindlist(anomaly_datalist, fill = TRUE)
 #journey_data
 
-journey_data <- journey_data %>%        # Organise column order for data clarity
+# Organise column order for data clarity
+journey_data <- journey_data %>%        
   relocate(journey_name, .after = Day) %>% 
   relocate(journey_type, .before = journey_name) %>%
   relocate(journey_desc, .after = journey_name) %>% 
@@ -151,10 +152,16 @@ journey_data <- journey_data %>%        # Organise column order for data clarity
   relocate(secondary_segment_1_name, .after = journey_applied) %>%
   relocate(secondary_segment_2_name, .after = secondary_segment_1_name)
 
-
 # Calculations
-pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,                                                                                                         `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "pre", .after = "journey_name")
-post_baseline <- journey_data %>% filter(journey_type=="post") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,                                                                                                                `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "post", .after = "journey_name")
+pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% 
+  group_by(journey_name) %>% 
+  summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` , `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
+  add_column(journey_type = "pre", .after = "journey_name")
+
+post_baseline <- journey_data %>% filter(journey_type=="post") %>% 
+  group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,`% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
+  add_column(journey_type = "post", .after = "journey_name")
+
 baseline <- rbind(pre_baseline, post_baseline)
 
 db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
@@ -164,6 +171,7 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   ) %>% arrange(desc(post)) %>%
   mutate(journey_name = fct_reorder(journey_name, post))
 
+# TODO Create a difference column %
 db1 <- db_plot_data %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
   geom_dumbbell(colour="#a3c4dc", 
@@ -182,6 +190,36 @@ db1 <- db_plot_data %>%
   )
 db1
 
+
+# Relative Percentage Change with Baseline Visits Averages Pre/Post
+
+relative_change <- journey_data %>% 
+  select(Day, journey_type, journey_name, Visits) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), Day, journey_type) %>% 
+  right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
+  select(Day, journey_type, journey_name, Visits, Visits_mean) %>% 
+  mutate(diff_to_mean = ((Visits - Visits_mean)/Visits_mean))
+
+relative_change %>%
+  filter(journey_name %in% c("ALL Mobile", "ALL Visits", "ALL Tablet", "ALL SEO")) %>%
+  ggplot() +
+  aes(x = Day, y = diff_to_mean, colour = journey_name) +
+  geom_line(size = 0.5) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype=4, lwd = .8, alpha=0.5) +
+  geom_hline(yintercept=0, linetype=3, col = 'blue', lwd = .8, alpha=0.5) +
+    scale_color_hue(direction = 1) +
+  labs(
+    x = "90 Days Pre & 90 Days Post",
+    y = "% Change Relative to Baseline",
+    title = "Percentage Change Relative to Baseline",
+    subtitle = "Baseline Pre & Post CMS Launch",
+    caption = "% Change Relative to Baseline"
+  ) +
+  theme_bw() +
+  scale_y_continuous(labels = percent) +
+  facet_wrap(vars(journey_name), scales = "free", ncol = 2L)
+
 monitorEndTime_baseline <- Sys.time()
 # WAIT BEFORE WRITING TO GSHEET!
 view(journey_data)
@@ -191,18 +229,19 @@ view(anomaly_data)
 
 # Loop Required or Facet Wrap
 
-anomaly_subset <- anomaly_data %>% filter(journey_name == "ALL Social" & metric == 'visits')     # Subset the anomaly data for journey and metric
-plot_journey_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(journey_name)        # Get the journey name from the first row
-anomaly_subset %>% dplyr::filter(metric == 'visits' & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+anomaly_subset <- anomaly_data %>% filter(journey_name == "ALL Visits" & metric == 'visits')      # Subset the anomaly data for journey and metric
+plot_journey_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(journey_name)            # Get the journey name from the first row
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                   # Get the metric name from the first row
+anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
   ggplot2::ggplot(aes_string(x = "day")) +
   ggplot2::geom_line(aes_string( y = 'data')) +
-  ggplot2::geom_point(data = anomaly_data %>% dplyr::filter(metric == 'visits' & dataAnomalyDetected == T & journey_name == plot_journey_name),
+  ggplot2::geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
                       ggplot2::aes_string(y ='data')) +
   ggplot2::geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
   ggplot2::geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype=4, lwd = .8, alpha=0.5) +
   ggplot2::labs(title = plot_journey_name,
-                subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == 'visits' & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
-                caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == 'visits' & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+                subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
+                caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
   ggplot2::theme_bw() +
   ggplot2::theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
   ggplot2::scale_y_continuous(labels = scales::comma) +
