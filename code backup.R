@@ -127,3 +127,76 @@ category_segments <- aw_get_segments(
   includeType = "all",
   debug = FALSE
 )
+
+
+db1 <- db_plot_data %>% 
+  ggplot(aes(x = pre, xend = post, y = journey_name)) +
+  geom_dumbbell(colour="#a3c4dc", colour_xend="#0e668b", size=4.0, dot_guide=TRUE, dot_guide_size=0.15, dot_guide_colour = "grey60")+
+  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs.Post Baseline (Visits)", y = "Journey Name") +
+  theme_tq() +
+  theme(
+    panel.grid.minor=element_blank(),
+    panel.grid.major.y=element_blank(),
+    panel.grid.major.x=element_line(),
+    axis.ticks=element_blank(),
+    panel.border=element_blank()
+  )
+db1
+
+
+
+
+
+library(dplyr)
+library(ggplot2)
+ggplot(journey_data) +
+  aes(x = Day, y = Visits, group = journey_type) +
+  geom_line(size = 0.5, colour = "#112446") +
+  theme_minimal() +
+  facet_wrap(vars(journey_name))
+
+journey_data %>%
+  filter(journey_type %in% "pre") %>%
+  ggplot() +
+  aes(x = Day, y = Visits, colour = journey_type) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
+
+ggplot(journey_data) +
+  aes(x = Day, y = Visits, colour = journey_type) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
+
+journey_data %>%
+  filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+  ggplot() +
+  aes(x = Day, y = Visits, colour = journey_type) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(journey_name), scales = "free_x", ncol = 10L, nrow = 10L)
+
+journey_data %>%
+  filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
+  ggplot() +
+  aes(x = Day, y = visit_change_day_pct_chg, fill = journey_type) +
+  geom_area(size = 1.5) +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(journey_name), scales = "free_x", 
+             ncol = 10L, nrow = 10L)
+
+anomaly_data <- aw_anomaly_report(
+  date_range = post_date_range,
+  metrics = "visits",
+  granularity = "day",
+  segmentId = NA,
+  quickView = FALSE,
+  anomalyDetection = TRUE,
+  countRepeatInstances = TRUE,
+  debug = FALSE
+)

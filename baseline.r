@@ -79,6 +79,17 @@ journey_count <- nrow(journey_segments)
 for (i in 1:nrow(journey_segments)) {
   # Build list of metrics from row item (metric group) in the config table
   metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
+  # add the proxy metrics if the metric group is not group 1
+  if (!'visits' %in% metrics_list) {
+    metrics_list <- append(metrics_list, 'visits', after = 0)
+    if (!'pageviews' %in% metrics_list){
+      metrics_list <- append(metrics_list, 'pageviews', after = 1)
+      if(!'visitors' %in% metrics_list){
+        metrics_list <- append(metrics_list, 'visitors', after = 2)
+      }
+    }
+  }
+
   if(journey_segments$journey_type[i] == "pre") {
     date_range <- pre_date_range  
   }
@@ -118,16 +129,18 @@ for (i in 1:nrow(journey_segments)) {
   anomaly_data$secondary_segment_2_name <- journey_segments$third_segment_name[i]
   
   segment_group <- NULL                                                     # Clear the segment group at the end of the loop
-  
+  metrics_list <- NULL
   # Calculations for Daily Averages for Visit Data
   journey_data <- calculate_means(journey_data)
   journey_datalist[[i]] <- journey_data # if this statement fails, something above this did not work.
   anomaly_datalist[[i]] <- anomaly_data
   
   print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i]))
+
 }
-journey_data <- data.table::rbindlist(journey_datalist)
-anomaly_data <- data.table::rbindlist(anomaly_datalist)
+
+journey_data <- data.table::rbindlist(journey_datalist, fill = TRUE)
+anomaly_data <- data.table::rbindlist(anomaly_datalist, fill = TRUE)
 #journey_data
 
 journey_data <- journey_data %>%        # Organise column order for data clarity
@@ -140,36 +153,25 @@ journey_data <- journey_data %>%        # Organise column order for data clarity
 
 
 # Calculations
-test_mutate <- journey_data %>% filter(journey_type=="pre") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` , 
-                                                                                                              `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "pre", .after = "journey_name")
-test_mutate2 <- journey_data %>% filter(journey_type=="post") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` , 
-                                                                                                                `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "post", .after = "journey_name")
-test_mutate3 <- rbind(test_mutate, test_mutate2)
+pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,                                                                                                         `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "pre", .after = "journey_name")
+post_baseline <- journey_data %>% filter(journey_type=="post") %>% group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,                                                                                                                `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% add_column(journey_type = "post", .after = "journey_name")
+baseline <- rbind(pre_baseline, post_baseline)
 
-tm3 <- test_mutate3 %>% select(journey_name, journey_type, Visits_mean) %>% 
+db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
   pivot_wider(
     names_from = journey_type,
     values_from = 'Visits_mean'
   ) %>% arrange(desc(post)) %>%
   mutate(journey_name = fct_reorder(journey_name, post))
 
-g1 <- tm3 %>% 
+db1 <- db_plot_data %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
-  geom_dumbbell(
-    colour="#a3c4dc",
-    colour_xend="#0e668b",
-    size=4.0,
-    dot_guide=TRUE,
-    dot_guide_size=0.15,
-    dot_guide_colour = "grey60"
-  )
-
-g1
-g2 <- g1 +
-  labs(
-    title = "Baseline Journey Comparison from Before & After CMS Launch",
-    x="Pre vs.Post Baseline (Visits)", y = "Journey Name"
-  ) +
+  geom_dumbbell(colour="#a3c4dc", 
+                colour_xend="#0e668b", 
+                size=4.0, dot_guide=TRUE, 
+                dot_guide_size=0.15, 
+                dot_guide_colour = "grey60")+
+  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs.Post Baseline (Visits)", y = "Journey Name") +
   theme_tq() +
   theme(
     panel.grid.minor=element_blank(),
@@ -178,76 +180,14 @@ g2 <- g1 +
     axis.ticks=element_blank(),
     panel.border=element_blank()
   )
-g2
+db1
 
+monitorEndTime_baseline <- Sys.time()
 # WAIT BEFORE WRITING TO GSHEET!
 view(journey_data)
 view(anomaly_data)
 # WAIT BEFORE WRITING TO GSHEET!
 
-# Create new table with all pre-change metrics 
-#pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
-
-#Outputs to the Google Sheet
-write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
-write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
-
-#rpivotTable(journey_data)
-
-
-library(dplyr)
-library(ggplot2)
-ggplot(journey_data) +
-  aes(x = Day, y = Visits, group = journey_type) +
-  geom_line(size = 0.5, colour = "#112446") +
-  theme_minimal() +
-  facet_wrap(vars(journey_name))
-
-journey_data %>%
-  filter(journey_type %in% "pre") %>%
-  ggplot() +
-  aes(x = Day, y = Visits, colour = journey_type) +
-  geom_line(size = 0.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
-
-ggplot(journey_data) +
-  aes(x = Day, y = Visits, colour = journey_type) +
-  geom_line(size = 0.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 10L, nrow = 10L)
-
-journey_data %>%
-  filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
-  ggplot() +
-  aes(x = Day, y = Visits, colour = journey_type) +
-  geom_line(size = 0.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(journey_name), scales = "free_x", ncol = 10L, nrow = 10L)
-
-journey_data %>%
-  filter(journey_name %in% c("ALL Visits", "ALL Visits - New Site")) %>%
-  ggplot() +
-  aes(x = Day, y = visit_change_day_pct_chg, fill = journey_type) +
-  geom_area(size = 1.5) +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(journey_name), scales = "free_x", 
-             ncol = 10L, nrow = 10L)
-
-anomaly_data <- aw_anomaly_report(
-  date_range = post_date_range,
-  metrics = "visits",
-  granularity = "day",
-  segmentId = NA,
-  quickView = FALSE,
-  anomalyDetection = TRUE,
-  countRepeatInstances = TRUE,
-  debug = FALSE
-)
 
 # Loop Required or Facet Wrap
 
@@ -268,6 +208,17 @@ anomaly_subset %>% dplyr::filter(metric == 'visits' & journey_name == plot_journ
   ggplot2::scale_y_continuous(labels = scales::comma) +
   ggplot2::expand_limits(y=0) +
   ggplot2::facet_wrap(~journey_name, dir = "v")
+
+# Create new table with all pre-change metrics 
+#pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
+
+#Outputs to the Google Sheet
+write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
+
+#rpivotTable(journey_data)
+
+
 # Visualise the R Script
 #flow_view("baseline.r")
 
