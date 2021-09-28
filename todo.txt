@@ -1,11 +1,37 @@
-Category will be required for Before or After journey type and need to be added to for loop for journey identification
-Add category in custom segment data pull when journey groups have been created
-Segment naming convension to be defined but must include sercahable and idetifiable way of pulling before/after segements by journey or category type.
+Build More journey segments - 
+Start to think about what wuld be required on day one, day 14 and day 30 that can be done now.
 
-Add journey to be compared against mappings
-Add normalisation routines
-Add visuals for before /after
+Build mock up deck based on what is currently working to shape what is needed next
+- Think High level overview journeys
+- Main landing page journeys
+- Showing best/worst
+- Device Journeys
+- Jounrney issues (UX)
+- Journey sub groups
+https://www.cedricscherer.com/2019/08/05/a-ggplot2-tutorial-for-beautiful-plotting-in-r/
+https://clauswilke.com/dataviz/visualizing-trends.html
+
+How to automate needed graphs for the decks - journey, metrics and graphs
+Reports with other metrics not Visits - e.g. success events
+Add Scatter plots and hull plot overlay to get the journey groupings
+https://wilkelab.org/practicalgg/articles/corruption_human_development.html
+Single row per journey summary info tables
+https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/
+https://ardata-fr.github.io/flextable-gallery/gallery/
+https://wilkelab.org/practicalgg/articles/corruption_human_development.html
+https://www.r-graph-gallery.com/302-lollipop-chart-with-conditional-color.html
+
+Compare biggest change against previous day
+Show best worst other graphs - not just top/bot 10 graph
+E.g. how to identify the best /worst performing in each journey 
+
+Lower Priority
+
+T-Test Data
+Seasonality decomposition
+Daily Journey movement
+Predictions for each journey
+Last x days comparison of post vs post - (x days)
+Then slope graph to show the changes of all journeys or dumbbell plot 
 
 
-Animate any journey using 
-https://www.connorrothschild.com/post/tidy-tuesday-powerlifting

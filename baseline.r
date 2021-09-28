@@ -31,9 +31,13 @@ pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
 post_start_date <- Sys.Date() - 90
-post_end_date <- Sys.Date() - 1
+post_end_date <- Sys.Date() - 10
 post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 
+# Post Launch Date Improvement Monitoring Dates. Use start dates below and post_end_date for comparison.
+post_start_date_3 <- post_end_date - 3
+post_start_date_7 <- post_end_date - 7
+post_start_date_14 <- post_end_date - 14
 
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
 journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
@@ -79,6 +83,8 @@ calculate_means <- function(journey_data) {
 journey_datalist = list()
 anomaly_datalist = list()
 journey_count <- nrow(journey_segments)
+
+# The Big Loop
 for (i in 1:nrow(journey_segments)) {
   # Build list of metrics from row item (metric group) in the config table
   metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
@@ -168,7 +174,8 @@ pre_baseline <- journey_data %>% filter(journey_type=="pre") %>%
   add_column(journey_type = "pre", .after = "journey_name")
 
 post_baseline <- journey_data %>% filter(journey_type=="post") %>% 
-  group_by(journey_name) %>% summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,`% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
+  group_by(journey_name) %>% 
+  summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,`% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
   add_column(journey_type = "post", .after = "journey_name")
 
 baseline <- rbind(pre_baseline, post_baseline)
@@ -178,7 +185,10 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
     names_from = journey_type,
     values_from = 'Visits_mean') %>% 
   arrange(desc(post)) %>%
-  mutate(journey_name = fct_reorder(journey_name, post))
+  mutate(journey_name = fct_reorder(journey_name, post)) %>% 
+  mutate(diff_vs_baseline = ((post - pre)/pre)) %>%
+  mutate(rank = order(order(diff_vs_baseline))) %>% 
+  mutate(change = ifelse(post > pre, "Higher", "Lower"))
 
 options(scipen = 999) #disable scientific notation in ggplot
 # TODO Create a difference column %
@@ -189,7 +199,7 @@ db1 <- db_plot_data %>%
                 size=4.0, dot_guide=TRUE, 
                 dot_guide_size=0.15, 
                 dot_guide_colour = "grey60")+
-  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs.Post Baseline (Visits)", y = "Journey Name") +
+  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
   theme_tq() +
   theme(
     panel.grid.minor=element_blank(),
@@ -197,7 +207,8 @@ db1 <- db_plot_data %>%
     panel.grid.major.x=element_line(),
     axis.ticks=element_blank(),
     panel.border=element_blank()
-  )
+  ) +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 db1
 
 # Relative Percentage Change with Baseline Visits Averages Pre/Post
@@ -226,7 +237,8 @@ p1 <- relative_change %>%
   ) +
   theme_bw() +
   scale_y_continuous(labels = percent) +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 2L)
+  facet_wrap(vars(journey_name), scales = "free", ncol = 2L) +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 p1
 
 # Box Plot
@@ -239,7 +251,8 @@ c1 <- relative_change %>%
   labs(x = "Journey Name", y = "Visits", title = "Journey Pre & Post Comparison", 
   subtitle = "Box Plot") +
   coord_flip() +
-  theme_bw()
+  theme_bw() +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 c1
 
 # Box plot by Journey Sub Category
@@ -252,7 +265,8 @@ r1 <- relative_change %>%
  labs(x = "Journey Category", y = "Visits", title = "Journey Categorisations", 
  subtitle = "Grouped Journeys") +
  coord_flip() +
- theme_bw()
+ theme_bw() +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 r1
 
 # Anomaly Plot with Ribbon and Pre/Post separations
@@ -272,10 +286,124 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
                 caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
   theme_bw() +
   theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
   scale_y_continuous(labels = scales::comma) +
   expand_limits(y=0) +
   facet_wrap(~journey_name, dir = "v")
 p2
+
+# Top 10 Most improved Journeys from Baseline in New CMS
+top_10_journeys <- db_plot_data %>% 
+  mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline)) %>% 
+  arrange(desc(diff_vs_baseline)) %>% 
+  slice(1:10)
+
+top10 <- ggplot(top_10_journeys) +
+ aes(x = journey_name, weight = diff_vs_baseline) +
+ geom_bar(fill = "#228B22") +
+ labs(x = "Journey Name", y = "% Percentage Increase over Baseline", title = "Top 10 Journeys by Improvement") +
+ coord_flip() +
+ theme_bw() +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+top10
+
+# Bottom 10 Journeys with Highest Differences to their Baseline
+bot_10_journeys <- db_plot_data %>% 
+  mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
+  arrange(diff_vs_baseline) %>% slice(1:10)
+
+bot10 <- ggplot(bot_10_journeys) +
+ aes(x = journey_name, weight = diff_vs_baseline) +
+ geom_bar(fill = "#B22222") +
+ labs(x = "Journey Name", y = "% Percentage Decrease over Baseline", title = "Bottom 10 Journeys by Decrease") +
+ coord_flip() +
+  theme_bw() +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+bot10
+
+# % Difference from Baseline by Day
+relative_change %>%
+  filter(journey_name %in% c("ALL Social", "ALL Paid Social", "ALL Holidays", "ALL Email", 
+                             "ALL Affiliates", "ALL Shop")) %>%
+  ggplot() +
+  aes(
+    x = Day,
+    y = diff_to_mean,
+    fill = sub_category,
+    colour = sub_category
+  ) +
+  geom_line(size = 0.5) +
+  scale_fill_hue(direction = 1) +
+  scale_color_hue(direction = 1) +
+  labs(
+    x = "Day",
+    y = "% from Mean Baseline",
+    title = "% Difference to Baseline Mean",
+    subtitle = "By Journey TrendedTrended",
+    color = "Journey Name"
+  ) +
+  theme_bw() +
+  facet_wrap(vars(sub_category), scales = "free") +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+
+# Journey Performance Overview
+ggplot(db_plot_data) +
+ aes(x = change, group = journey_name) +
+ geom_bar(fill = "#4682B4") +
+ labs(x = "Higher or Lower than Baseline", 
+ y = "Journey Count", title = "Number of Journeys Higher or Lower than Baseline", subtitle = "Journey Performance") +
+ theme_bw() +
+ theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+
+
+# 
+compare_day <- journey_data %>% 
+  select(Day, journey_type, journey_name, Visits, category, sub_category) %>% 
+  group_by(journey_name) %>%
+  right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
+  select(Day, journey_type, journey_name, Visits, Visits_mean, category, sub_category) %>% 
+  rename(baseline_pre = Visits_mean) 
+
+compare_baseline <- compare_day %>% filter(journey_type == "pre") %>% 
+  select(journey_name, baseline_pre) %>% group_by(journey_name) %>% distinct()
+
+compare_yesterday <- compare_day %>% filter(Day == post_end_date & journey_type == "post") %>%
+  mutate(visits_yest = mean(Visits)) %>% select(journey_name, visits_yest) %>% distinct()
+
+compare_3_day <- compare_day %>% filter(Day >= post_start_date_3 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_3_da = mean(Visits)) %>% select(journey_name, visits_3_da) %>% distinct()
+
+compare_7_day <- compare_day %>% filter(Day >= post_start_date_7 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_7_da = mean(Visits)) %>% select(journey_name, visits_7_da) %>% distinct()
+
+compare_14_day <- compare_day %>% filter(Day >= post_start_date_14 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_14_da = mean(Visits)) %>% select(journey_name, visits_14_da) %>% distinct()
+
+compare_to_day <- compare_baseline %>% 
+  right_join(compare_yesterday, by = "journey_name") %>% 
+      right_join(compare_3_day, by = "journey_name") %>% 
+          right_join(compare_7_day, by = "journey_name") %>% 
+              right_join(compare_14_day, by = "journey_name") 
+
+# %>% mutate(diff_to_mean = ((visits_3_da - baseline_pre)/baseline_pre))
+db2 <- compare_to_day %>% 
+  ggplot(aes(x = visits_14_da, xend = visits_yest, y = journey_name)) +
+  geom_dumbbell(colour="#a3c4dc", 
+                colour_xend="#0e668b", 
+                size=4.0, dot_guide=TRUE, 
+                dot_guide_size=0.15, 
+                dot_guide_colour = "grey60")+
+  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
+  theme_tq() +
+  theme(
+    panel.grid.minor=element_blank(),
+    panel.grid.major.y=element_blank(),
+    panel.grid.major.x=element_line(),
+    axis.ticks=element_blank(),
+    panel.border=element_blank()
+  ) +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+db2
 
 # Patchwork plots
 p1 + c1             # Side by Side plots
@@ -283,6 +411,10 @@ c1 / r1             # Stacked plots
 p1 | (c1 / r1)
 p2 | (c1 / db1)
 grid.arrange(p1, p2, nrow = 2)    
+top10 + bot10
+
+
+library(ggplot2)
 
 
 monitorEndTime_baseline <- Sys.time()
@@ -302,7 +434,7 @@ view(anomaly_data)
 
 
 # Visualise the R Script
-#flow_view("baseline.r")
+#flow_view("baseline.r", out = 'file.png')
 
 
 # Process Timing
