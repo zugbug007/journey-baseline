@@ -31,7 +31,7 @@ pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
 post_start_date <- Sys.Date() - 90
-post_end_date <- Sys.Date() - 10
+post_end_date <- Sys.Date() - 1
 post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 
 # Post Launch Date Improvement Monitoring Dates. Use start dates below and post_end_date for comparison.
@@ -180,6 +180,42 @@ post_baseline <- journey_data %>% filter(journey_type=="post") %>%
 
 baseline <- rbind(pre_baseline, post_baseline)
 
+
+
+
+# Build the Daily Comparison of Journey Changes Table
+compare_day <- journey_data %>% 
+  select(Day, journey_type, journey_name, Visits, category, sub_category) %>% 
+  group_by(journey_name) %>%
+  right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
+  select(Day, journey_type, journey_name, Visits, Visits_mean, category, sub_category) %>% 
+  rename(baseline_pre = Visits_mean) 
+
+compare_baseline <- compare_day %>% filter(journey_type == "pre") %>% 
+  select(journey_name, baseline_pre) %>% group_by(journey_name) %>% distinct()
+
+compare_yesterday <- compare_day %>% filter(Day == post_end_date & journey_type == "post") %>%
+  mutate(visits_yest = mean(Visits)) %>% select(journey_name, visits_yest) %>% distinct()
+
+compare_3_day <- compare_day %>% filter(Day >= post_start_date_3 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_3_da = mean(Visits)) %>% select(journey_name, visits_3_da) %>% distinct()
+
+compare_7_day <- compare_day %>% filter(Day >= post_start_date_7 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_7_da = mean(Visits)) %>% select(journey_name, visits_7_da) %>% distinct()
+
+compare_14_day <- compare_day %>% filter(Day >= post_start_date_14 & Day < post_end_date & journey_type == "post") %>%
+  mutate(visits_14_da = mean(Visits)) %>% select(journey_name, visits_14_da) %>% distinct()
+
+compare_to_day <- compare_baseline %>% 
+  right_join(compare_14_day, by = "journey_name") %>% 
+  right_join(compare_7_day, by = "journey_name") %>% 
+  right_join(compare_3_day, by = "journey_name") %>% 
+  right_join(compare_yesterday, by = "journey_name")    
+
+### PLOTS BELOW THIS POINT ############################################################################################################
+options(scipen = 999) #disable scientific notation in ggplot
+# TODO Create a difference column %
+
 db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
   pivot_wider(
     names_from = journey_type,
@@ -190,8 +226,6 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   mutate(rank = order(order(diff_vs_baseline))) %>% 
   mutate(change = ifelse(post > pre, "Higher", "Lower"))
 
-options(scipen = 999) #disable scientific notation in ggplot
-# TODO Create a difference column %
 db1 <- db_plot_data %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
   geom_dumbbell(colour="#a3c4dc", 
@@ -355,45 +389,17 @@ ggplot(db_plot_data) +
  theme_bw() +
  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
+# Day Comparison Plot - Not Ordering for some reason..
+compare_to_day <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseline_pre))
 
-# 
-compare_day <- journey_data %>% 
-  select(Day, journey_type, journey_name, Visits, category, sub_category) %>% 
-  group_by(journey_name) %>%
-  right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
-  select(Day, journey_type, journey_name, Visits, Visits_mean, category, sub_category) %>% 
-  rename(baseline_pre = Visits_mean) 
-
-compare_baseline <- compare_day %>% filter(journey_type == "pre") %>% 
-  select(journey_name, baseline_pre) %>% group_by(journey_name) %>% distinct()
-
-compare_yesterday <- compare_day %>% filter(Day == post_end_date & journey_type == "post") %>%
-  mutate(visits_yest = mean(Visits)) %>% select(journey_name, visits_yest) %>% distinct()
-
-compare_3_day <- compare_day %>% filter(Day >= post_start_date_3 & Day < post_end_date & journey_type == "post") %>%
-  mutate(visits_3_da = mean(Visits)) %>% select(journey_name, visits_3_da) %>% distinct()
-
-compare_7_day <- compare_day %>% filter(Day >= post_start_date_7 & Day < post_end_date & journey_type == "post") %>%
-  mutate(visits_7_da = mean(Visits)) %>% select(journey_name, visits_7_da) %>% distinct()
-
-compare_14_day <- compare_day %>% filter(Day >= post_start_date_14 & Day < post_end_date & journey_type == "post") %>%
-  mutate(visits_14_da = mean(Visits)) %>% select(journey_name, visits_14_da) %>% distinct()
-
-compare_to_day <- compare_baseline %>% 
-  right_join(compare_yesterday, by = "journey_name") %>% 
-      right_join(compare_3_day, by = "journey_name") %>% 
-          right_join(compare_7_day, by = "journey_name") %>% 
-              right_join(compare_14_day, by = "journey_name") 
-
-# %>% mutate(diff_to_mean = ((visits_3_da - baseline_pre)/baseline_pre))
-db2 <- compare_to_day %>% 
+db2 <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseline_pre)) %>% 
   ggplot(aes(x = visits_14_da, xend = visits_yest, y = journey_name)) +
   geom_dumbbell(colour="#a3c4dc", 
                 colour_xend="#0e668b", 
                 size=4.0, dot_guide=TRUE, 
                 dot_guide_size=0.15, 
                 dot_guide_colour = "grey60")+
-  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
+  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="14 Day Visits Average Compared to Yesterday", y = "Journey Name") +
   theme_tq() +
   theme(
     panel.grid.minor=element_blank(),
@@ -405,6 +411,27 @@ db2 <- compare_to_day %>%
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 db2
 
+
+# Parallel Plot Graph Comparing Journey Changes Over Time
+sl1 <- compare_to_day %>%
+  filter(journey_name %in% c("ALL Visits", "ALL SEO", "ALL Desktop", "ALL Main Site")) %>% 
+  arrange(desc(journey_name)) %>%
+  ggparcoord(
+    columns = 2:ncol(compare_to_day), groupColumn = 1,
+    scale="globalminmax",
+    showPoints = TRUE, 
+    title = "Journey Changes over Time",
+    alphaLines = .9
+  ) +
+  theme(
+    plot.title = element_text(size=10)
+  ) +
+  xlab("Time Period") +
+  ylab("Visits by Journey") +
+  legend
+sl1
+
+
 # Patchwork plots
 p1 + c1             # Side by Side plots
 c1 / r1             # Stacked plots
@@ -412,9 +439,9 @@ p1 | (c1 / r1)
 p2 | (c1 / db1)
 grid.arrange(p1, p2, nrow = 2)    
 top10 + bot10
+p2 | (db1 / sl1)
 
 
-library(ggplot2)
 
 
 monitorEndTime_baseline <- Sys.time()
@@ -429,8 +456,9 @@ view(anomaly_data)
 #Outputs to the Google Sheet
 #write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
 #write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
+#write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
 
-#rpivotTable(journey_data)
+#rpivotTable(compare_to_day)
 
 
 # Visualise the R Script
