@@ -240,3 +240,41 @@ ggplot(data = data, aes(x = Date, y = baseline_pre, group = journey_name)) +
     subtitle = "(Mainstreet Research)",
     caption = "https://www.mainstreetresearch.ca/gap-between-ndp-and-pcs-narrows-while-liberals-hold-steady/"
   )
+
+
+
+resultList = 
+  lapply(
+    zoolist, 
+    CausalImpact, 
+    pre.period, 
+    post.period,
+    model.args = list(nseasons = 7, season.duration = 1)
+  )
+
+
+#%>% 
+#pivot_wider(names_from = journey_type,
+#      names_sep = "_",
+#     values_from = Visits,
+#     values_fill = 0)
+
+
+forecast_pre_period <-  pre_date_range
+forecast_post_period <- post_date_range
+forecast_prep <- journey_data %>% 
+  select(Day, journey_type, journey_name, Visits) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), Day, journey_type) %>% 
+  filter(journey_name == "ALL Visits") %>% 
+  filter(Day >= pre_start_date & Day <= post_end_date)
+
+time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 180)
+data <- zoo(cbind(forecast_prep$Visits), time.points)
+data
+
+impact <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
+
+plot(impact)
+summary(impact)
+summary(impact, "report")

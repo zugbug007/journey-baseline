@@ -17,6 +17,8 @@ library(plotly)       # Plotly for interactive graphs
 library(scales)       # Format labels as percents
 library(patchwork)    # Pathcwork to stitch multiple plots together
 library(gridExtra)    # Graphics grid layouts
+library(GGally)       # ggplot Extension for graphing types
+library(forecast)     # Add the forecasting library
 
 #Test Token has been refreshed and is upto date.
 #aw_token()
@@ -24,9 +26,14 @@ library(gridExtra)    # Graphics grid layouts
 monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
-#Last x days starting from yesterday
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                 Setup Date Ranges and Common Date Variables              ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 pre_start_date <- Sys.Date() - 180
-pre_end_date <- Sys.Date() - 90
+pre_end_date <- Sys.Date() - 91
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
@@ -39,12 +46,26 @@ post_start_date_3 <- post_end_date - 3
 post_start_date_7 <- post_end_date - 7
 post_start_date_14 <- post_end_date - 14
 
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          Import Google Sheet Data                        ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 journey_segments_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "journey")
 journey_metrics_googlesheet <- read_sheet("https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", range = "metrics")
 
-journey_segments <- journey_segments_googlesheet %>% slice(1:36)
+journey_segments <- journey_segments_googlesheet %>% slice(1:74)
 
-#Function Calls Setup
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                            Function Call Setup                         ----
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 get_segment_data <- function(segment_ids, metrics, date_range) {
   adobeanalyticsr::aw_freeform_table(date_range = date_range,
                                      dimensions = "daterangeday",
@@ -80,11 +101,16 @@ calculate_means <- function(journey_data) {
            visits_90_DA = round(zoo::rollmean(Visits, k = 90, fill = NA, align ='left'), digits = 0))  %>% ungroup()
 }
 
+
 journey_datalist = list()
 anomaly_datalist = list()
 journey_count <- nrow(journey_segments)
 
-# The Big Loop
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                The Big Loop                              ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 for (i in 1:nrow(journey_segments)) {
   # Build list of metrics from row item (metric group) in the config table
   metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
@@ -167,7 +193,39 @@ journey_data <- journey_data %>%
   relocate(secondary_segment_1_name, .after = journey_applied) %>%
   relocate(secondary_segment_2_name, .after = secondary_segment_1_name)
 
-# Baseline for All Journey Calculations
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      Build Forecast for every Journey                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+options(scipen = 999)
+
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 180)
+
+forecast_datalist = list()
+for (i in 1:nrow(journey_unique_names)) {
+  forecast_data <- journey_data %>% 
+    select(Day, journey_name, Visits) %>% 
+    group_by(journey_name) %>% 
+    arrange(desc(journey_name), Day) %>% 
+    filter(journey_name == journey_unique_names$journey_name[i]) %>% 
+    filter(Day >= pre_start_date & Day <= post_end_date) 
+  
+  data <- zoo(cbind(forecast_prep$Visits), time.points)
+  forecast_data <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
+  
+  forecast_datalist[[i]] <- forecast_data
+  
+}
+
+plot(forecast_datalist[[20]])
+
+
+forecast_data <- data.table::rbindlist(forecast_datalist, fill = TRUE)
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                    Baseline for All Journey Calculations                 ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% 
   group_by(journey_name) %>% 
   summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` , `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
@@ -181,9 +239,10 @@ post_baseline <- journey_data %>% filter(journey_type=="post") %>%
 baseline <- rbind(pre_baseline, post_baseline)
 
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##             Build the Daily Comparison of Journey Changes Table          ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-# Build the Daily Comparison of Journey Changes Table
 compare_day <- journey_data %>% 
   select(Day, journey_type, journey_name, Visits, category, sub_category) %>% 
   group_by(journey_name) %>%
@@ -212,7 +271,11 @@ compare_to_day <- compare_baseline %>%
   right_join(compare_3_day, by = "journey_name") %>% 
   right_join(compare_yesterday, by = "journey_name")    
 
-### PLOTS BELOW THIS POINT ############################################################################################################
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                            Plots Below this point                        ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 options(scipen = 999) #disable scientific notation in ggplot
 # TODO Create a difference column %
 
@@ -226,7 +289,7 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   mutate(rank = order(order(diff_vs_baseline))) %>% 
   mutate(change = ifelse(post > pre, "Higher", "Lower"))
 
-db1 <- db_plot_data %>% 
+db1 <- db_plot_data %>% filter(pre <= 10000) %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
   geom_dumbbell(colour="#a3c4dc", 
                 colour_xend="#0e668b", 
@@ -305,7 +368,7 @@ r1
 
 # Anomaly Plot with Ribbon and Pre/Post separations
 
-plot_journey_name <- c("ALL Visits")                                                    # Get these journey names
+plot_journey_name <- c("Days Out Entry")                                                    # Get these journey names
 anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'visits')     # Subset the anomaly data for journey and metric
 plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
 p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
@@ -412,7 +475,11 @@ db2 <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseli
 db2
 
 
-# Parallel Plot Graph Comparing Journey Changes Over Time
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##           Parallel Plot Graph Comparing Journey Changes Over Time        ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 sl1 <- compare_to_day %>%
   filter(journey_name %in% c("ALL Visits", "ALL SEO", "ALL Desktop", "ALL Main Site")) %>% 
   arrange(desc(journey_name)) %>%
@@ -423,16 +490,19 @@ sl1 <- compare_to_day %>%
     title = "Journey Changes over Time",
     alphaLines = .9
   ) +
-  theme(
-    plot.title = element_text(size=10)
-  ) +
+  theme_bw() +
+    plot.title = element_text(size=10)+
   xlab("Time Period") +
-  ylab("Visits by Journey") +
-  legend
+  ylab("Visits by Journey")
 sl1
 
 
-# Patchwork plots
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                               Patchwork Plots                           ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 p1 + c1             # Side by Side plots
 c1 / r1             # Stacked plots
 p1 | (c1 / r1)
@@ -453,29 +523,47 @@ view(anomaly_data)
 # Create new table with all pre-change metrics 
 #pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
 
-#Outputs to the Google Sheet
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                         Outputs to the Google Sheet                      ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
 #write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
 #write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
 
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##        RPivotTable - Enable Pivot Table to Dynamically Slice & Dice      ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #rpivotTable(compare_to_day)
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                            Visualise the R Script                        ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Visualise the R Script
-#flow_view("baseline.r", out = 'file.png')
+#flow_view("baseline.r", out = 'baseline.png')
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                               Process Timing                             ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Process Timing
-#####################################################################################################################################
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
 lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
 lastrunTime_baseline
 
 
-# Create Workbook Output 
-# Excel Spreadsheet Output
-#####################################################################################################################################
+
+#...............................................................................
+#                                                                              .
+#  # Create Workbook Output                                                    .
+#                                                                              .
+#  # Excel Spreadsheet Output                                                  .
+#                                                                              .
+#...............................................................................
+
 wb <- createWorkbook()
 options("openxlsx.borderColour" = "#4F80BD")
 options("openxlsx.borderStyle" = "thin")
