@@ -9,7 +9,7 @@ require(ggplot2)      # Build Graphics
 library(googlesheets4)# Import and manipulate Google Sheets docs
 library(ggalt)        # Extend ggplot with ability to do dumbbell plots
 library(flow)         # Draw Flow diagrams from the code
-library(plantuml)     # For use with Flow as alternative engine
+#library(plantuml)     # For use with Flow as alternative engine
 library(anomalize)    # Build Anomalies from the data
 library(rpivotTable)  # Build Pivot Tables
 library(forecast)     # Use the TSOutliers function to detect anomalies in the data set: https://robjhyndman.com/hyndsight/tsoutliers/
@@ -113,7 +113,11 @@ journey_count <- nrow(journey_segments)
 
 for (i in 1:nrow(journey_segments)) {
   # Build list of metrics from row item (metric group) in the config table
-  metrics_list <- journey_metrics_googlesheet %>% dplyr::select(metric_group_id, id) %>% filter(metric_group_id == journey_segments$metric_group[i]) %>% pull(id)
+  metrics_list <- journey_metrics_googlesheet %>% 
+    dplyr::select(metric_group_id, id) %>% 
+    filter(metric_group_id == journey_segments$metric_group[i]) %>% 
+    pull(id)
+  
   # add the proxy metrics if the metric group is not group 1
   if (!'visits' %in% metrics_list) {
     metrics_list <- append(metrics_list, 'visits', after = 0)
@@ -199,7 +203,7 @@ journey_data <- journey_data %>%
 options(scipen = 999)
 
 journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
-time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 180)
+time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 150)
 
 forecast_datalist = list()
 for (i in 1:nrow(journey_unique_names)) {
@@ -210,17 +214,16 @@ for (i in 1:nrow(journey_unique_names)) {
     filter(journey_name == journey_unique_names$journey_name[i]) %>% 
     filter(Day >= pre_start_date & Day <= post_end_date) 
   
-  data <- zoo(cbind(forecast_prep$Visits), time.points)
+  data <- zoo(cbind(forecast_data$Visits), time.points)
   forecast_data <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
   
   forecast_datalist[[i]] <- forecast_data
-  
+  print(paste0("Causal Impact Forecast Completed for: ",journey_segments$journey_name[i]))
 }
 
-plot(forecast_datalist[[20]])
-
-
-forecast_data <- data.table::rbindlist(forecast_datalist, fill = TRUE)
+plot(forecast_datalist[[16]])
+View(forecast_datalist[[16]][["summary"]])
+df <- as.data.frame(forecast_datalist[[1]]$series)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                    Baseline for All Journey Calculations                 ----
@@ -251,7 +254,7 @@ compare_day <- journey_data %>%
   rename(baseline_pre = Visits_mean) 
 
 compare_baseline <- compare_day %>% filter(journey_type == "pre") %>% 
-  select(journey_name, baseline_pre) %>% group_by(journey_name) %>% distinct()
+  select(journey_name, baseline_pre, sub_category) %>% group_by(journey_name) %>% distinct()
 
 compare_yesterday <- compare_day %>% filter(Day == post_end_date & journey_type == "post") %>%
   mutate(visits_yest = mean(Visits)) %>% select(journey_name, visits_yest) %>% distinct()
@@ -269,7 +272,8 @@ compare_to_day <- compare_baseline %>%
   right_join(compare_14_day, by = "journey_name") %>% 
   right_join(compare_7_day, by = "journey_name") %>% 
   right_join(compare_3_day, by = "journey_name") %>% 
-  right_join(compare_yesterday, by = "journey_name")    
+  right_join(compare_yesterday, by = "journey_name") %>% 
+  relocate(sub_category, .after = journey_name)
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -291,18 +295,18 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
 
 db1 <- db_plot_data %>% filter(pre <= 10000) %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
-  geom_dumbbell(colour="#a3c4dc", 
-                colour_xend="#0e668b", 
+  geom_dumbbell(colour="#6ca0c7", 
+                colour_xend="#c76ca0", 
                 size=4.0, dot_guide=TRUE, 
                 dot_guide_size=0.15, 
                 dot_guide_colour = "grey60")+
   labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
   theme_tq() +
   theme(
-    panel.grid.minor=element_blank(),
+  #  panel.grid.minor=element_blank(),
     panel.grid.major.y=element_blank(),
-    panel.grid.major.x=element_line(),
-    axis.ticks=element_blank(),
+  #  panel.grid.major.x=element_line(),
+   # axis.ticks=element_blank(),
     panel.border=element_blank()
   ) +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
@@ -336,7 +340,7 @@ p1 <- relative_change %>%
   scale_y_continuous(labels = percent) +
   facet_wrap(vars(journey_name), scales = "free", ncol = 2L) +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-p1
+ggplotly(p1)
 
 # Box Plot
 c1 <- relative_change %>%
@@ -350,7 +354,7 @@ c1 <- relative_change %>%
   coord_flip() +
   theme_bw() +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-c1
+ggplotly(c1)
 
 # Box plot by Journey Sub Category
 r1 <- relative_change %>%
@@ -364,7 +368,7 @@ r1 <- relative_change %>%
  coord_flip() +
  theme_bw() +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-r1
+ggplotly(r1)
 
 # Anomaly Plot with Ribbon and Pre/Post separations
 
@@ -387,7 +391,7 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
   scale_y_continuous(labels = scales::comma) +
   expand_limits(y=0) +
   facet_wrap(~journey_name, dir = "v")
-p2
+ggplotly(p2)
 
 # Top 10 Most improved Journeys from Baseline in New CMS
 top_10_journeys <- db_plot_data %>% 
@@ -402,7 +406,7 @@ top10 <- ggplot(top_10_journeys) +
  coord_flip() +
  theme_bw() +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-top10
+ggplotly(top10)
 
 # Bottom 10 Journeys with Highest Differences to their Baseline
 bot_10_journeys <- db_plot_data %>% 
@@ -416,7 +420,7 @@ bot10 <- ggplot(bot_10_journeys) +
  coord_flip() +
   theme_bw() +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-bot10
+ggplotly(bot10)
 
 # % Difference from Baseline by Day
 relative_change %>%
@@ -465,10 +469,10 @@ db2 <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseli
   labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="14 Day Visits Average Compared to Yesterday", y = "Journey Name") +
   theme_tq() +
   theme(
-    panel.grid.minor=element_blank(),
+    #panel.grid.minor=element_blank(),
     panel.grid.major.y=element_blank(),
-    panel.grid.major.x=element_line(),
-    axis.ticks=element_blank(),
+    #panel.grid.major.x=element_line(),
+    #axis.ticks=element_blank(),
     panel.border=element_blank()
   ) +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
@@ -480,24 +484,80 @@ db2
 ##           Parallel Plot Graph Comparing Journey Changes Over Time        ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Facet wrap all journey comparisons
 sl1 <- compare_to_day %>%
-  filter(journey_name %in% c("ALL Visits", "ALL SEO", "ALL Desktop", "ALL Main Site")) %>% 
-  arrange(desc(journey_name)) %>%
+  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
+                                         '14 Day Avg' = visits_14_da, 
+                                         '7 Day Avg' = visits_7_da, 
+                                         '3 Day Avg' = visits_3_da, 
+                                         'Yesterday' = visits_yest) %>% 
   ggparcoord(
-    columns = 2:ncol(compare_to_day), groupColumn = 1,
-    scale="globalminmax",
+    columns = 3:ncol(compare_to_day), groupColumn = 1,
+    alphaLines = 0.9,    
+    splineFactor = TRUE,
+    scale = "globalminmax",
+    #scale="std",
     showPoints = TRUE, 
     title = "Journey Changes over Time",
-    alphaLines = .9
+    mapping = ggplot2::aes_string(x = "All Journeys", y = "Visits")
   ) +
-  theme_bw() +
-    plot.title = element_text(size=10)+
-  xlab("Time Period") +
-  ylab("Visits by Journey")
-sl1
+  theme(
+    plot.title = element_text(size=10),
+    legend.position = "none"
+  ) +
+  facet_wrap(vars(journey_name), scales = "free", ncol = 5L)
+ggplotly(sl1)
 
 
+# Specific Journeys
+sl2 <- compare_to_day %>%
+  filter(journey_name %in% c("ALL Apple iOS", "ALL Visits", "ALL SEO", "Days Out Entry")) %>% 
+  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
+                                         '14 Day Avg' = visits_14_da, 
+                                         '7 Day Avg' = visits_7_da, 
+                                         '3 Day Avg' = visits_3_da, 
+                                         'Yesterday' = visits_yest) %>% 
+  ggparcoord(
+    columns = 3:ncol(compare_to_day), groupColumn = 1,
+    alphaLines = 0.9,    
+    splineFactor = TRUE,
+    scale = "globalminmax",
+    #scale="std",
+    showPoints = TRUE, 
+    title = "Journey Changes over Time",
+    mapping = ggplot2::aes_string(x = "Journeys", y = "Visits")
+  ) +
+  theme(
+    plot.title = element_text(size=10),
+    legend.position = "none"
+  ) +
+  facet_wrap(vars(journey_name), scales = "free", ncol = 5L)
+ggplotly(sl2)
 
+# Sub Category Group of Pages
+sl3 <- compare_to_day %>%
+  filter(sub_category %in% c("landing_pages")) %>% 
+  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
+                                         '14 Day Avg' = visits_14_da, 
+                                         '7 Day Avg' = visits_7_da, 
+                                         '3 Day Avg' = visits_3_da, 
+                                         'Yesterday' = visits_yest) %>% 
+  ggparcoord(
+    columns = 3:ncol(compare_to_day), groupColumn = 1,
+    alphaLines = 0.9,    
+    splineFactor = TRUE,
+    scale = "globalminmax",
+    #scale="std",
+    showPoints = TRUE, 
+    title = "Journey Changes over Time",
+    mapping = ggplot2::aes_string(x = "`Landing Page Journey`", y = "Visits")
+  ) +
+  theme(
+    plot.title = element_text(size=10),
+    legend.position = "none"
+  ) +
+  facet_wrap(vars(journey_name), scales = "free")
+ggplotly(sl3)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                               Patchwork Plots                           ----
@@ -510,8 +570,6 @@ p2 | (c1 / db1)
 grid.arrange(p1, p2, nrow = 2)    
 top10 + bot10
 p2 | (db1 / sl1)
-
-
 
 
 monitorEndTime_baseline <- Sys.time()
