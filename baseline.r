@@ -5,11 +5,10 @@ library(kableExtra)   # Build neat tables to display complex data
 library(zoo)          # Time series manipulation and formatting
 library(CausalImpact) # Understand the Causal impact from the data
 library(openxlsx)     # Used for Exporting Excel docs
-require(ggplot2)      # Build Graphics
+library(ggplot2)      # Build Graphics
 library(googlesheets4)# Import and manipulate Google Sheets docs
 library(ggalt)        # Extend ggplot with ability to do dumbbell plots
 library(flow)         # Draw Flow diagrams from the code
-#library(plantuml)     # For use with Flow as alternative engine
 library(anomalize)    # Build Anomalies from the data
 library(rpivotTable)  # Build Pivot Tables
 library(forecast)     # Use the TSOutliers function to detect anomalies in the data set: https://robjhyndman.com/hyndsight/tsoutliers/
@@ -19,6 +18,7 @@ library(patchwork)    # Pathcwork to stitch multiple plots together
 library(gridExtra)    # Graphics grid layouts
 library(GGally)       # ggplot Extension for graphing types
 library(forecast)     # Add the forecasting library
+#library(plantuml)     # For use with Flow as alternative engine
 
 #Test Token has been refreshed and is upto date.
 #aw_token()
@@ -202,8 +202,8 @@ journey_data <- journey_data %>%
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 options(scipen = 999)
 
-journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
-time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 150)
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct() %>% slice(1:1)
+time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 180)
 
 forecast_datalist = list()
 for (i in 1:nrow(journey_unique_names)) {
@@ -216,13 +216,22 @@ for (i in 1:nrow(journey_unique_names)) {
   
   data <- zoo(cbind(forecast_data$Visits), time.points)
   forecast_data <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
-  
   forecast_datalist[[i]] <- forecast_data
+  
+  # Time series decomp
+  ts_data <- ts(data, start = c(as.Date(pre_start_date, 1)), frequency = 7)  # Daily data so sampled on weekly basis (7).
+    plot(decompose(ts_data,"multiplicative"))
+  
+  #ts_data %>% msts(seasonal.periods = c(7, 24*7)) %>% autoplot()
+  ts_data %>% tail(7*4) %>% 
+    decompose("multiplicative") %>% 
+    autoplot(main = journey_segments$journey_name[i], xlab = "Week", ylab = "Time Series Decomposition")  
+  
   print(paste0("Causal Impact Forecast Completed for: ",journey_segments$journey_name[i]))
 }
 
-plot(forecast_datalist[[16]])
-View(forecast_datalist[[16]][["summary"]])
+plot(forecast_datalist[[1]])
+forecast_datalist[[1]][["report"]]
 df <- as.data.frame(forecast_datalist[[1]]$series)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -372,7 +381,7 @@ ggplotly(r1)
 
 # Anomaly Plot with Ribbon and Pre/Post separations
 
-plot_journey_name <- c("Days Out Entry")                                                    # Get these journey names
+plot_journey_name <- c("ALL Visits")                                                    # Get these journey names
 anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'visits')     # Subset the anomaly data for journey and metric
 plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
 p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
@@ -461,8 +470,8 @@ compare_to_day <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_n
 
 db2 <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseline_pre)) %>% 
   ggplot(aes(x = visits_14_da, xend = visits_yest, y = journey_name)) +
-  geom_dumbbell(colour="#a3c4dc", 
-                colour_xend="#0e668b", 
+  geom_dumbbell(colour="#6ca0c7", 
+                colour_xend="#c76ca0", 
                 size=4.0, dot_guide=TRUE, 
                 dot_guide_size=0.15, 
                 dot_guide_colour = "grey60")+
@@ -499,7 +508,7 @@ sl1 <- compare_to_day %>%
     #scale="std",
     showPoints = TRUE, 
     title = "Journey Changes over Time",
-    mapping = ggplot2::aes_string(x = "All Journeys", y = "Visits")
+    mapping = ggplot2::aes_string(x = "`All Journeys`", y = "Visits")
   ) +
   theme(
     plot.title = element_text(size=10),
@@ -573,22 +582,18 @@ p2 | (db1 / sl1)
 
 
 monitorEndTime_baseline <- Sys.time()
-# WAIT BEFORE WRITING TO GSHEET!
 view(journey_data)
 view(anomaly_data)
 # WAIT BEFORE WRITING TO GSHEET!
 
-# Create new table with all pre-change metrics 
-#pre_journey_data <- journey_data %>% rename_all(paste0, "_pre")
-
-
+# WAIT BEFORE WRITING TO GSHEET!
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                         Outputs to the Google Sheet                      ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
-#write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
-#write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
+write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
+write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
