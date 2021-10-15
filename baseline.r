@@ -1,6 +1,6 @@
 library(adobeanalyticsr)  # Pull data from Adobe Analytics API 2.0
 library(tidyverse)        # Import the Tidyverse packages
-library(tidyquant)        # Import Tidyquant and them for Dumbbell plot
+library(tidyquant)        # Import Tidyquant for Dumbbell plot
 library(kableExtra)   # Build neat tables to display complex data
 library(zoo)          # Time series manipulation and formatting
 library(CausalImpact) # Understand the Causal impact from the data
@@ -31,13 +31,13 @@ monitorStartTime_baseline <- Sys.time()
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+# pre dates will be hard coded when new site launches
 pre_start_date <- Sys.Date() - 180
 pre_end_date <- Sys.Date() - 91
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
-post_start_date <- Sys.Date() - 90
+post_start_date <- Sys.Date() - 90 # post start date will e set to launch date of the new site
 post_end_date <- Sys.Date() - 1
 post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 
@@ -202,9 +202,11 @@ journey_data <- journey_data %>%
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 options(scipen = 999)
 
-journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct() %>% slice(1:1)
-time.points <- seq.Date(as.Date(pre_start_date), by = 1, length.out = 180)
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_count <- nrow(journey_unique_names)
+time.points <- as.Date(seq(pre_start_date, post_end_date, by = "day"))
 
+# Predictor = Control Group (Pre Launch Data)
 forecast_datalist = list()
 for (i in 1:nrow(journey_unique_names)) {
   forecast_data <- journey_data %>% 
@@ -216,18 +218,19 @@ for (i in 1:nrow(journey_unique_names)) {
   
   data <- zoo(cbind(forecast_data$Visits), time.points)
   forecast_data <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
+  plot(forecast_data, c("original", "pointwise", "cumulative"))
+  plotname <- paste0(journey_unique_names$journey_name[i],".png")
+  ggsave(path = "forecast_plots", plotname)
   forecast_datalist[[i]] <- forecast_data
-  
+
   # Time series decomp
-  ts_data <- ts(data, start = c(as.Date(pre_start_date, 1)), frequency = 7)  # Daily data so sampled on weekly basis (7).
-    plot(decompose(ts_data,"multiplicative"))
-  
-  #ts_data %>% msts(seasonal.periods = c(7, 24*7)) %>% autoplot()
+  ts_data <- ts(data, start = time.points[1], end = time.points[180], frequency = 7)  # Daily data so sampled on weekly basis (7).
   ts_data %>% tail(7*4) %>% 
     decompose("multiplicative") %>% 
-    autoplot(main = journey_segments$journey_name[i], xlab = "Week", ylab = "Time Series Decomposition")  
+    autoplot(main = journey_unique_names$journey_name[i], xlab = "Week", ylab = "Time Series Decomposition")
+  ggsave(path = "time_series_plots", plotname)
   
-  print(paste0("Causal Impact Forecast Completed for: ",journey_segments$journey_name[i]))
+  print(paste0("Causal Impact Forecast Completed for: ", i, " of ", journey_unique_count, " Completed: ",journey_unique_names$journey_name[i]))
 }
 
 plot(forecast_datalist[[1]])
