@@ -18,6 +18,7 @@ library(patchwork)    # Pathcwork to stitch multiple plots together
 library(gridExtra)    # Graphics grid layouts
 library(GGally)       # ggplot Extension for graphing types
 library(forecast)     # Add the forecasting library
+library(flextable)    # Build Tables for PResentation
 #library(plantuml)     # For use with Flow as alternative engine
 
 #Test Token has been refreshed and is upto date.
@@ -252,7 +253,8 @@ post_baseline <- journey_data %>% filter(journey_type=="post") %>%
   add_column(journey_type = "post", .after = "journey_name")
 
 baseline <- rbind(pre_baseline, post_baseline)
-
+baseline_flex_table <- baseline %>% flextable::flextable()
+baseline_flex_table
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##             Build the Daily Comparison of Journey Changes Table          ----
@@ -412,7 +414,7 @@ top_10_journeys <- db_plot_data %>%
   slice(1:10)
 
 top10 <- ggplot(top_10_journeys) +
- aes(x = journey_name, weight = diff_vs_baseline) +
+ aes(x = journey_name, weight = diff_vs_baseline*100) +
  geom_bar(fill = "#228B22") +
  labs(x = "Journey Name", y = "% Percentage Increase over Baseline", title = "Top 10 Journeys by Improvement") +
  coord_flip() +
@@ -426,7 +428,7 @@ bot_10_journeys <- db_plot_data %>%
   arrange(diff_vs_baseline) %>% slice(1:10)
 
 bot10 <- ggplot(bot_10_journeys) +
- aes(x = journey_name, weight = diff_vs_baseline) +
+ aes(x = journey_name, weight = diff_vs_baseline*100) +
  geom_bar(fill = "#B22222") +
  labs(x = "Journey Name", y = "% Percentage Decrease over Baseline", title = "Bottom 10 Journeys by Decrease") +
  coord_flip() +
@@ -587,16 +589,16 @@ p2 | (db1 / sl1)
 monitorEndTime_baseline <- Sys.time()
 view(journey_data)
 view(anomaly_data)
-# WAIT BEFORE WRITING TO GSHEET!
+# STOP HERE !!!!
 
 # WAIT BEFORE WRITING TO GSHEET!
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                         Outputs to the Google Sheet                      ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
-write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
-write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
+#write_sheet(journey_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Journey_data")
+#write_sheet(anomaly_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Anomaly_data")
+#write_sheet(compare_to_day, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="compare_to_day")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -622,32 +624,3 @@ lastrunTime_baseline
 
 
 
-#...............................................................................
-#                                                                              .
-#  # Create Workbook Output                                                    .
-#                                                                              .
-#  # Excel Spreadsheet Output                                                  .
-#                                                                              .
-#...............................................................................
-
-wb <- createWorkbook()
-options("openxlsx.borderColour" = "#4F80BD")
-options("openxlsx.borderStyle" = "thin")
-modifyBaseFont(wb, fontSize = 10, fontName = "Calibri")
-
-addWorksheet(wb, sheetName = "journey_data", gridLines = FALSE)
-freezePane(wb, sheet = 1, firstRow = TRUE, firstCol = TRUE) ## freeze first row and column
-writeDataTable(wb, sheet = 1, x = journey_data, colNames = TRUE, rowNames = TRUE, tableStyle = "TableStyleLight9")
-
-saveWorkbook(wb, "journey_data.xlsx", overwrite = TRUE) ## save to working directory
-
-#writexl::write_xlsx(aw_calculatedmetrics, path = "cal_metrics.xlsx")
-
-# date_range = c(Sys.Date() - 366, Sys.Date() - 1)
-# Sam <- adobeanalyticsr::aw_freeform_table(date_range = date_range,
-#                                    dimensions = "daterangeday",
-#                                    segmentId = "s1957_611e66cab501e00d15ba4e3f", # catch passed segment IDs to pull data against. 
-#                                    prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
-#                                    metrics = metrics_list,  #  catch the group of metrics specified for this journey
-#                                    debug = FALSE)
-# write_sheet(Sam, ss=NULL, sheet = NULL)

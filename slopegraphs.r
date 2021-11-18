@@ -278,3 +278,35 @@ impact <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
 plot(impact)
 summary(impact)
 summary(impact, "report")
+
+
+
+#...............................................................................
+#                                                                              .
+#  # Create Workbook Output                                                    .
+#                                                                              .
+#  # Excel Spreadsheet Output                                                  .
+#                                                                              .
+#...............................................................................
+
+# wb <- createWorkbook()
+# options("openxlsx.borderColour" = "#4F80BD")
+# options("openxlsx.borderStyle" = "thin")
+# modifyBaseFont(wb, fontSize = 10, fontName = "Calibri")
+# 
+# addWorksheet(wb, sheetName = "journey_data", gridLines = FALSE)
+# freezePane(wb, sheet = 1, firstRow = TRUE, firstCol = TRUE) ## freeze first row and column
+# writeDataTable(wb, sheet = 1, x = journey_data, colNames = TRUE, rowNames = TRUE, tableStyle = "TableStyleLight9")
+# 
+# saveWorkbook(wb, "journey_data.xlsx", overwrite = TRUE) ## save to working directory
+
+#writexl::write_xlsx(aw_calculatedmetrics, path = "cal_metrics.xlsx")
+
+# date_range = c(Sys.Date() - 366, Sys.Date() - 1)
+# Sam <- adobeanalyticsr::aw_freeform_table(date_range = date_range,
+#                                    dimensions = "daterangeday",
+#                                    segmentId = "s1957_611e66cab501e00d15ba4e3f", # catch passed segment IDs to pull data against. 
+#                                    prettynames = TRUE, #  Don't change this as many following variables names depend on this naming
+#                                    metrics = metrics_list,  #  catch the group of metrics specified for this journey
+#                                    debug = FALSE)
+# write_sheet(Sam, ss=NULL, sheet = NULL)
