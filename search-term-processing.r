@@ -3,6 +3,8 @@ library(tidytext)
 library(lubridate)
 library(adobeanalyticsr)
 library(ggplot2)
+library(fuzzyjoin)
+library(runcharter)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -22,7 +24,7 @@ post_start_date_3 <- post_end_date - 3
 post_start_date_7 <- post_end_date - 7
 post_start_date_14 <- post_end_date - 14
 
-#keyword <- "member"
+#keyword <- 'member'
 
 get_search_data <- function(date_range) {
   adobeanalyticsr::aw_freeform_table(
@@ -38,6 +40,7 @@ get_search_data <- function(date_range) {
     metricSort = "desc",
     include_unspecified = TRUE,
     search = c("CONTAINS 'member'"),
+    #search = NA,
     prettynames = FALSE,
     debug = FALSE
   )
@@ -69,13 +72,10 @@ search_term_data_main_site <- search_term_data_main_site %>%
 # Plots
 # Sort the data by each term into a time series for plotting.
 
-search_terms_trended <- search_term_data_main_site %>% 
-    arrange(desc(search_term), day) %>% 
-    group_by(search_term) %>% 
-    add_count() # %>% 
-   # filter(str_detect(search_term, keyword)) %>% 
-    #filter(n > 50)
-search_terms_trended_flex_table <- search_terms_trended %>% 
+search_terms_trended_flex_table <- search_term_data_main_site %>% 
+  arrange(desc(search_term), day) %>% 
+  group_by(search_term) %>% 
+  add_count() %>% 
   select(search_term, searches) %>% 
   mutate(total = sum(searches)) %>% 
   select(search_term, total) %>% 
@@ -84,6 +84,31 @@ search_terms_trended_flex_table <- search_terms_trended %>%
   flextable::flextable() 
 search_terms_trended_flex_table
 
+
+search_terms_trended <- search_term_data_main_site %>% 
+    arrange(desc(search_term), day) %>% 
+    group_by(search_term) %>% 
+    add_count() %>% 
+   # filter(str_detect(search_term, keyword)) %>% 
+    filter(n > 40)
+
+runcharter(search_terms_trended,
+           direction = "above",
+           med_rows = 7,
+           runlength = 5,
+           datecol = day, 
+           grpvar = search_term,
+           yval = searches, 
+           chart_title = "Runs identified",
+           point_size =0.5,
+           facet_cols = NULL,
+           facet_scales = "free_y",
+           chart_breaks = "14 days",
+           line_colr = "#6ca0c7", # blue
+           line_size = 0.5,
+           point_colr ="#6ca0c7", # blue
+           median_colr = "#c76ca0", # orange
+           chart_subtitle = "Runs above the median signalling improvement")
 # total_queries <- search_terms_trended %>% mutate(grand_total = sum(searches)) %>% select(grand_total) %>% flextable::flextable()
 # total_queries
 
@@ -125,4 +150,14 @@ ggplot(search_terms_trended) +
     subtitle = "Any search on the NT Main Site which contains the word 'member'.", fill = "Search Term") +
     theme_bw()
 
- 
+# Join with Places to filter out places searches
+place_data <- read_json("place.json", simplifyVector = TRUE)
+places <- place_data %>% select(name) %>% mutate(name = tolower(name)) %>% rename(place_name = name)
+places <- as_tibble(places)
+search_term_data_main_site <- as_tibble(search_term_data_main_site)
+
+df <- search_term_data_main_site %>% stringdist_full_join(places, by = c(search_term  = "place_name"), max_dist = 2, distance_col = "property")
+View(df)
+#match_fun=list(`==`,`==`))
+
+

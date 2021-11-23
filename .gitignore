@@ -43,3 +43,5 @@ ggplot-dumbbell plots.R
 code backup.R
 ggplot-dumbbell plots.R
 plot_zoom_png
+*.csv
+*.json
