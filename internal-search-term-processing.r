@@ -5,6 +5,7 @@ library(adobeanalyticsr)
 library(ggplot2)
 library(fuzzyjoin)
 library(runcharter)
+library(jsonlite)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -23,6 +24,8 @@ post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 post_start_date_3 <- post_end_date - 3
 post_start_date_7 <- post_end_date - 7
 post_start_date_14 <- post_end_date - 14
+post_start_date_30 <- post_end_date - 30
+post_start_date_60 <- post_end_date - 60
 
 #keyword <- 'member'
 

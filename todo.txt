@@ -28,10 +28,6 @@ Add legend for dumb bell plots
 
 Lower Priority
 
-T-Test Data
-Seasonality/Time Series decomposition
-Decomposed Series
-
 Original - The full, normal data for the metric.
 Seasonal - Identifies seasonal patterns present in the series.
 Spike - Identifies larger-than-expected temporary changes.
