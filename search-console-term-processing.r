@@ -43,7 +43,7 @@ get_search_console_data <- function(start, end) {
                          searchType = type)
 }
 
-days <- seq(from=post_start_date, to=post_end_date, by='days')
+days <- seq(from=post_start_date_14, to=post_end_date, by='days')
 days_count <- length(days)
 search_console_datalist = list()
 for ( i in seq_along(days)) {
@@ -127,8 +127,6 @@ search_products %>%
        y = 'Keyword %') +
   theme_bw()
 
-
-#####################################
 search_console_date <- search_analytics(siteURL = website, 
                                         startDate = post_start_date, 
                                         endDate = post_end_date, 
@@ -139,22 +137,17 @@ search_console_devices <- search_analytics(siteURL = website,
                                            endDate = post_end_date, 
                                            dimensions = 'device', 
                                            searchType = type)
-
 search_console_pages <- search_analytics(siteURL = website, 
                                          startDate = post_start_date, 
                                          endDate = post_end_date, 
                                          dimensions = 'page', 
                                          searchType = type)
 
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                            Plots Below this point                        ----
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 # Visualise the top 5 terms
 search_console_vis <- search_console_data %>% 
   filter(day >= post_start_date & day <= post_end_date) %>% 
   group_by(query) %>% 
-  add_count() %>% filter(n > 10) %>% 
+  add_count() %>% filter(n > 2) %>% 
    filter(str_detect(query, 'mem')) %>% 
   mutate(query = str_remove_all(query, "national trust | national trust")) %>%
   group_by(day)
@@ -217,7 +210,7 @@ ggplot(search_console_date) +
   ) +
   theme_light()
 
-# Bar Chart - Clicks by Device Type
+# Bar Chart - Clicks by Device Typescipen=999
 ggplot(search_console_devices) +
  aes(x = device, fill = device, weight = clicks) +
  geom_bar() +
@@ -230,6 +223,7 @@ search_console_pages_table <- search_console_pages %>% slice(1:25) %>% flextable
 search_console_pages_table
 
 # Build Forecasting Model using Prophet
+# Non Branded Traffic Prediction
 data_time_series <- data_brand %>%
   filter(brand == 'nonbrand') %>%   # Change for Branded/Non branded Search Types
   select(ds = day, 
@@ -266,5 +260,212 @@ pf <-   ggplot(forecast_clean) +
   labs(x = "Month",
        y = "Non Branded Search Traffic") +
   theme_bw()
-ggplotly(pf)
+ggplotly(pf)+
+  ggsave("Non Branded Search Traffic Prediction.png", path = "search_console_plots/")
+
+
+# Build Forecasting Model using Prophet
+# Branded Traffic Prediction
+data_time_series <- data_brand %>%
+  filter(brand == 'brand') %>%   # Change for Branded/Non branded Search Types
+  select(ds = day, 
+         y = clicks) %>%    # RENAME COLUMNS AS REQUIRED BY PROPHET
+  group_by(ds) %>%
+  summarize(y = sum(y)) %>% drop_na()
+
+m <- prophet(data_time_series, daily.seasonality=TRUE)
+future <- make_future_dataframe(m, periods = 14)  # Change future prediction window
+forecast <- predict(m, future)
+
+#plot(m, forecast)   # Check basic plot
+
+forecast <- forecast %>% as_tibble()    # Transform to Tidy format
+
+forecast$ds <- ymd(forecast$ds)     # Change to Time Series Format
+
+forecast_clean <- forecast %>%
+  select(ds, yhat, yhat_upper, yhat_lower) %>%
+  left_join(data_time_series) %>%
+  rename(date = ds, 
+         actual = y,
+         forecast = yhat,
+         forecast_low = yhat_lower,
+         forecast_high = yhat_upper)
+
+pf <-   ggplot(forecast_clean) +
+  geom_point(aes(date, actual), color = 'steelblue') +
+  geom_line(aes(date, actual), color = 'steelblue') +
+  geom_ribbon(aes(date, ymin = forecast_low, ymax = forecast_high), 
+              fill = '#69b3a2', alpha = 0.2) +
+  scale_y_continuous(labels = comma_format()) +
+  expand_limits(y = 0) + 
+  labs(x = "Month",
+       y = "Branded Search Traffic") +
+  theme_bw()
+ggplotly(pf)+
+  ggsave("Branded Search Traffic Prediction.png", path = "search_console_plots/")
+
+# Build Forecasting Model using Prophet
+# Membership Traffic Prediction
+data_time_series <- search_products %>%
+  filter(product_type == 'Membership') %>%   # Change for Branded/Non branded Search Types
+  select(ds = day, 
+         y = clicks) %>%    # RENAME COLUMNS AS REQUIRED BY PROPHET
+  group_by(ds) %>%
+  summarize(y = sum(y)) %>% drop_na()
+
+m <- prophet(data_time_series, daily.seasonality=TRUE)
+future <- make_future_dataframe(m, periods = 14)  # Change future prediction window
+forecast <- predict(m, future)
+
+#plot(m, forecast)   # Check basic plot
+
+forecast <- forecast %>% as_tibble()    # Transform to Tidy format
+
+forecast$ds <- ymd(forecast$ds)     # Change to Time Series Format
+
+forecast_clean <- forecast %>%
+  select(ds, yhat, yhat_upper, yhat_lower) %>%
+  left_join(data_time_series) %>%
+  rename(date = ds, 
+         actual = y,
+         forecast = yhat,
+         forecast_low = yhat_lower,
+         forecast_high = yhat_upper)
+
+pf <-   ggplot(forecast_clean) +
+  geom_point(aes(date, actual), color = 'steelblue') +
+  geom_line(aes(date, actual), color = 'steelblue') +
+  geom_ribbon(aes(date, ymin = forecast_low, ymax = forecast_high), 
+              fill = '#69b3a2', alpha = 0.2) +
+  scale_y_continuous(labels = comma_format()) +
+  expand_limits(y = 0) + 
+  labs(x = "Month",
+       y = "Membership Search Traffic Prediction Model") +
+  theme_bw()
+ggplotly(pf)+
+  ggsave("Membership Traffic Prediction.png", path = "search_console_plots/")
+
+# Build Forecasting Model using Prophet
+# Holidays Traffic Prediction
+data_time_series <- search_products %>%
+  filter(product_type == 'Holidays') %>%   # Change for Branded/Non branded Search Types
+  select(ds = day, 
+         y = clicks) %>%    # RENAME COLUMNS AS REQUIRED BY PROPHET
+  group_by(ds) %>%
+  summarize(y = sum(y)) %>% drop_na()
+
+m <- prophet(data_time_series, daily.seasonality=TRUE)
+future <- make_future_dataframe(m, periods = 14)  # Change future prediction window
+forecast <- predict(m, future)
+
+#plot(m, forecast)   # Check basic plot
+
+forecast <- forecast %>% as_tibble()    # Transform to Tidy format
+
+forecast$ds <- ymd(forecast$ds)     # Change to Time Series Format
+
+forecast_clean <- forecast %>%
+  select(ds, yhat, yhat_upper, yhat_lower) %>%
+  left_join(data_time_series) %>%
+  rename(date = ds, 
+         actual = y,
+         forecast = yhat,
+         forecast_low = yhat_lower,
+         forecast_high = yhat_upper)
+
+pf <-   ggplot(forecast_clean) +
+  geom_point(aes(date, actual), color = 'steelblue') +
+  geom_line(aes(date, actual), color = 'steelblue') +
+  geom_ribbon(aes(date, ymin = forecast_low, ymax = forecast_high), 
+              fill = '#69b3a2', alpha = 0.2) +
+  scale_y_continuous(labels = comma_format()) +
+  expand_limits(y = 0) + 
+  labs(x = "Month",
+       y = "Holidays Search Traffic Prediction Model") +
+  theme_bw()
+ggplotly(pf)+
+  ggsave("Holidays Traffic Prediction.png", path = "search_console_plots/")
+
+# Build Forecasting Model using Prophet
+# Donations Traffic Prediction
+data_time_series <- search_products %>%
+  filter(product_type == 'Donation') %>%   # Change for Branded/Non branded Search Types
+  select(ds = day, 
+         y = clicks) %>%    # RENAME COLUMNS AS REQUIRED BY PROPHET
+  group_by(ds) %>%
+  summarize(y = sum(y)) %>% drop_na()
+
+m <- prophet(data_time_series, daily.seasonality=TRUE)
+future <- make_future_dataframe(m, periods = 14)  # Change future prediction window
+forecast <- predict(m, future)
+
+#plot(m, forecast)   # Check basic plot
+
+forecast <- forecast %>% as_tibble()    # Transform to Tidy format
+
+forecast$ds <- ymd(forecast$ds)     # Change to Time Series Format
+
+forecast_clean <- forecast %>%
+  select(ds, yhat, yhat_upper, yhat_lower) %>%
+  left_join(data_time_series) %>%
+  rename(date = ds, 
+         actual = y,
+         forecast = yhat,
+         forecast_low = yhat_lower,
+         forecast_high = yhat_upper)
+
+pf <-   ggplot(forecast_clean) +
+  geom_point(aes(date, actual), color = 'steelblue') +
+  geom_line(aes(date, actual), color = 'steelblue') +
+  geom_ribbon(aes(date, ymin = forecast_low, ymax = forecast_high), 
+              fill = '#69b3a2', alpha = 0.2) +
+  scale_y_continuous(labels = comma_format()) +
+  expand_limits(y = 0) + 
+  labs(x = "Month",
+       y = "Donation Search Traffic Prediction Model") +
+  theme_bw()
+ggplotly(pf)+
+  ggsave("Donation Traffic Prediction.png", path = "search_console_plots/")
+
+# Build Forecasting Model using Prophet
+# NT Shop Traffic Prediction
+data_time_series <- search_products %>%
+  filter(product_type == 'Shop') %>%   # Change for Branded/Non branded Search Types
+  select(ds = day, 
+         y = clicks) %>%    # RENAME COLUMNS AS REQUIRED BY PROPHET
+  group_by(ds) %>%
+  summarize(y = sum(y)) %>% drop_na()
+
+m <- prophet(data_time_series, daily.seasonality=TRUE)
+future <- make_future_dataframe(m, periods = 14)  # Change future prediction window
+forecast <- predict(m, future)
+
+#plot(m, forecast)   # Check basic plot
+
+forecast <- forecast %>% as_tibble()    # Transform to Tidy format
+
+forecast$ds <- ymd(forecast$ds)     # Change to Time Series Format
+
+forecast_clean <- forecast %>%
+  select(ds, yhat, yhat_upper, yhat_lower) %>%
+  left_join(data_time_series) %>%
+  rename(date = ds, 
+         actual = y,
+         forecast = yhat,
+         forecast_low = yhat_lower,
+         forecast_high = yhat_upper)
+
+pf <-   ggplot(forecast_clean) +
+  geom_point(aes(date, actual), color = 'steelblue') +
+  geom_line(aes(date, actual), color = 'steelblue') +
+  geom_ribbon(aes(date, ymin = forecast_low, ymax = forecast_high), 
+              fill = '#69b3a2', alpha = 0.2) +
+  scale_y_continuous(labels = comma_format()) +
+  expand_limits(y = 0) + 
+  labs(x = "Month",
+       y = "Shop Search Traffic Prediction Model") +
+  theme_bw()
+ggplotly(pf)+
+ggsave("Shop Traffic Prediction.png", path = "search_console_plots/")
 

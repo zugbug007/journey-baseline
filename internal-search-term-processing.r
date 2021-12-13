@@ -93,7 +93,7 @@ search_terms_trended <- search_term_data_main_site %>%
     group_by(search_term) %>% 
     add_count() %>% 
    # filter(str_detect(search_term, keyword)) %>% 
-    filter(n > 40)
+    filter(n > 10)
 
 runcharter(search_terms_trended,
            direction = "above",
@@ -116,7 +116,9 @@ runcharter(search_terms_trended,
 # total_queries
 
 # Single Item Trended
-ggplot(search_terms_trended) +
+search_terms_trended %>% 
+  #filter(str_detect(search_term, 'fam')) %>% 
+ggplot() +
  aes(x = day, y = searches, colour = search_term) +
  geom_line(size = 0.5) +
  scale_color_hue(direction = -1) +
