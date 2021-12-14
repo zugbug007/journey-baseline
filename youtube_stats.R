@@ -6,9 +6,9 @@ library(plotly)
 library(googlesheets4)# Import and manipulate Google Sheets docs
 
 options(scipen=10000)
-API_KEY = ""
+API_KEY = Sys.getenv("YOUTUBE_API_KEY")
+channel_id <- Sys.getenv("YOUTUBE_CHANNEL_ID") 
 
-channel_id <- "UCbSxeBQ-U-goXdmkiNBSrrg"  
 user_id <- "nationaltrustcharity"
 base <- "https://www.googleapis.com/youtube/v3/"
 
@@ -133,23 +133,23 @@ write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSY
 
 
 #######################################################################
-
-top_10_videos <- yt_data %>% 
- # filter(snippet.publishedAt > "2021-10-01") %>% 
-  arrange(snippet.publishedAt)
-
-p <- ggplot(top_10_videos) +
- aes(x = snippet.publishedAt, y = statistics.viewCount) +
- geom_point(shape = "circle", colour = "#4682B4") +
- geom_smooth(method = glm, span = 0.9) +
- #scale_y_continuous(trans = "log10") +
- labs(x = "Published Date", y = "Views", title = "National Trust YouTube Videos", subtitle = "2020 - 2021") +
- theme_minimal() +
- theme(legend.position = "none")
-p + geom_label_repel(aes(label = top_10_videos$snippet.title),
-                     box.padding   = 0.35, 
-                     point.padding = 0.5,
-                     segment.color = 'grey50') +
-  theme_classic()
-
-ggplotly(p)
+# 
+# top_10_videos <- yt_data %>% 
+#   filter(snippet.publishedAt > "2021-10-01") %>% 
+#   arrange(snippet.publishedAt)
+# 
+# p <- ggplot(top_10_videos) +
+#  aes(x = snippet.publishedAt, y = statistics.viewCount) +
+#  geom_point(shape = "circle", colour = "#4682B4") +
+#  geom_smooth(method = glm, span = 0.9) +
+#  #scale_y_continuous(trans = "log10") +
+#  labs(x = "Published Date", y = "Views", title = "National Trust YouTube Videos", subtitle = "2020 - 2021") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
+# p + geom_label_repel(aes(label = top_10_videos$snippet.title),
+#                      box.padding   = 0.35, 
+#                      point.padding = 0.5,
+#                      segment.color = 'grey50') +
+#   theme_classic()
+# 
+# ggplotly(p)
