@@ -3,7 +3,14 @@ library(ggplot2)
 library(ggrepel)
 library(scales)
 library(plotly)
+library(httr)
+library(jsonlite)
+library(here)
+library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
+gs4_auth()
+
+# WAIT Until auth completed.
 
 options(scipen=10000)
 API_KEY = Sys.getenv("YOUTUBE_API_KEY")
@@ -12,16 +19,7 @@ channel_id <- Sys.getenv("YOUTUBE_CHANNEL_ID")
 user_id <- "nationaltrustcharity"
 base <- "https://www.googleapis.com/youtube/v3/"
 
-required_packages <- c("httr", "jsonlite", "here", "dplyr")
-for(i in required_packages) {
-  if(!require(i, character.only = T)) {
-    #  if package is not existing, install then load the package
-    install.packages(i, dependencies = T, repos = "http://cran.us.r-project.org")
-    # install.packages(i, dependencies = T, repos = "https://cran.stat.upd.edu.ph/")
-    require(i, character.only = T)
-  }
-}
-
+# Note: The statistics.dislikeCount property was made private as of December 13, 2021. 
 # Construct the API call
 api_params <- 
   paste(paste0("key=", API_KEY), 
@@ -106,50 +104,44 @@ video_final.df <- merge(x = upload.df,
                         y = video.df,
                         by = "contentDetails.videoId")
 
-yt_data <- video_final.df %>% select(snippet.publishedAt, snippet.title, snippet.description, snippet.position, starts_with("statistics"))
+yt_data <- video_final.df %>% 
+  select(snippet.publishedAt, snippet.title, snippet.description, snippet.position, starts_with("statistics")) %>% 
+  arrange(desc(snippet.publishedAt)) %>% mutate(data.last.updated = Sys.time())
 
 # Convert column types
 yt_data$snippet.publishedAt <- as.Date(as.character(yt_data$snippet.publishedAt))
 yt_data$snippet.position <- as.numeric(as.character(yt_data$snippet.position))
 yt_data$statistics.viewCount <- as.numeric(as.character(yt_data$statistics.viewCount))
-yt_data$statistics.likeCount <- as.numeric(as.character(yt_data$statistics.likeCount))
-yt_data$statistics.dislikeCount <- as.numeric(as.character(yt_data$statistics.dislikeCount))
 yt_data$statistics.favoriteCount <- as.numeric(as.character(yt_data$statistics.favoriteCount))
 yt_data$statistics.commentCount <- as.numeric(as.character(yt_data$statistics.commentCount))
-# Check Column Types
-sapply(yt_data, class)
 write_sheet(yt_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="YouTube_data")
-
 
 channel_stats <- channel.df %>% select(items.snippet.title, items.snippet.description, items.snippet.customUrl, starts_with("items.statistics"))
 channel_stats$items.statistics.viewCount <- as.numeric(as.character(channel_stats$items.statistics.viewCount))
 channel_stats$items.statistics.subscriberCount <- as.numeric(as.character(channel_stats$items.statistics.subscriberCount))
 channel_stats$items.statistics.videoCount <- as.numeric(as.character(channel_stats$items.statistics.videoCount))
-sapply(channel_stats, class)
+channel_stats <- channel_stats %>% mutate(data.last.updated = Sys.time())
 
 write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="YouTube_Channel_Stats")
 
 
+#####################################################
 
-
-#######################################################################
-# 
-# top_10_videos <- yt_data %>% 
-#   filter(snippet.publishedAt > "2021-10-01") %>% 
-#   arrange(snippet.publishedAt)
-# 
-# p <- ggplot(top_10_videos) +
-#  aes(x = snippet.publishedAt, y = statistics.viewCount) +
-#  geom_point(shape = "circle", colour = "#4682B4") +
-#  geom_smooth(method = glm, span = 0.9) +
-#  #scale_y_continuous(trans = "log10") +
-#  labs(x = "Published Date", y = "Views", title = "National Trust YouTube Videos", subtitle = "2020 - 2021") +
-#  theme_minimal() +
-#  theme(legend.position = "none")
-# p + geom_label_repel(aes(label = top_10_videos$snippet.title),
-#                      box.padding   = 0.35, 
-#                      point.padding = 0.5,
-#                      segment.color = 'grey50') +
-#   theme_classic()
-# 
-# ggplotly(p)
+adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+  date_range = c(Sys.Date() - 768, Sys.Date() - 1),
+  dimensions = c("evar27"),
+  metrics = c("event10", "event12", "event13","event14", "event15", "cm1957_601d669663a03a772d6a2556", "event11"),
+  top = c(20000),
+  page = 0,
+  filterType = "breakdown",
+  segmentId = NA,
+  metricSort = "desc",
+  include_unspecified = TRUE,
+  search = NA,
+  prettynames = TRUE,
+  debug = FALSE
+)
+adobe_video_stats <- adobe_video_stats %>% mutate(data.last.updated = Sys.time())
+write_sheet(adobe_video_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Adobe_Video_Stats")
