@@ -9,6 +9,7 @@ library(ggplot2)      # Build Graphics
 library(googlesheets4)# Import and manipulate Google Sheets docs
 library(ggalt)        # Extend ggplot with ability to do dumbbell plots
 library(flow)         # Draw Flow diagrams from the code
+library(lubridate)    # date arithmetic
 library(anomalize)    # Build Anomalies from the data
 library(rpivotTable)  # Build Pivot Tables
 library(forecast)     # Use the TSOutliers function to detect anomalies in the data set: https://robjhyndman.com/hyndsight/tsoutliers/
@@ -26,7 +27,8 @@ library(flextable)    # Build Tables for PResentation
 #rm(list = ls()) # Clear the environment before running the code
 monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues
-#aw_calculatedmetrics <- aw_get_calculatedmetrics(rsids = "nationaltrustmainsiteprod")
+aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = "nationaltrustmainsiteprod")
+aw_dimensions <- aw_get_dimensions(rsid = "nationaltrustmainsiteprod")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

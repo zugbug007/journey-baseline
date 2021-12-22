@@ -2,9 +2,11 @@ library(tidyverse)
 library(ggplot2)
 library(ggrepel)
 library(scales)
+library(adobeanalyticsr)
 library(plotly)
 library(httr)
 library(jsonlite)
+library(lubridate)
 library(here)
 library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
@@ -114,7 +116,7 @@ yt_data$snippet.position <- as.numeric(as.character(yt_data$snippet.position))
 yt_data$statistics.viewCount <- as.numeric(as.character(yt_data$statistics.viewCount))
 yt_data$statistics.favoriteCount <- as.numeric(as.character(yt_data$statistics.favoriteCount))
 yt_data$statistics.commentCount <- as.numeric(as.character(yt_data$statistics.commentCount))
-write_sheet(yt_data, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="YouTube_data")
+write_sheet(yt_data, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="YouTube_data")
 
 channel_stats <- channel.df %>% select(items.snippet.title, items.snippet.description, items.snippet.customUrl, starts_with("items.statistics"))
 channel_stats$items.statistics.viewCount <- as.numeric(as.character(channel_stats$items.statistics.viewCount))
@@ -122,7 +124,7 @@ channel_stats$items.statistics.subscriberCount <- as.numeric(as.character(channe
 channel_stats$items.statistics.videoCount <- as.numeric(as.character(channel_stats$items.statistics.videoCount))
 channel_stats <- channel_stats %>% mutate(data.last.updated = Sys.time())
 
-write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="YouTube_Channel_Stats")
+write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="YouTube_Channel_Stats")
 
 
 #####################################################
@@ -130,7 +132,7 @@ write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSY
 adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
   company_id = Sys.getenv("AW_COMPANY_ID"),
   rsid = Sys.getenv("AW_REPORTSUITE_ID"),
-  date_range = c(Sys.Date() - 768, Sys.Date() - 1),
+  date_range = c(Sys.Date() - 730, Sys.Date() - 1),
   dimensions = c("evar27"),
   metrics = c("event10", "event12", "event13","event14", "event15", "cm1957_601d669663a03a772d6a2556", "event11"),
   top = c(20000),
@@ -144,4 +146,62 @@ adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
   debug = FALSE
 )
 adobe_video_stats <- adobe_video_stats %>% mutate(data.last.updated = Sys.time())
-write_sheet(adobe_video_stats, "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0", sheet ="Adobe_Video_Stats")
+write_sheet(adobe_video_stats, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Adobe_Video_Stats")
+
+video_data_combined <- merge(x = yt_data, y = adobe_video_stats, by.x = "snippet.title", by.y = "Video Name (v27)") 
+
+video_data_combined <- video_data_combined %>% 
+  select(-starts_with("data.last.updated")) %>% 
+  rename(YT_Views = statistics.viewCount) %>% 
+  rename(Adobe_Views = `Video Start (ev10)`) %>% 
+  mutate(total_views = YT_Views + Adobe_Views)
+
+write_sheet(video_data_combined, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Adobe_YouTube_Combined")
+
+# Setup Dates for Last Month
+last_month_start <- format(Sys.Date() - 30, '%Y-%m-01')
+last_month_end <- as.character(as.Date(format(Sys.Date(), '%Y-%m-01')) - 1)
+# Organic Channels pull, using segment
+video_by_channel_organic <- adobeanalyticsr::aw_freeform_table(
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+  date_range = c(last_month_start, last_month_end),
+  dimensions = c("evar27"),
+  metrics = c("event10"),
+  top = c(20000),
+  page = 0,
+  filterType = "breakdown",
+  segmentId = "s1957_61c09c58b4c96777691e4226",
+  metricSort = "desc",
+  include_unspecified = TRUE,
+  search = NA,
+  prettynames = FALSE,
+  debug = FALSE
+)
+video_by_channel_organic <- video_by_channel_organic %>% rename('Channel: Organic Traffic Views' = event10) # Rename column
+
+# Paid Channels pull, using segment
+video_by_channel_paid <- adobeanalyticsr::aw_freeform_table(
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+  date_range = c(last_month_start, last_month_end),
+  dimensions = c("evar27"),
+  metrics = c("event10"),
+  top = c(20000),
+  page = 0,
+  filterType = "breakdown",
+  segmentId = "s1957_61c09e772e23a36df73bd975",
+  metricSort = "desc",
+  include_unspecified = TRUE,
+  search = NA,
+  prettynames = FALSE,
+  debug = FALSE
+)
+video_by_channel_paid <- video_by_channel_paid %>% rename('Channel: Paid Search & Paid Social Views' = event10) # Rename column
+
+# Join the two data pulls based on the video name
+video_by_channel <- merge(x = video_by_channel_organic, y = video_by_channel_paid, by = "evar27")
+video_by_channel <- video_by_channel %>% rename('Video Title' = evar27)
+
+# write out to Channels Last Month tab in Google sheet
+write_sheet(video_by_channel, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Channels_Last_Month")
