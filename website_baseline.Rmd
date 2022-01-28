@@ -1,0 +1,130 @@
+---
+title: "Website Baseline"
+author: "Alan Millington"
+date: "21/01/2022"
+output:
+  html_document:
+    theme: spacelab
+    toc: true
+    toc_float: true
+    css: styles.css
+params:
+  company_id: "thenat3"
+  rsid: "nationaltrustmainsiteprod"
+  google_account: "alan.millington@nationaltrust.org.uk"
+---
+
+```{r setup, include=FALSE, warning = FALSE, message = FALSE}
+# Capturing the start time -- the final output will include how long
+# it took for the process to run.
+monitorStartTime_baseline <- Sys.time()
+
+# Switch to set to bypass actually pulling data and, instead, simply pull from
+# .rds files written out locally on a previous run. Use this if the writing out
+# to Google Sheets crapped out on an earlier version. The "time to run" will
+# be messed up, but, otherwise, this will work.
+use_local_files <- FALSE
+
+# Check for packages needed and then load the packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+               tidyquant,
+               zoo,
+               CausalImpact,
+               ggplot2,
+               ggalt,
+               lubridate,
+               forecast,
+               plotly,
+               patchwork,
+               gridExtra,
+               GGally,
+               adobeanalyticsr,
+               googlesheets4,
+               scales,
+               htmltools,  
+               knitr,
+               anomalize,
+               flextable,
+               kableExtra)
+
+gs4_auth(email = params$google_account)
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                 Setup Date Ranges and Common Date Variables              ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# pre dates will be hard coded when new site launches
+pre_start_date <- Sys.Date() - 180 #180
+pre_end_date <- Sys.Date() - 91  #91
+pre_end_date_7 <- pre_end_date - 7
+pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
+
+# Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
+post_start_date <- Sys.Date() - 90 # post start date will set to launch date of the new site
+post_end_date <- Sys.Date() - 1
+post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
+
+# Post Launch Date Improvement Monitoring Dates. Use start dates below and post_end_date for comparison.
+post_start_date_3 <- post_end_date - 3
+post_start_date_7 <- post_end_date - 7
+post_start_date_14 <- post_end_date - 14
+post_start_date_30 <- post_end_date - 30
+post_start_date_60 <- post_end_date - 60
+
+# Last.. 7 Days, month Etc.
+# Setup Dates for Last Month
+last_month_start <- format(Sys.Date() - 30, '%Y-%m-01')
+last_month_end <- as.character(as.Date(format(Sys.Date(), '%Y-%m-01')) - 1)
+
+start_14_days_ago_days <- Sys.Date() - 15
+end_7_days_ago <- Sys.Date() - 8
+
+previous_week_7 <- floor_date(Sys.Date(), "week")
+previous_week_7 + 7
+
+```
+
+```{r get_data, include = FALSE, warning = FALSE, message = FALSE}
+# Get the G sheets setup data and functions.
+  source("code/get_g_sheets.R")
+  source("code/get_functions.R")
+if(use_local_files == FALSE){
+  # Get/process data
+  source("code/get_journey_data.R")
+  source("code/get_forecasts.R")
+} else {
+  journey_data <- readRDS("output/df_journey_data.rds")
+  anomaly_data <- readRDS("output/df_anomaly_data.rds")
+}
+  
+```
+
+## Summary of Website Journeys
+
+```{r child = "code/01_summary.Rmd"}
+```
+
+## Journeys in Detail
+
+```{r child = "code/02_journey_detail.Rmd"}
+```
+
+## Journey Forecasts
+
+```{r child = "code/03_forecasts.Rmd"}
+```
+
+## Internal Search Journey 
+
+```{r child = "code/04_internal_search.Rmd"}
+```
+
+## Search Console Trends
+
+```{r child = "code/05_search_cosole.Rmd"}
+```
+
+## Commercial Funnels
+
+```{r child = "code/06_funnels.Rmd"}
+```

@@ -12,7 +12,7 @@ library(jsonlite)
 library(here)
 library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
-gs4_auth()
+gs4_auth(email = params$google_account)
 
 # WAIT Until auth completed.
 options(scipen=10000)

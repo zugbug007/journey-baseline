@@ -4,7 +4,7 @@ library(tidyquant)        # Import Tidyquant for Dumbbell plot
 library(kableExtra)   # Build neat tables to display complex data
 library(zoo)          # Time series manipulation and formatting
 library(CausalImpact) # Understand the Causal impact from the data
-library(openxlsx)     # Used for Exporting Excel docs
+#library(openxlsx)     # Used for Exporting Excel docs
 library(ggplot2)      # Build Graphics
 library(googlesheets4)# Import and manipulate Google Sheets docs
 library(ggalt)        # Extend ggplot with ability to do dumbbell plots
@@ -18,7 +18,6 @@ library(scales)       # Format labels as percents
 library(patchwork)    # Pathcwork to stitch multiple plots together
 library(gridExtra)    # Graphics grid layouts
 library(GGally)       # ggplot Extension for graphing types
-library(forecast)     # Add the forecasting library
 library(flextable)    # Build Tables for PResentation
 #library(plantuml)     # For use with Flow as alternative engine
 
@@ -590,8 +589,9 @@ p2 | (db1 / sl1)
 
 
 monitorEndTime_baseline <- Sys.time()
-view(journey_data)
-view(anomaly_data)
+#view(journey_data)
+#view(anomaly_data)
+
 # STOP HERE !!!!
 
 # WAIT BEFORE WRITING TO GSHEET!

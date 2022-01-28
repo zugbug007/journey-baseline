@@ -1,0 +1,36 @@
+```{r forecasts, echo=FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      Build Forecast for every Journey                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+options(scipen = 999)
+
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_count <- nrow(journey_unique_names)
+time.points <- as.Date(seq(pre_start_date, post_end_date, by = "day"))
+
+# Predictor = Control Group (Pre Launch Data)
+forecast_datalist = list()
+for (i in 1:nrow(journey_unique_names)) {
+  forecast_data <- journey_data %>% 
+    select(Day, journey_name, Visits) %>% 
+    group_by(journey_name) %>% 
+    arrange(desc(journey_name), Day) %>% 
+    filter(journey_name == journey_unique_names$journey_name[i]) %>% 
+    filter(Day >= pre_start_date & Day <= post_end_date) 
+  
+  data <- zoo(cbind(forecast_data$Visits), time.points)
+  forecast_data <- CausalImpact(data, as.Date(pre_date_range), as.Date(post_date_range))
+  
+  gg <- plot(forecast_data, c("original", "pointwise", "cumulative"))
+  plotname <- paste0(journey_unique_names$journey_name[i])
+  
+  print(gg + ggplot2::ggtitle(plotname))
+  
+  forecast_datalist[[i]] <- forecast_data
+}
+
+
+# Write out to a .csv for use if the script craps out and put a message to the console
+message("Forecast processing completed.")
+```
+
