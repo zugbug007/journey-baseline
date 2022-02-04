@@ -19,6 +19,8 @@ params:
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
 
+rsid = "nationaltrustmainsiteprod"
+
 # Switch to set to bypass actually pulling data and, instead, simply pull from
 # .rds files written out locally on a previous run. Use this if the writing out
 # to Google Sheets crapped out on an earlier version. The "time to run" will
@@ -50,6 +52,10 @@ pacman::p_load(tidyverse,
 
 gs4_auth(email = params$google_account)
 
+# Check Adobe API Token Access Now
+aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
+aw_dimensions <- aw_get_dimensions(rsid = rsid)
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,11 +82,20 @@ post_start_date_60 <- post_end_date - 60
 last_month_start <- format(Sys.Date() - 30, '%Y-%m-01')
 last_month_end <- as.character(as.Date(format(Sys.Date(), '%Y-%m-01')) - 1)
 
+# Create a rolling window starting two weeks ago and forward one week.
 start_14_days_ago_days <- Sys.Date() - 15
 end_7_days_ago <- Sys.Date() - 8
 
+# Get Date Starting on a Sunday Two Weeks Ago
+start_14_sun_start <- floor_date(as.Date(start_14_days_ago_days, "%m/%d/%Y"), unit="week")
+end_14_sun_end <- as.Date(start_14_sun_start) + 6
+
+#Get Date Starting on a Sunday 1 Week Ago
+start_7_sun_start <- floor_date(as.Date(end_7_days_ago, "%m/%d/%Y"), unit="week")
+end_7_sun_end <- as.Date(start_7_sun_start) + 6
+
+# Previous Week
 previous_week_7 <- floor_date(Sys.Date(), "week")
-previous_week_7 + 7
 
 ```
 
@@ -92,6 +107,8 @@ if(use_local_files == FALSE){
   # Get/process data
   source("code/get_journey_data.R")
   source("code/get_forecasts.R")
+  source("code/get_plot_data.R")
+  source("code/build_plots.R")
 } else {
   journey_data <- readRDS("output/df_journey_data.rds")
   anomaly_data <- readRDS("output/df_anomaly_data.rds")

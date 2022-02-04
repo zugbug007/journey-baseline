@@ -7,7 +7,8 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 get_segment_data <- function(segment_ids, metrics, date_range) {
-  adobeanalyticsr::aw_freeform_table(date_range = date_range,
+  adobeanalyticsr::aw_freeform_table(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+                                     date_range = date_range,
                                      dimensions = "daterangeday",
                                      segmentId = segment_ids, # catch passed comma separated vector segment IDs group to pull data against. 
                                      prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
@@ -18,7 +19,8 @@ get_segment_data <- function(segment_ids, metrics, date_range) {
 }
 
 get_anomaly_data <- function(segment_ids, metrics, data_range){
-  adobeanalyticsr::aw_anomaly_report(date_range = date_range,
+  adobeanalyticsr::aw_anomaly_report(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+                                     date_range = date_range,
                                      metrics = "visits",
                                      segmentId = segment_ids,
                                      granularity = "day",
@@ -39,6 +41,18 @@ calculate_means <- function(journey_data) {
            visits_30_DA = round(zoo::rollmean(Visits, k = 30, fill = NA, align ='left'), digits = 0),
            visits_60_DA = round(zoo::rollmean(Visits, k = 60, fill = NA, align ='left'), digits = 0),
            visits_90_DA = round(zoo::rollmean(Visits, k = 90, fill = NA, align ='left'), digits = 0))  %>% ungroup()
+}
+
+get_events_daily <- function(eventids) {
+  events_data <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                    rsid = rsid, 
+                    date_range = date_range,
+                    dimensions = "daterangeday",
+                    metrics = c("event1","event2")) %>% # change to event ids after testing
+                    pivot_longer(-daterangeday) %>%
+                    arrange(daterangeday, name) %>% 
+                    select(day = daterangeday, 
+                    id = name, value)
 }
 
 journey_datalist = list()

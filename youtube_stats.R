@@ -9,10 +9,13 @@ library(purrr)
 library(lubridate)
 library(httr)
 library(jsonlite)
+library(tuber)
 library(here)
 library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
 gs4_auth(email = params$google_account)
+
+gsheet = "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing"
 
 # WAIT Until auth completed.
 options(scipen=10000)
@@ -20,9 +23,7 @@ API_KEY = Sys.getenv("YOUTUBE_API_KEY")
 channel_id <- Sys.getenv("YOUTUBE_CHANNEL_ID") 
 client_id <- Sys.getenv("YOUTUBE_CLIENT_ID")
 client_secret <- Sys.getenv("YOUTUBE_CLIENT_SECRET")
-
 # WAIT Until auth completed.
-
 yt_oauth(app_id = client_id,
          app_secret = client_secret,
          token = '')
@@ -115,7 +116,7 @@ video.df$contentDetails.videoId <- video.df$id
 video_final.df <- merge(x = upload.df, 
                         y = video.df,
                         by = "contentDetails.videoId")
-write_sheet(video_final.df, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="FULL_API_DUMP")
+write_sheet(video_final.df, gsheet, sheet ="FULL_API_DUMP")
 
 yt_data <- video_final.df %>% 
   select(snippet.publishedAt, contentDetails.videoId, contentDetails.duration, snippet.title, snippet.description, snippet.position, starts_with("statistics")) %>% 
@@ -127,7 +128,7 @@ yt_data$snippet.position <- as.numeric(as.character(yt_data$snippet.position))
 yt_data$statistics.viewCount <- as.numeric(as.character(yt_data$statistics.viewCount))
 yt_data$statistics.favoriteCount <- as.numeric(as.character(yt_data$statistics.favoriteCount))
 yt_data$statistics.commentCount <- as.numeric(as.character(yt_data$statistics.commentCount))
-write_sheet(yt_data, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="YouTube_Data_API")
+write_sheet(yt_data, gsheet, sheet ="YouTube_Data_API")
 
 channel_stats <- channel.df %>% select(items.snippet.title, items.snippet.description, items.snippet.customUrl, starts_with("items.statistics"))
 channel_stats$items.statistics.viewCount <- as.numeric(as.character(channel_stats$items.statistics.viewCount))
@@ -135,7 +136,7 @@ channel_stats$items.statistics.subscriberCount <- as.numeric(as.character(channe
 channel_stats$items.statistics.videoCount <- as.numeric(as.character(channel_stats$items.statistics.videoCount))
 channel_stats <- channel_stats %>% mutate(data.last.updated = Sys.time())
 
-write_sheet(channel_stats, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="YouTube_Channel_Stats")
+write_sheet(channel_stats, gsheet, sheet ="YouTube_Channel_Stats")
 
 
 #####################################################
@@ -157,7 +158,7 @@ adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
   debug = FALSE
 )
 adobe_video_stats <- adobe_video_stats %>% mutate(data.last.updated = Sys.time())
-write_sheet(adobe_video_stats, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Adobe_Video_Stats_API")
+write_sheet(adobe_video_stats, gsheet, sheet ="Adobe_Video_Stats_API")
 
 video_data_combined <- merge(x = yt_data, y = adobe_video_stats, by.x = "snippet.title", by.y = "Video Name (v27)") 
 
@@ -168,7 +169,7 @@ video_data_combined <- video_data_combined %>%
   mutate(total_views = YT_Views + Adobe_Views)%>% 
   mutate(data.last.updated = Sys.time())
 
-write_sheet(video_data_combined, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Adobe_YouTube_Combined")
+write_sheet(video_data_combined, gsheet, sheet ="Adobe_YouTube_Combined")
 
 # Setup Dates for Last Month
 last_month_start <- format(Sys.Date() - 30, '%Y-%m-01')
@@ -216,7 +217,7 @@ video_by_channel <- merge(x = video_by_channel_organic, y = video_by_channel_pai
 video_by_channel <- video_by_channel %>% rename('Video Title' = evar27)
 
 # write out to Channels Last Month tab in Google sheet
-write_sheet(video_by_channel, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="Adobe_Channels_Last_Month")
+write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
 
 
 # Get Video Comments
@@ -247,5 +248,5 @@ YouTube_Video_Comments <- YouTube_Video_Comments %>%
   rename(video_published = snippet.publishedAt) %>% 
   rename(comment_published = publishedAt)
 
-write_sheet(YouTube_Video_Comments, "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing", sheet ="YouTube_Video_Comments")
+write_sheet(YouTube_Video_Comments, gsheet, sheet ="YouTube_Video_Comments")
 

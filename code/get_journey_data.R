@@ -7,6 +7,7 @@ journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
 journey_unique_count <- nrow(journey_unique_names)
 time.points <- as.Date(seq(pre_start_date, post_end_date, by = "day"))
 
+message("Journey & Anomaly processing starting..")
 for (i in 1:nrow(journey_segments)) {
   # Build list of metrics from row item (metric group) in the config table
   metrics_list <- journey_metrics_googlesheet %>% 
@@ -75,6 +76,7 @@ for (i in 1:nrow(journey_segments)) {
   anomaly_datalist[[i]] <- anomaly_data
   
   message(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i]))
+  print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i]))
   
 }
 
@@ -97,3 +99,4 @@ journey_data <- journey_data %>%
 write_rds(journey_data, "output/df_journey_data.rds")
 write_rds(anomaly_data, "output/df_anomaly_data.rds")
 message("Journey & Anomaly processing completed.")
+print("Journey & Anomaly processing completed.")

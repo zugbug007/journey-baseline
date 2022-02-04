@@ -311,18 +311,17 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
 
 db1 <- db_plot_data %>% filter(pre <= 10000) %>% 
   ggplot(aes(x = pre, xend = post, y = journey_name)) +
-  geom_dumbbell(colour="#6ca0c7", 
-                colour_xend="#c76ca0", 
+  geom_dumbbell(colour="#95D1CC",
+                colour_x = "#406882",
+                colour_xend="#F05454", 
                 size=4.0, dot_guide=TRUE, 
-                dot_guide_size=0.15, 
-                dot_guide_colour = "grey60")+
+                dot_guide_size=0.1, 
+                dot_guide_colour = "grey60",
+                show.legend = TRUE)+
   labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
   theme_tq() +
   theme(
-  #  panel.grid.minor=element_blank(),
     panel.grid.major.y=element_blank(),
-  #  panel.grid.major.x=element_line(),
-   # axis.ticks=element_blank(),
     panel.border=element_blank()
   ) +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
@@ -464,13 +463,14 @@ relative_change %>%
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
 # Journey Performance Overview
-ggplot(db_plot_data) +
+highlow_count<- ggplot(db_plot_data) +
  aes(x = change, group = journey_name) +
  geom_bar(fill = "#4682B4") +
  labs(x = "Higher or Lower than Baseline", 
  y = "Journey Count", title = "Number of Journeys Higher or Lower than Baseline", subtitle = "Journey Performance") +
  theme_bw() +
  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+ggplotly(highlow_count)
 
 # Day Comparison Plot - Not Ordering for some reason..
 compare_to_day <- compare_to_day %>% mutate(journey_name = fct_reorder(journey_name, baseline_pre))

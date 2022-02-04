@@ -1,1 +1,65 @@
 
+### National Trust Shop
+Shop daily funnel event stages 1 to 4. Comparison is based on a rolling Sunday to Sunday window.
+Hover over for fallout details at each stage.  
+
+Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
+```{r, echo=FALSE}
+
+# Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
+# Before and after next to each other using patchwork. 
+# Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
+
+shop_step_labels <- c("Order Step 1 - Basket", 
+                      "Order Step 2 - Delivery Details", 
+                      "Order Step 3 - Payment Details", 
+                      "Order Step 4 - Order Confirmation")
+
+shop_funnel_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
+  select(Day, journey_name, contains("Shop")) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+    summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+shop_fun_pre_plot <- plot_ly() 
+shop_fun_pre_plot <- shop_fun_pre_plot %>%
+  add_trace(
+  type = "funnel",
+  y = shop_step_labels,
+  x = shop_funnel_pre, 
+textinfo = "value+percent initial",
+opacity = 0.8)
+shop_fun_pre_plot <- shop_fun_pre_plot %>%
+  layout(yaxis = list(categoryarray = shop_step_labels))
+shop_fun_pre_plot
+
+```
+
+**Last 7 days funnel performance**
+Hover over for fallout details at each stage.  
+
+Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
+```{r, echo=FALSE}
+
+shop_funnel_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
+  select(Day, journey_name, contains("Shop")) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+    summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+shop_fun_post_plot <- plot_ly() 
+shop_fun_post_plot <- shop_fun_post_plot %>%
+  add_trace(
+  type = "funnel",
+  y = shop_step_labels,
+  x = shop_funnel_post, 
+textinfo = "value+percent initial",
+opacity = 0.8)
+shop_fun_post_plot <- shop_fun_post_plot %>%
+  layout(yaxis = list(categoryarray = shop_step_labels))
+shop_fun_post_plot
+```

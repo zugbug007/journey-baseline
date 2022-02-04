@@ -1,3 +1,41 @@
+
+```{r dumbell_1, echo=FALSE}
+db1
+```
+
+```{r change_relative, echo=FALSE}
+ggplotly(p1)
+```
+
+
+```{r boxplot1, ECHO=FALSE}
+ggplotly(c1)
+```
+
+```{r boxplot2, ECHO=FALSE}
+ggplotly(r1)
+```
+
+```{r top10, ECHO=FALSE}
+ggplotly(top10)
+```
+
+```{r bottom10, ECHO=FALSE}
+ggplotly(bot10)
+top10 + bot10
+```
+
+```{r highlow, ECHO=FALSE}
+ggplotly(highlow_count)
+
+```
+
+```{r changes_overtime, ECHO=FALSE}
+ggplotly(sl1)
+ggplotly(sl2)
+ggplotly(sl3)
+```
+
 The following are some highlights.
 
 ### Most Popular Journeys
@@ -28,58 +66,6 @@ How are Entry journeys affected by the changes
 #### Average page time
 #### Organic traffic
 
-
-### Commercial Funnels
-
-#### National Trust Shop
-Commercial funnel steps through each major revenue focused commercial area.
-Shop Average daily funnel event stages 1 to 4. Comparison is based on a rolling 7 day window.
-Start: **`r start_14_days_ago_days` to `r end_7_days_ago`**. 
-```{r}
-
-# Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
-# Before and after next to each other using patchwork. 
-# Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
-shop_funnel_pre <- journey_data %>% 
-  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, journey_type, contains("Shop")) %>% 
-  filter(Day >= start_14_days_ago_days & Day <= end_7_days_ago) %>% arrange(Day) %>% 
-    summarise(across(c(`Shop - Order Step 1 - Basket (ev179)`,`Shop - Order Step 2 - Delivery Details (ev180)`,`Shop - Order Step 3 - Payment Details (ev181)`,`Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
-  mutate(across(where(is.numeric), round, 0)) %>% 
-  c(., recursive=TRUE)
-
-shop_funnel_post <- journey_data %>% 
-  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, journey_type, contains("Shop")) %>% 
-  filter(Day >= Sys.Date() - 7 & Day <= Sys.Date() - 1) %>% arrange(Day) %>% 
-    summarise(across(c(`Shop - Order Step 1 - Basket (ev179)`,`Shop - Order Step 2 - Delivery Details (ev180)`,`Shop - Order Step 3 - Payment Details (ev181)`,`Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
-  mutate(across(where(is.numeric), round, 0)) %>% 
-  c(., recursive=TRUE)
-
-shop_fun_pre_plot <- plot_ly() 
-shop_fun_pre_plot <- shop_fun_pre_plot %>%
-  add_trace(
-  type = "funnel",
-  y = c("Order Step 1 - Basket", "Order Step 2 - Delivery Details", "Order Step 3 - Payment Details", "Order Step 4 - Order Confirmation"),
-  x = shop_funnel_pre)
-shop_fun_pre_plot <- shop_fun_pre_plot %>%
-  layout(yaxis = list(categoryarray = c("Order Step 1 - Basket", "Order Step 2 - Delivery Details", "Order Step 3 - Payment Details", "Order Step 4 - Order Confirmation")))
-shop_fun_pre_plot
-
-```
-```{r}
-shop_fun_post_plot <- plot_ly() 
-shop_fun_post_plot <- shop_fun_post_plot %>%
-  add_trace(
-  type = "funnel",
-  y = c("Order Step 1 - Basket", "Order Step 2 - Delivery Details", "Order Step 3 - Payment Details", "Order Step 4 - Order Confirmation"),
-  x = shop_funnel_post)
-shop_fun_post_plot <- shop_fun_post_plot %>%
-  layout(yaxis = list(categoryarray = c("Order Step 1 - Basket", "Order Step 2 - Delivery Details", "Order Step 3 - Payment Details", "Order Step 4 - Order Confirmation")))
-shop_fun_post_plot
-```
-
-
 ### Devices
 
 Device journeys and any gaps
@@ -95,30 +81,6 @@ This table is sorted by the difference between the baseline and the new site bas
 Higher performing new journeys should come to the top while worst performing journeys should be at the bottom.
 
 ```{r baseline, echo=FALSE}
-pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% 
-  group_by(journey_name) %>% 
-  summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` , `% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
-  add_column(journey_type = "pre", .after = "journey_name") %>% 
-  mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>% 
-  mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
-
-
-post_baseline <- journey_data %>% filter(journey_type=="post") %>% 
-  group_by(journey_name) %>% 
-  summarise(across(c(`Visits`,`Page Views`, `Unique Visitors`, `Bounces`,`Average Time Spent on Site (seconds)` ,`% New Visits`,	`% Repeat Visits`,	`New Visits`,	`Repeat Visits`), list(mean = mean), .names = "{.col}_{.fn}")) %>% 
-  add_column(journey_type = "post", .after = "journey_name") %>% 
-  mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>% 
-  mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
-
-baseline <- rbind(pre_baseline, post_baseline)
-baseline_flex_table <- baseline %>% arrange(journey_name) %>% 
-    kable(col.names = c("Journey Name", "Journey Type", "Visits Avg.", "Page Views Avg.", "UV Avg.", "Bounces Avg.", "Avg. Time on Site", "Avg. % New Visits", "Avg. % Repeat Visits", "Avg New Visits", "Avg. Repeat Visits")) %>% 
-    kable_styling(bootstrap_options = c("striped", "condensed"))
-
-
-baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_name" = "journey_name"), suffix =c(".a.pre", ".b.post")) %>% select(-journey_type.a.pre, -journey_type.b.post) %>% select(journey_name, order(colnames(.))) 
-baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
-
 baseline_visits_mean <- baseline_summary %>% select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
   mutate(`% Visits Diff.` = percent(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre), accuracy = 0.1)) %>% arrange(desc(`% Visits Diff.`)) %>% 
     kable(col.names = c("Journey Name", "Baseline Visits", "New Site Visits Avg.", "% Visits Diff.")) %>% kable_styling(bootstrap_options = c("striped", "condensed"))
@@ -141,9 +103,7 @@ Journeys higher up this list will need more investigation than lower journeys.
 
 ```{r, echo=FALSE}
 # Build Cont Table of Anomalies for each journey. Get the number POST change so identify biggest differences after the cut over.
-anomaly_count <- anomaly_data %>% filter(dataAnomalyDetected == T & journey_type == "post") %>% count(journey_name, journey_desc, dataAnomalyDetected) %>% 
-  select(-dataAnomalyDetected) %>% arrange(desc(n)) %>% 
-    kable(col.names = c("Journey Name", "Journey Description", "No. of Anomalies (Post Launch)")) %>% kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
 anomaly_count
 ```
 
@@ -155,7 +115,6 @@ Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 # Anomaly Plots for each journey with Ribbon and Pre/Post separations
 i = 0
 for (i in 1:nrow(journey_unique_names)) {
-  
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
 anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'visits')     # Subset the anomaly data for journey and metric
 plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
