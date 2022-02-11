@@ -26,7 +26,8 @@ client_secret <- Sys.getenv("YOUTUBE_CLIENT_SECRET")
 # WAIT Until auth completed.
 yt_oauth(app_id = client_id,
          app_secret = client_secret,
-         token = '')
+         scope = "ssl",
+         token = ".httr-oauth")
 # WAIT Until auth completed.
 
 user_id <- "nationaltrustcharity"
@@ -221,21 +222,45 @@ write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
 
 
 # Get Video Comments
-
+#--------------------------------------------------------
 
 # Filter the list of Videos by statistics.commentCount => 1 & is not NA as tuber library does not like comments disabled videos
 filter_videos <- video_final.df %>% 
   filter(!is.na(statistics.commentCount)) %>% 
+  filter(!(id.x == "4nMoqaJM0-E")) %>% 
+  mutate(statistics.commentCount = as.numeric(statistics.commentCount)) %>% 
   filter(statistics.commentCount >= 1)
+#write_sheet(filter_videos, gsheet, sheet ="Video_Debug")
 
 # Convert to Vector
 nt_video_ids <- as.vector(filter_videos$contentDetails.videoId)
-
-# Pull Comments for each video
+# Code line below may fail until comment issues are resolved on the video error below.
 video_comments_raw <- purrr::map_df(.x = nt_video_ids, .f = tuber::get_all_comments)
 
+# Debug Code ------------------------------------
+# Alternative Pull Comments for each video
+df <- as.data.frame(nt_video_ids)
+df <- df %>% filter(!(nt_video_ids == "4nMoqaJM0-E")) # Sticky Toffee Pudding Pots - Video has a single comment but looks like it was blocked or deleted.
+# Re-enable the above video when there are more comments. https://www.youtube.com/watch?v=4nMoqaJM0-E
+
+ get_video_comments <- function(video_id) {
+   tuber::get_all_comments(video_id)
+ }
+ 
+comments_datalist = list()
+i = 0
+for (i in 1:nrow(df)) {
+  videoid <- df$nt_video_ids[i]
+  #print(videoid) # Enable for debugging problematic videos where YouTube shows 1 comment but the comment has been hidden or deleted.
+  video_comments_raw <- get_video_comments(videoid)
+  comments_datalist[[i]] <- video_comments_raw
+ }
+video_comments_raw <- data.table::rbindlist(comments_datalist, fill = TRUE)
+
+#------------------------------------------------
+  
 # Pull Comments for each video
-# video_category <- purrr::splice(.x = nt_video_ids, .f = tuber::list_videocats(c(region_code = "GB")))
+#video_category <- purrr::splice(.x = nt_video_ids, .f = tuber::list_videocats(c(region_code = "GB")))
 
 # Merge the name of the video with the Video ID
 YouTube_Video_Comments <- merge(x =yt_data , y = video_comments_raw, by.x = "contentDetails.videoId", by.y = "videoId") 

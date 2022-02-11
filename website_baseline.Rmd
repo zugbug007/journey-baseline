@@ -1,7 +1,7 @@
 ---
-title: "Website Baseline"
+title: "National Trust - Website Baseline"
 author: "Alan Millington"
-date: "21/01/2022"
+date: "`r Sys.time()`"
 output:
   html_document:
     theme: spacelab
@@ -51,6 +51,10 @@ pacman::p_load(tidyverse,
                kableExtra)
 
 gs4_auth(email = params$google_account)
+
+# Test Token has been refreshed and is up to date.
+# 
+# aw_token()
 
 # Check Adobe API Token Access Now
 aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)

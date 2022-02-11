@@ -22,7 +22,7 @@ library(flextable)    # Build Tables for PResentation
 #library(plantuml)     # For use with Flow as alternative engine
 
 #Test Token has been refreshed and is upto date.
-#aw_token()
+aw_token()
 #rm(list = ls()) # Clear the environment before running the code
 monitorStartTime_baseline <- Sys.time()
 #delete the aa.auth file in WD if issues

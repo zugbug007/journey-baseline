@@ -45,3 +45,5 @@ ggplot-dumbbell plots.R
 plot_zoom_png
 *.csv
 *.json
+*.html
+*.html

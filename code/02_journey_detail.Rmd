@@ -1,3 +1,9 @@
+### How to use this document
+pre/post date ranges & cut over period
+Days since website launch
+Example Graph with highlighted info
+
+
 
 ```{r dumbell_1, echo=FALSE}
 db1
