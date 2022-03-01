@@ -6,6 +6,8 @@ library(ggplot2)
 library(fuzzyjoin)
 library(runcharter)
 library(jsonlite)
+library(dplyr)
+
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -27,7 +29,7 @@ post_start_date_14 <- post_end_date - 14
 post_start_date_30 <- post_end_date - 30
 post_start_date_60 <- post_end_date - 60
 
-#keyword <- 'member'
+keyword <- 'pod'
 
 get_search_data <- function(date_range) {
   adobeanalyticsr::aw_freeform_table(
@@ -36,20 +38,20 @@ get_search_data <- function(date_range) {
     date_range = date_range,
     dimensions = c("evar13"),
     metrics = c("evar13instances"),
-    top = c(200),
+    top = c(5000),
     page = 0,
     filterType = "breakdown",
     segmentId = "s1957_619389fabb66f417bb8adc2f",
     metricSort = "desc",
     include_unspecified = TRUE,
-    search = c("CONTAINS 'member'"),
-    #search = NA,
+   # search = c("CONTAINS 'mem'"),
+    search = NA,
     prettynames = FALSE,
     debug = FALSE
   )
 }
 
-days <- seq(from=post_start_date, to=post_end_date, by='days')
+days <- seq(from=post_start_date_14, to=post_end_date, by='days')
 days_count <- length(days)
 search_datalist = list()
 for ( i in seq_along(days)) {
@@ -122,7 +124,7 @@ ggplot() +
  aes(x = day, y = searches, colour = search_term) +
  geom_line(size = 0.5) +
  scale_color_hue(direction = -1) +
- labs(x = "Day", y = "Number of Searches Made", title = "Search Term Contains: 'member'", 
+ labs(x = "Day", y = "Number of Searches Made", title = "Search Term Contains: 'podcast'", 
  color = "Search Term") +
  theme_minimal() # +
  # theme(legend.position = "none")
@@ -151,8 +153,8 @@ ggplot(search_terms_trended) +
     aes(x = day, fill = search_term, weight = searches) +
     geom_bar()+
     scale_fill_viridis_d(option = "viridis", direction = 1) +
-    labs(x = "Day", y = "Number of Searches Made", title = "Searches containing 'member'",  
-    subtitle = "Any search on the NT Main Site which contains the word 'member'.", fill = "Search Term") +
+    labs(x = "Day", y = "Number of Searches Made", title = "Searches containing 'podcast'",  
+    subtitle = "Any search on the NT Main Site which contains the word 'podcast'.", fill = "Search Term") +
     theme_bw()
 
 # Join with Places to filter out places searches

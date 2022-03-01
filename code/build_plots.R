@@ -15,23 +15,49 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   mutate(rank = order(order(diff_vs_baseline))) %>% 
   mutate(change = ifelse(post > pre, "Higher", "Lower"))
 
-db1 <- db_plot_data %>% filter(pre <= 10000) %>% 
-  ggplot(aes(x = pre, xend = post, y = journey_name)) +
-  geom_dumbbell(colour="#95D1CC",
-                colour_x = "#406882",
-                colour_xend="#F05454", 
-                size=4.0, dot_guide=TRUE, 
-                dot_guide_size=0.1, 
-                dot_guide_colour = "grey60",
-                show.legend = TRUE)+
-  labs(title = "Baseline Journey Comparison from Before & After CMS Launch", x="Pre vs. Post Baseline (Visits)", y = "Journey Name") +
-  theme_tq() +
-  theme(
-    panel.grid.major.y=element_blank(),
-    panel.border=element_blank()
-  ) +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-
+db1 <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
+  pivot_wider(
+    names_from = journey_type,
+    values_from = 'Visits_mean') %>% 
+  arrange(desc(post)) %>%
+  mutate(journey_name = fct_reorder(journey_name, post)) %>% slice(1:15) %>% 
+plot_ly(
+  marker = list(size = 20)) %>%
+  add_segments(
+    x = ~pre, y = ~journey_name,
+    xend = ~post, yend = ~journey_name, 
+    color = I("gray"), line = list(
+      color = 'rgb(192,192,192)',
+      width = 10
+    ), showlegend = FALSE
+  ) %>%
+  add_markers(
+    x = ~pre, y = ~journey_name, 
+    marker = list(
+      color = 'rgb(64, 104, 130)',
+      size = 15,
+      line = list(
+        color = 'rgb(192,192,192)',
+        width = 1
+      )
+    ),
+    name = "Pre"
+  ) %>%
+  add_markers(
+    x = ~post, y = ~journey_name,
+    marker = list(
+      color = 'rgb(240, 84, 84)',
+      size = 15,
+      line = list(
+        color = 'rgb(128,128,128)',
+        width = 1
+      )
+    ),
+    name  = "Post"
+  ) %>%
+  layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
+          layout(yaxis = list(title = "Journey Name"))
+db1
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##              Percentage Change Relative to the Baseline Summary          ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,7 +212,7 @@ sl2 <- compare_to_day %>%
 
 # Sub Category Group of Pages
 sl3 <- compare_to_day %>%
-  filter(sub_category %in% c("landing_pages")) %>% 
+ # filter(sub_category %in% c("landing_pages")) %>% 
   arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
                                          '14 Day Avg' = visits_14_da, 
                                          '7 Day Avg' = visits_7_da, 
@@ -207,3 +233,108 @@ sl3 <- compare_to_day %>%
     legend.position = "none"
   ) +
   facet_wrap(vars(journey_name), scales = "free")
+
+
+# Commercial Plots for Revenue, AOV, Sales Performance
+# Shop Pre Funnel Plot
+shop_step_labels <- c("Order Step 1 - Basket", 
+                      "Order Step 2 - Delivery Details", 
+                      "Order Step 3 - Payment Details", 
+                      "Order Step 4 - Order Confirmation")
+
+shop_funnel_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
+  select(Day, journey_name, contains("Shop - Order Step")) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+shop_fun_pre_plot <- plot_ly() 
+shop_fun_pre_plot <- shop_fun_pre_plot %>%
+  add_trace(
+    type = "funnel",
+    y = shop_step_labels,
+    x = shop_funnel_pre, 
+    textinfo = "value+percent initial",
+    opacity = 0.8)
+shop_fun_pre_plot <- shop_fun_pre_plot %>%
+  layout(yaxis = list(categoryarray = shop_step_labels))
+
+# Shop Post Funnel Plot
+shop_funnel_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
+  select(Day, journey_name, contains("Shop - Order Step")) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+shop_fun_post_plot <- plot_ly() 
+shop_fun_post_plot <- shop_fun_post_plot %>%
+  add_trace(
+    type = "funnel",
+    y = shop_step_labels,
+    x = shop_funnel_post, 
+    textinfo = "value+percent initial",
+    opacity = 0.8)
+shop_fun_post_plot <- shop_fun_post_plot %>%
+  layout(yaxis = list(categoryarray = shop_step_labels))
+
+# Anomaly Plots for each journey with Ribbon and Pre/Post separations
+shop_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Shop Checkout Steps 1-4")
+shop_revenue_plot_title <- "Shop Revenue Trended"
+plot_journey_name <- shop_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'revenue')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+shop_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="red", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Revenue") +
+  xlab("Day") +
+  scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+shop_revenue <- ggplotly(shop_revenue) %>%
+  layout(title = list(text = paste0(shop_revenue_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+# Shop Orders Trended
+shop_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Shop Checkout Steps 1-4")
+shop_orders_plot_title <- "Shop Orders Trended"
+plot_journey_name <- shop_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'orders')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+shop_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="red", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Orders") +
+  xlab("Day") +
+  #scale_y_continuous(labels = dollar_format(suffix = "", prefix = "£")) +
+  expand_limits(y=0)
+shop_orders <- ggplotly(shop_orders) %>%
+  layout(title = list(text = paste0(shop_orders_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+

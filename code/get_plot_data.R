@@ -79,3 +79,53 @@ relative_change <- journey_data %>%
   right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
   select(Day, journey_type, journey_name, Visits, Visits_mean, category, sub_category) %>% 
   mutate(diff_to_mean = ((Visits - Visits_mean)/Visits_mean))
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      SCATTER PLOT CHANNEL CONVERSION                     ----                                                                           ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Membership 
+# Segment Name: Membership Completion
+membership_conv_scatter_plot <- get_scatter_plot(previous_week, "event26", "s1957_6076f28b40d50e441ab3f0bd", "Membership")   
+
+# Membership Renewals
+# Segment Name: Membership Renewal Completion
+membership_renewals_conv_scatter_plot <- get_scatter_plot(previous_week, "event73", "s1957_6076f79f1786ec6aa730cdbc", "Membership Renewals")
+
+# Holidays
+# Segment Name: Holiday Booking Completion
+holidays_conv_scatter_plot <- get_scatter_plot(previous_week, "event134", "s1957_6076f8100e41ff781cd16ed3", "Holidays")
+
+# Shop
+# Segment Name: Shop Order Completion
+shop_conv_scatter_plot <- get_scatter_plot(previous_week, "event182", "s1957_6076f7deb2029b591cf20e4a", "National Trust Shop")
+
+# Donate
+# Segment Name: Donation Completion
+donate_conv_scatter_plot <- get_scatter_plot(previous_week, "event116", "s1957_6076f83b0e41ff781cd16ed5", "Donations")
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          CONVERSION CHANNEL FLOW                         ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Segment Name: Membership Completion
+membership_conv_flow_plot <- get_conversion_flow(previous_week, "event26", "s1957_6076f28b40d50e441ab3f0bd", "Membership")
+
+# Membership Renewals
+# Segment Name: Membership Renewal Completion
+membership_renewals_conv_flow_plot <- get_conversion_flow(previous_week, "event73", "s1957_6076f79f1786ec6aa730cdbc", "Membership Renewals")
+
+# Holidays
+# Segment Name: Holiday Booking Completion
+holidays_conv_flow_plot <- get_conversion_flow(previous_week, "event134", "s1957_6076f8100e41ff781cd16ed3", "Holidays")
+
+# Shop
+# Segment Name: Shop Order Completion
+shop_conv_flow_plot <- get_conversion_flow(previous_week, "event182", "s1957_6076f7deb2029b591cf20e4a", "National Trust Shop")
+
+# Donate
+# Segment Name: Donation Completion
+donate_conv_flow_plot <- get_conversion_flow(previous_week, "event116", "s1957_6076f83b0e41ff781cd16ed5", "Donations")
+

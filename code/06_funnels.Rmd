@@ -1,38 +1,140 @@
+---
+title: Commercial Funnels
+output:
+  html_document:
+    css: styles.css
+---
 
-### National Trust Shop
-Shop daily funnel event stages 1 to 4. Comparison is based on a rolling Sunday to Sunday window.
-Hover over for fallout details at each stage.  
+### Membership {.tabset}
+
+Insights:
+
+#### Summary
+
+
+#### Funnels
+
+
+
+#### Journeys
+
+
+
+
+#### Metrics
+
+
+
+#### Flows
+
+Membership conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
+
+```{r membership_flow_scatter_plot, echo=FALSE, fig.height=7, fig.width=9, warning=FALSE}
+membership_conv_scatter_plot  
+membership_conv_flow_plot
+```
+
+
+#### Forecast
+
+
+### {-}
+
+
+### Renewals {.tabset}
+
+Insights:
+
+#### Summary
+
+
+#### Funnels
+
+
+
+#### Journeys
+
+
+
+
+#### Metrics
+
+
+
+#### Flows
+Renewals conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
+
+```{r renewals_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+
+membership_renewals_conv_scatter_plot  
+membership_renewals_conv_flow_plot
+
+```
+
+#### Forecast
+
+### {-}
+
+
+### Holidays {.tabset}
+
+Insights:
+
+#### Summary
+
+
+#### Funnels
+
+
+
+#### Journeys
+
+
+
+
+#### Metrics
+
+
+
+#### Flows
+```{r holidays_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+
+holidays_conv_scatter_plot  
+holidays_conv_flow_plot
+
+```
+
+
+#### Forecast
+
+### {-}
+
+
+### Shop {.tabset}
+
+Insights:
+
+[Min] The lowest amount of Shop - Order Step 4 - Order Confirmation (Serialized) (ev182) was 15, which occurred on Feb. 3rd and was 84% less than the average of 92.
+
+#### Summary
+
+
+```{r shop_summary, ECHO=FALSE}
+head(mtcars)
+```
+
+
+#### Funnels
+
+We show the data in this tab.
 
 Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r, echo=FALSE}
+```{r shop_funnel_pre, echo=FALSE}
 
 # Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
 # Before and after next to each other using patchwork. 
 # Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
 
-shop_step_labels <- c("Order Step 1 - Basket", 
-                      "Order Step 2 - Delivery Details", 
-                      "Order Step 3 - Payment Details", 
-                      "Order Step 4 - Order Confirmation")
-
-shop_funnel_pre <- journey_data %>% 
-  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, contains("Shop")) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
-    summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(across(where(is.numeric), round, 0)) %>% 
-  c(., recursive=TRUE)
-
-shop_fun_pre_plot <- plot_ly() 
-shop_fun_pre_plot <- shop_fun_pre_plot %>%
-  add_trace(
-  type = "funnel",
-  y = shop_step_labels,
-  x = shop_funnel_pre, 
-textinfo = "value+percent initial",
-opacity = 0.8)
-shop_fun_pre_plot <- shop_fun_pre_plot %>%
-  layout(yaxis = list(categoryarray = shop_step_labels))
 shop_fun_pre_plot
 
 ```
@@ -41,25 +143,90 @@ shop_fun_pre_plot
 Hover over for fallout details at each stage.  
 
 Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r, echo=FALSE}
+```{r shop_funnel_post, echo=FALSE}
 
-shop_funnel_post <- journey_data %>% 
-  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, contains("Shop")) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
-    summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(across(where(is.numeric), round, 0)) %>% 
-  c(., recursive=TRUE)
-
-shop_fun_post_plot <- plot_ly() 
-shop_fun_post_plot <- shop_fun_post_plot %>%
-  add_trace(
-  type = "funnel",
-  y = shop_step_labels,
-  x = shop_funnel_post, 
-textinfo = "value+percent initial",
-opacity = 0.8)
-shop_fun_post_plot <- shop_fun_post_plot %>%
-  layout(yaxis = list(categoryarray = shop_step_labels))
 shop_fun_post_plot
+
 ```
+
+#### Sales & Revenue
+
+Here is the individual trends for each metric in the shop funnel.
+
+Revenue:
+
+```{r shop_revenue, echo=FALSE}
+
+ggplotly(shop_revenue)
+
+```
+Shop Orders:  
+
+Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
+```{r shop_orders, echo=FALSE}
+
+ggplotly(shop_orders)
+
+```
+
+
+#### Metrics
+
+Here is the individual trends for shop sales.
+
+```{r shop_metrics, echo=FALSE}
+# Anomaly Plots for each journey with Ribbon and Pre/Post separations
+
+
+```
+
+#### Flows
+Shop conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
+
+```{r shop_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+
+
+shop_conv_scatter_plot  
+shop_conv_flow_plot
+
+```
+
+
+#### Forecast
+
+### {-}
+
+### Donate {.tabset}
+
+Insights:
+
+#### Summary
+
+
+#### Funnels
+
+
+
+#### Journeys
+
+
+
+
+#### Metrics
+
+
+
+#### Flows
+Donate conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
+
+```{r donate_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+
+donate_conv_scatter_plot  
+donate_conv_flow_plot
+
+```
+
+
+#### Forecast
+
+### {-}

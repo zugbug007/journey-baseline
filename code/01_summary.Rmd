@@ -4,4 +4,15 @@ Below is a summary of what we found when checking the rsid report suite looking 
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
+```{r before_after_plot, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+# 3.0 BEFORE-AFTER PLOTS ----
+library(tidyverse)
+library(grafify)
+mpg %>%
+    group_by(model, year) %>%
+    summarize(mean_hwy = mean(hwy)) %>%
+    ungroup() %>%
+    plot_befafter_colors(year, mean_hwy, model)
+
+```
 

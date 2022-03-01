@@ -1,20 +1,23 @@
 ---
 title: "National Trust - Website Baseline"
 author: "Alan Millington"
-date: "`r Sys.time()`"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
-  html_document:
+  html_document: 
     theme: spacelab
-    toc: true
-    toc_float: true
+    toc: yes
+    toc_float: yes
     css: styles.css
+    self_contained: yes
 params:
   company_id: "thenat3"
   rsid: "nationaltrustmainsiteprod"
   google_account: "alan.millington@nationaltrust.org.uk"
+editor_options: 
+  chunk_output_type: inline
 ---
 
-```{r setup, include=FALSE, warning = FALSE, message = FALSE}
+```{r setup, include=FALSE, warning =FALSE, message=FALSE}
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -40,25 +43,33 @@ pacman::p_load(tidyverse,
                plotly,
                patchwork,
                gridExtra,
+               htmltools,
                GGally,
+               plotly,
                adobeanalyticsr,
                googlesheets4,
                scales,
                htmltools,  
                knitr,
+               RColorBrewer,
                anomalize,
                flextable,
-               kableExtra)
+               kableExtra,
+               sparkline)
 
 gs4_auth(email = params$google_account)
 
 # Test Token has been refreshed and is up to date.
-# 
-# aw_token()
+#aw_token()
 
 # Check Adobe API Token Access Now
-aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-aw_dimensions <- aw_get_dimensions(rsid = rsid)
+#aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
+aw_segments <- aw_get_segments(rsid = rsid)
+rm(aw_segments)
+
+# Test GSheets Connections
+gsheet = "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0"
+journey_segments_googlesheet <- read_sheet(gsheet, range = "journey")
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -86,9 +97,10 @@ post_start_date_60 <- post_end_date - 60
 last_month_start <- format(Sys.Date() - 30, '%Y-%m-01')
 last_month_end <- as.character(as.Date(format(Sys.Date(), '%Y-%m-01')) - 1)
 
-# Create a rolling window starting two weeks ago and forward one week.
+# Create a rolling window starting two weeks back and plus 7 days.
 start_14_days_ago_days <- Sys.Date() - 15
 end_7_days_ago <- Sys.Date() - 8
+two_weeks_ago <- c(start_14_days_ago_days, end_7_days_ago)
 
 # Get Date Starting on a Sunday Two Weeks Ago
 start_14_sun_start <- floor_date(as.Date(start_14_days_ago_days, "%m/%d/%Y"), unit="week")
@@ -97,26 +109,38 @@ end_14_sun_end <- as.Date(start_14_sun_start) + 6
 #Get Date Starting on a Sunday 1 Week Ago
 start_7_sun_start <- floor_date(as.Date(end_7_days_ago, "%m/%d/%Y"), unit="week")
 end_7_sun_end <- as.Date(start_7_sun_start) + 6
+last_7_full_week <- c(start_7_sun_start, end_7_sun_end)
+
+
+# Last two weeks
+last_two_full_weeks <- c(two_weeks_ago[1], last_7_full_week[2])
 
 # Previous Week
 previous_week_7 <- floor_date(Sys.Date(), "week")
-
+previous_week_7_end <- previous_week_7
+previous_week_7_start <- previous_week_7 - 7
+previous_week <- c(previous_week_7_start, previous_week_7_end)
+  
 ```
 
-```{r get_data, include = FALSE, warning = FALSE, message = FALSE}
+```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
 # Get the G sheets setup data and functions.
   source("code/get_g_sheets.R")
   source("code/get_functions.R")
 if(use_local_files == FALSE){
   # Get/process data
+  message("Preparing for Data Pull From Adobe")
   source("code/get_journey_data.R")
-  source("code/get_forecasts.R")
   source("code/get_plot_data.R")
   source("code/build_plots.R")
+  source("code/get_forecasts.R")
 } else {
+  message("Loading Local Files")
   journey_data <- readRDS("output/df_journey_data.rds")
   anomaly_data <- readRDS("output/df_anomaly_data.rds")
 }
+  save.image(file = "output/baseline-workspace.RData")
+  #load("output/baseline-workspace.RData")
   
 ```
 
@@ -145,7 +169,9 @@ if(use_local_files == FALSE){
 ```{r child = "code/05_search_cosole.Rmd"}
 ```
 
-## Commercial Funnels
+## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
+
 ```
+

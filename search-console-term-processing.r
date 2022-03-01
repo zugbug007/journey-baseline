@@ -55,7 +55,7 @@ for ( i in seq_along(days)) {
 }
 search_console_data <- data.table::rbindlist(search_console_datalist, fill = TRUE)
 
-# Add a column to indetify brand terms
+# Add a column to identify brand terms
 data_brand <- search_console_data %>% mutate(brand = case_when(grepl("national trust|national.trust", query) ~ 'brand', TRUE ~ 'nonbrand')) 
 
 branded_search <- data_brand %>% group_by(day, brand) %>%

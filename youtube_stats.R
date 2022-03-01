@@ -13,7 +13,7 @@ library(tuber)
 library(here)
 library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
-gs4_auth(email = params$google_account)
+gs4_auth()
 
 gsheet = "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing"
 
@@ -220,7 +220,7 @@ video_by_channel <- video_by_channel %>% rename('Video Title' = evar27)
 # write out to Channels Last Month tab in Google sheet
 write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
 
-
+# write_rds(anomaly_data, "output/df_anomaly_data.rds")
 # Get Video Comments
 #--------------------------------------------------------
 
@@ -238,7 +238,7 @@ nt_video_ids <- as.vector(filter_videos$contentDetails.videoId)
 video_comments_raw <- purrr::map_df(.x = nt_video_ids, .f = tuber::get_all_comments)
 
 # Debug Code ------------------------------------
-# Alternative Pull Comments for each video
+# Alternative Pull Method for Comments for each video
 df <- as.data.frame(nt_video_ids)
 df <- df %>% filter(!(nt_video_ids == "4nMoqaJM0-E")) # Sticky Toffee Pudding Pots - Video has a single comment but looks like it was blocked or deleted.
 # Re-enable the above video when there are more comments. https://www.youtube.com/watch?v=4nMoqaJM0-E

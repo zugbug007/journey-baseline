@@ -45,3 +45,6 @@ Check % graphs are correctly shwoing %
 Add column name for dates rather than 3-dA
 
 https://www.color-hex.com/color/6ca0c7
+
+Highlight specific line plots with colors
+https://albert-rapp.de/post/2022-02-19-ggplot2-color-tips-from-datawrapper/

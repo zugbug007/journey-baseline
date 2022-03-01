@@ -27,3 +27,19 @@ body > p {
     line-height: 1.42857143;
     color: #221f20;
 }
+div.main-container {
+  max-width: 1600px !important;
+}
+
+/*----------LOGO above TOC---------*/
+
+#TOC::before {
+  content: "";
+  display: block;
+  height: 200px;
+  margin: 2em 10px 20px 10px;
+  background-image: url("html/logo200.png");
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
