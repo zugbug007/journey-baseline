@@ -16,6 +16,9 @@ params:
 editor_options: 
   chunk_output_type: inline
 ---
+```{r eval=FALSE, message=FALSE, warning=FALSE, ECHO=FALSE, include=FALSE}
+#load("output/baseline-workspace.RData")
+```
 
 ```{r setup, include=FALSE, warning =FALSE, message=FALSE}
 # Capturing the start time -- the final output will include how long
@@ -23,12 +26,6 @@ editor_options:
 monitorStartTime_baseline <- Sys.time()
 
 rsid = "nationaltrustmainsiteprod"
-
-# Switch to set to bypass actually pulling data and, instead, simply pull from
-# .rds files written out locally on a previous run. Use this if the writing out
-# to Google Sheets crapped out on an earlier version. The "time to run" will
-# be messed up, but, otherwise, this will work.
-use_local_files <- FALSE
 
 # Check for packages needed and then load the packages
 if (!require("pacman")) install.packages("pacman")
@@ -45,6 +42,7 @@ pacman::p_load(tidyverse,
                gridExtra,
                htmltools,
                GGally,
+               rpivotTable,
                plotly,
                adobeanalyticsr,
                googlesheets4,
@@ -53,6 +51,7 @@ pacman::p_load(tidyverse,
                knitr,
                RColorBrewer,
                anomalize,
+               grafify,
                flextable,
                kableExtra,
                sparkline)
@@ -124,23 +123,20 @@ previous_week <- c(previous_week_7_start, previous_week_7_end)
 ```
 
 ```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
-# Get the G sheets setup data and functions.
-  source("code/get_g_sheets.R")
-  source("code/get_functions.R")
-if(use_local_files == FALSE){
-  # Get/process data
-  message("Preparing for Data Pull From Adobe")
-  source("code/get_journey_data.R")
-  source("code/get_plot_data.R")
-  source("code/build_plots.R")
-  source("code/get_forecasts.R")
-} else {
-  message("Loading Local Files")
-  journey_data <- readRDS("output/df_journey_data.rds")
-  anomaly_data <- readRDS("output/df_anomaly_data.rds")
-}
-  save.image(file = "output/baseline-workspace.RData")
-  #load("output/baseline-workspace.RData")
+# Update the Data
+
+source("code/get_g_sheets.R")
+source("code/get_functions.R")
+#source("code/get_journey_data.R")
+
+journey_data <- readRDS("output/df_journey_data.rds")
+anomaly_data <- readRDS("output/df_anomaly_data.rds")
+
+source("code/post_processing.R")
+source("code/build_plots.R")
+source("code/get_forecasts.R")
+
+#save.image(file = "output/baseline-workspace.RData")
   
 ```
 
@@ -154,20 +150,6 @@ if(use_local_files == FALSE){
 ```{r child = "code/02_journey_detail.Rmd"}
 ```
 
-## Journey Forecasts
-
-```{r child = "code/03_forecasts.Rmd"}
-```
-
-## Internal Search Journey 
-
-```{r child = "code/04_internal_search.Rmd"}
-```
-
-## Search Console Trends
-
-```{r child = "code/05_search_cosole.Rmd"}
-```
 
 ## Commercial Analysis
 

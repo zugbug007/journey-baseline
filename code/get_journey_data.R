@@ -11,10 +11,6 @@ anomaly_data_output <- data.frame()
 journey_count <- nrow(journey_segments)
 anomaly_data <- NULL
 
-journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
-journey_unique_count <- nrow(journey_unique_names)
-time.points <- as.Date(seq(pre_start_date, post_end_date, by = "day"))
-
 # Setup for Adobe Data
 aw_metrics <- aw_get_metrics()
 aw_dims <- aw_get_dimensions()
@@ -135,17 +131,6 @@ for (i in 1:nrow(journey_segments)) {
 journey_data <- data.table::rbindlist(journey_datalist, fill = TRUE)
 anomaly_data <- data.table::rbindlist(anomaly_datalist, fill = TRUE)
 anomaly_data <- rbind(anomaly_data,anomaly_data_output)
-
-# Organise column order for data clarity
-journey_data <- journey_data %>%        
-  relocate(journey_name, .after = Day) %>% 
-  relocate(journey_type, .before = journey_name) %>%
-  relocate(journey_desc, .after = journey_name) %>% 
-  relocate(journey_applied, .after =journey_desc) %>%
-  relocate(category, .after = journey_applied) %>%
-  relocate(sub_category, .after = category) %>% 
-  relocate(secondary_segment_1_name, .after = journey_applied) %>%
-  relocate(secondary_segment_2_name, .after = secondary_segment_1_name)
 
 # Write out to a .csv for use if the script craps out and put a message to the console
 write_rds(journey_data, "output/df_journey_data.rds")

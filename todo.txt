@@ -48,3 +48,18 @@ https://www.color-hex.com/color/6ca0c7
 
 Highlight specific line plots with colors
 https://albert-rapp.de/post/2022-02-19-ggplot2-color-tips-from-datawrapper/
+
+T - Tests
+https://support.minitab.com/en-us/minitab/20/help-and-how-to/statistics/basic-statistics/how-to/2-sample-t/before-you-start/example/
+https://uc-r.github.io/t_test
+https://bookdown.org/ndphillips/YaRrr/t-test-t-test.html
+https://academic.oup.com/beheco/article/17/4/688/215960
+
+
+#Fix List
+
+Summary of Website Journeys
+Journeys in detail
+Remove alot of the plots and re-think what is needed and what is genuninly useful
+
+

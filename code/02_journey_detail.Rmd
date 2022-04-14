@@ -1,102 +1,33 @@
-### How to use this document
-pre/post date ranges & cut over period
-Days since website launch
-Example Graph with highlighted info
-
-```{r dumbell_1, echo=FALSE,fig.height=7, fig.width=9 }
-db1
-```
-
-```{r change_relative, echo=FALSE,fig.height=7, fig.width=9}
-ggplotly(p1)
-```
+### Heading
 
 
-```{r boxplot1, ECHO=FALSE,fig.height=7, fig.width=9}
-ggplotly(c1)
-```
-
-```{r boxplot2, ECHO=FALSE,fig.height=7, fig.width=9}
-ggplotly(r1)
-```
-
-```{r top10, ECHO=FALSE,fig.height=7, fig.width=9}
+```{r top10,echo=FALSE}
 ggplotly(top10)
 ```
 
-```{r bottom10, ECHO=FALSE,fig.height=7, fig.width=9}
+```{r bottom10,echo=FALSE}
 ggplotly(bot10)
 ```
 
-```{r highlow, ECHO=FALSE,fig.height=7, fig.width=9}
+```{r highlow,echo=FALSE}
 ggplotly(highlow_count)
-
 ```
-
-```{r changes_overtime, ECHO=FALSE,fig.height=7, fig.width=9}
-ggplotly(sl1)
-ggplotly(sl2)
-ggplotly(sl3)
-```
-
-The following are some highlights.
-
-### Most Popular Journeys
-
-
-Top 10
-Good
-Bad
-
-Number of Journeys Higher or Lower than Baseline
-
-Dumbbell plots
-Parallel Plot - Top 10 good/bad
-
-Most common user journeys though the website
-
-### Entry Journeys/Inbound Journeys
-
-How are Entry journeys affected by the changes
-
-### Search Rankings
-### Research Visits 
-### Conversion Rates (All Funnels)
-### Compare Benchmarks
-#### Number of sessions per user
-#### New vs. returning users
-#### Pages per session
-#### Average page time
-#### Organic traffic
-#### Google Trends
-### Devices
-
-Device journeys and any gaps
-
-### Journey Category
-
-Journeys grouped by their category and measures
 
 ### Baseline Summary
 
 Below is a summary of the website journeys looking at data from **`r pre_start_date` to `r post_end_date`**. 
 This table is sorted by the difference between the baseline and the new site baseline difference percentage.
-Higher performing new journeys should come to the top while worst performing journeys should be at the bottom.
+Poor performing new journeys should come to the top.
 
 ```{r baseline, echo=FALSE}
-baseline_visits_mean <- baseline_summary %>% select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
-  mutate(`% Visits Diff.` = percent(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre), accuracy = 0.1)) %>% arrange(desc(`% Visits Diff.`)) %>% 
-    kable(col.names = c("Journey Name", "Baseline Visits", "New Site Visits Avg.", "% Visits Diff.")) %>% kable_styling(bootstrap_options = c("striped", "condensed"))
+baseline_visits_mean <- baseline_summary %>% 
+  select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
+  mutate(visits_diff = round(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre)*100, digits = 1)) %>% 
+  arrange(visits_diff) %>% 
+  top_n(-10, visits_diff) %>% 
+  kable(col.names = c("Journey Name", "Baseline Visits", "New Site Visits Avg.", "% Visits Diff.")) %>% kable_styling(bootstrap_options = c("striped", "condensed"))
+
 baseline_visits_mean
-
-```
-
-### Baseline Detailed View By Journey
-
-Below is the detail behind each journey and main traffic metrics for each journey.
-
-```{r, echo=FALSE}
-baseline_flex_table %>% scroll_box(width = "100%", height = "400px")
 
 ```
 

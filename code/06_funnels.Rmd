@@ -173,10 +173,11 @@ ggplotly(shop_orders)
 #### Metrics
 
 Here is the individual trends for shop sales.
+Add Revenue events too.
 
 ```{r shop_metrics, echo=FALSE}
 # Anomaly Plots for each journey with Ribbon and Pre/Post separations
-
+shop_events
 
 ```
 

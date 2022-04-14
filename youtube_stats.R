@@ -15,15 +15,21 @@ library(dplyr)
 library(googlesheets4)# Import and manipulate Google Sheets docs
 gs4_auth()
 
-gsheet = "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit?usp=sharing"
+gsheet = "https://docs.google.com/spreadsheets/d/18RlnfFeR1rlsqRLEtdHWz7pE82LKdzmwq-Pioa0gc40/edit#gid=1762860366"
 
 # WAIT Until auth completed.
+# Problems? Delete the htt_oauth file in the folder, retry if still not luck reset the secret in the cloud console.
+# https://console.cloud.google.com/apis/credentials?project=youtube-to-r
 options(scipen=10000)
 API_KEY = Sys.getenv("YOUTUBE_API_KEY")
 channel_id <- Sys.getenv("YOUTUBE_CHANNEL_ID") 
 client_id <- Sys.getenv("YOUTUBE_CLIENT_ID")
 client_secret <- Sys.getenv("YOUTUBE_CLIENT_SECRET")
 # WAIT Until auth completed.
+yt_token()
+yt_authorized()
+yt_check_token()
+tuber_check()
 yt_oauth(app_id = client_id,
          app_secret = client_secret,
          scope = "ssl",
@@ -139,7 +145,6 @@ channel_stats <- channel_stats %>% mutate(data.last.updated = Sys.time())
 
 write_sheet(channel_stats, gsheet, sheet ="YouTube_Channel_Stats")
 
-
 #####################################################
 
 adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
@@ -220,6 +225,28 @@ video_by_channel <- video_by_channel %>% rename('Video Title' = evar27)
 # write out to Channels Last Month tab in Google sheet
 write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
 
+
+# Video engagement metrics for national trust main website activity (Last Month Views)
+adobe_video_engagement <- adobeanalyticsr::aw_freeform_table(
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+  date_range = c(last_month_start, last_month_end),
+  dimensions = c("evar27"),
+  metrics = c("event10", "event12", "event13", "event14", "event15", "event11"),
+  top = c(20000),
+  page = 0,
+  filterType = "breakdown",
+  segmentId = NA,
+  metricSort = "desc",
+  include_unspecified = TRUE,
+  search = NA,
+  prettynames = TRUE,
+  debug = FALSE
+)
+adobe_video_engagement <- adobe_video_engagement %>% filter(`Video Start (ev10)` > 0) %>% mutate(`Video Watched to 90%` = `Video View 90% (ev15)`/`Video Start (ev10)`) %>%  mutate(data.last.updated = Sys.time())
+write_sheet(adobe_video_engagement, gsheet, sheet ="Adobe_Video_Engagement")
+
+
 # write_rds(anomaly_data, "output/df_anomaly_data.rds")
 # Get Video Comments
 #--------------------------------------------------------
@@ -227,7 +254,7 @@ write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
 # Filter the list of Videos by statistics.commentCount => 1 & is not NA as tuber library does not like comments disabled videos
 filter_videos <- video_final.df %>% 
   filter(!is.na(statistics.commentCount)) %>% 
-  filter(!(id.x == "4nMoqaJM0-E")) %>% 
+ # filter(!(id.x == "4nMoqaJM0-E")) %>% 
   mutate(statistics.commentCount = as.numeric(statistics.commentCount)) %>% 
   filter(statistics.commentCount >= 1)
 #write_sheet(filter_videos, gsheet, sheet ="Video_Debug")
@@ -239,23 +266,23 @@ video_comments_raw <- purrr::map_df(.x = nt_video_ids, .f = tuber::get_all_comme
 
 # Debug Code ------------------------------------
 # Alternative Pull Method for Comments for each video
-df <- as.data.frame(nt_video_ids)
-df <- df %>% filter(!(nt_video_ids == "4nMoqaJM0-E")) # Sticky Toffee Pudding Pots - Video has a single comment but looks like it was blocked or deleted.
-# Re-enable the above video when there are more comments. https://www.youtube.com/watch?v=4nMoqaJM0-E
-
- get_video_comments <- function(video_id) {
-   tuber::get_all_comments(video_id)
- }
- 
-comments_datalist = list()
-i = 0
-for (i in 1:nrow(df)) {
-  videoid <- df$nt_video_ids[i]
-  #print(videoid) # Enable for debugging problematic videos where YouTube shows 1 comment but the comment has been hidden or deleted.
-  video_comments_raw <- get_video_comments(videoid)
-  comments_datalist[[i]] <- video_comments_raw
- }
-video_comments_raw <- data.table::rbindlist(comments_datalist, fill = TRUE)
+# df <- as.data.frame(nt_video_ids)
+# #df <- df %>% filter(!(nt_video_ids == "4nMoqaJM0-E")) # Sticky Toffee Pudding Pots - Video has a single comment but looks like it was blocked or deleted.
+# # Re-enable the above video when there are more comments. https://www.youtube.com/watch?v=4nMoqaJM0-E
+# 
+#   get_video_comments <- function(video_id) {
+#     tuber::get_all_comments(video_id)
+#   }
+# 
+#  comments_datalist = list()
+#  i = 0
+#  for (i in 1:nrow(df)) {
+#    videoid <- df$nt_video_ids[i]
+#    #print(videoid) # Enable for debugging problematic videos where YouTube shows 1 comment but the comment has been hidden or deleted.
+#    video_comments_raw <- get_video_comments(videoid)
+#    comments_datalist[[i]] <- video_comments_raw
+#   }
+#  video_comments_raw <- data.table::rbindlist(comments_datalist, fill = TRUE)
 
 #------------------------------------------------
   

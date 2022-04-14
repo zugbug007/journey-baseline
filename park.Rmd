@@ -1,0 +1,130 @@
+Markdown Parking Area: Stuff in this file was removed from one of the Markdown files and contains all the graph objects not in use for now:
+03_forecasts.Rmd
+```{r forecasts, echo=FALSE, cache=FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      Build Forecast for every Journey                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+options(scipen = 999)
+
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_count <- nrow(journey_unique_names)
+
+# Predictor = Control Group (Pre Launch Data)
+forecast_datalist = list()
+for (i in 1:nrow(journey_unique_names)) {
+  forecast_data <- journey_data %>%
+    select(Day, journey_name, Visits) %>%
+    group_by(journey_name) %>%
+    arrange(desc(journey_name), Day) %>%
+    filter(journey_name == journey_unique_names$journey_name[i]) %>%
+    filter(Day >= pre_start_date & Day <= post_end_date)
+
+  # Get the first and last row dates of the available data
+  forecast_start_date = head(forecast_data$Day, n = 1)
+  forecast_end_date = tail(forecast_data$Day, n = 1)
+  forecast_pre_date_range = c(as.Date(forecast_start_date), as.Date(pre_end_date))
+  forecast_post_date_range = c(as.Date(post_start_date), as.Date(forecast_end_date))
+
+  time.points <- as.Date(seq(forecast_start_date, forecast_end_date, by = "day"))
+
+  data <- zoo(cbind(forecast_data$Visits), time.points)
+  forecast_data <- CausalImpact(data, as.Date(forecast_pre_date_range), as.Date(forecast_post_date_range), model.args = list(season.duration = 1))
+
+  gg <- plot(forecast_data, c("original", "pointwise"))
+  plotname <- paste0(journey_unique_names$journey_name[i])
+
+  print(gg + ggplot2::ggtitle(plotname))
+
+  forecast_datalist[[i]] <- forecast_data
+}
+
+# Write out to a .csv for use if the script craps out and put a message to the console
+message("Forecast processing completed.")
+```
+
+```{r dumbell_1, echo=FALSE, fig.height=7, fig.width=9, warning=FALSE}
+db1
+```
+
+
+```{r change_relative, echo=FALSE,fig.height=7, fig.width=9}
+ggplotly(p1)
+```
+
+```{r boxplot1, ECHO=FALSE,fig.height=7, fig.width=9}
+ggplotly(c1)
+```
+
+```{r boxplot2, ECHO=FALSE,fig.height=7, fig.width=9}
+ggplotly(r1)
+```
+
+```{r changes_overtime, ECHO=FALSE,fig.height=7, fig.width=9}
+ggplotly(sl1)
+ggplotly(sl2)
+ggplotly(sl3)
+```
+
+
+The following are some highlights.
+
+### Most Popular Journeys
+
+
+Top 10
+Good
+Bad
+
+Number of Journeys Higher or Lower than Baseline
+
+Dumbbell plots
+Parallel Plot - Top 10 good/bad
+
+Most common user journeys though the website
+
+### Entry Journeys/Inbound Journeys
+
+How are Entry journeys affected by the changes
+
+### Search Rankings
+### Research Visits 
+### Conversion Rates (All Funnels)
+### Compare Benchmarks
+#### Number of sessions per user
+#### New vs. returning users
+#### Pages per session
+#### Average page time
+#### Organic traffic
+#### Google Trends
+### Devices
+
+Device journeys and any gaps
+
+### Journey Category
+
+Journeys grouped by their category and measures
+
+### Baseline Detailed View By Journey
+
+Below is the detail behind each journey and main traffic metrics for each journey.
+
+```{r, echo=FALSE}
+baseline_flex_table %>% scroll_box(width = "100%", height = "400px")
+
+```
+
+## Journey Forecasts
+
+```{r child = "code/03_forecasts.Rmd"}
+```
+
+## Internal Search Journey 
+
+```{r child = "code/04_internal_search.Rmd"}
+```
+
+## Search Console Trends
+
+```{r child = "code/05_search_cosole.Rmd"}
+```
+
