@@ -54,6 +54,7 @@ pacman::p_load(tidyverse,
                grafify,
                flextable,
                kableExtra,
+               RColorBrewer,
                sparkline)
 
 gs4_auth(email = params$google_account)
@@ -110,7 +111,6 @@ start_7_sun_start <- floor_date(as.Date(end_7_days_ago, "%m/%d/%Y"), unit="week"
 end_7_sun_end <- as.Date(start_7_sun_start) + 6
 last_7_full_week <- c(start_7_sun_start, end_7_sun_end)
 
-
 # Last two weeks
 last_two_full_weeks <- c(two_weeks_ago[1], last_7_full_week[2])
 
@@ -136,7 +136,7 @@ source("code/post_processing.R")
 source("code/build_plots.R")
 source("code/get_forecasts.R")
 
-#save.image(file = "output/baseline-workspace.RData")
+
   
 ```
 
@@ -154,6 +154,6 @@ source("code/get_forecasts.R")
 ## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
-
+save.image(file = "output/baseline-workspace.RData")
 ```
 

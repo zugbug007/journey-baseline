@@ -17,6 +17,8 @@ journey_data <- journey_data %>%
   relocate(secondary_segment_1_name, .after = journey_applied) %>%
   relocate(secondary_segment_2_name, .after = secondary_segment_1_name)
 
+anomaly_data <- anomaly_data %>% mutate(dataAnomalyDetected_0_1 = case_when(dataAnomalyDetected =="TRUE" ~ 1, dataAnomalyDetected == "FALSE" ~ 0))
+
 # Check the data validity
 # Find the last date in the data set and calculate back the 3, 7, 14 day baselines.
 # Find the last valid date in the dataset and work back from there

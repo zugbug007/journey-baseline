@@ -30,11 +30,19 @@ yt_token()
 yt_authorized()
 yt_check_token()
 tuber_check()
+
+# Select option 2 to delete and re-authenticate
 yt_oauth(app_id = client_id,
          app_secret = client_secret,
          scope = "ssl",
          token = ".httr-oauth")
 # WAIT Until auth completed.
+# Check Adobe Auth
+aw_token(
+  client_id = Sys.getenv("AW_CLIENT_ID"),
+  client_secret = Sys.getenv("AW_CLIENT_SECRET"),
+  use_oob = TRUE
+)
 
 user_id <- "nationaltrustcharity"
 base <- "https://www.googleapis.com/youtube/v3/"
@@ -152,7 +160,7 @@ adobe_video_stats <- adobeanalyticsr::aw_freeform_table(
   rsid = Sys.getenv("AW_REPORTSUITE_ID"),
   date_range = c(Sys.Date() - 730, Sys.Date() - 1),
   dimensions = c("evar27"),
-  metrics = c("event10", "event12", "event13","event14", "event15", "cm1957_601d669663a03a772d6a2556", "event11"),
+  metrics = c("event10", "event12", "event13","event14", "event15", "event11"),
   top = c(20000),
   page = 0,
   filterType = "breakdown",
@@ -170,6 +178,7 @@ video_data_combined <- merge(x = yt_data, y = adobe_video_stats, by.x = "snippet
 
 video_data_combined <- video_data_combined %>% 
   select(-starts_with("data.last.updated")) %>% 
+  mutate(`Video Watched to 90%` = `Video View 90% (ev15)`/`Video Start (ev10)`) %>% 
   rename(YT_Views = statistics.viewCount) %>% 
   rename(Adobe_Views = `Video Start (ev10)`) %>% 
   mutate(total_views = YT_Views + Adobe_Views)%>% 
@@ -224,7 +233,6 @@ video_by_channel <- video_by_channel %>% rename('Video Title' = evar27)
 
 # write out to Channels Last Month tab in Google sheet
 write_sheet(video_by_channel, gsheet, sheet ="Adobe_Channels_Last_Month")
-
 
 # Video engagement metrics for national trust main website activity (Last Month Views)
 adobe_video_engagement <- adobeanalyticsr::aw_freeform_table(

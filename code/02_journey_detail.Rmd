@@ -1,5 +1,3 @@
-### Heading
-
 
 ```{r top10,echo=FALSE}
 ggplotly(top10)
@@ -45,7 +43,7 @@ anomaly_count
 Baseline Dates: **`r pre_start_date` to `r pre_end_date`**. 
 Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 
-```{r,echo=FALSE,fig.height=7, fig.width=9}
+```{r anomaly_plots,echo=FALSE,fig.height=7, fig.width=9}
 #Anomaly Plots for each journey with Ribbon and Pre/Post separations
 for (i in 1:nrow(journey_unique_names)) {
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
@@ -71,4 +69,34 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
 print(p2)
 }
 ```
+
+### Heatmaps 
+Insights:
+
+
+```{r journey_heatmap, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+# OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds
+library(d3heatmap)
+d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
+          labRow = heatmap_visits_by_day$journey_name, labColSize = 3,
+          scale = 'row', key.title = "Legend", print.values = F,
+          notecol = 'red') %>% 
+  hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
+  hmAxis("y", title = "Journey", location = 'left') %>% 
+  hmCells(font.size = 10, color = 'blue') %>% 
+  hmLegend(show = F, title = "Title", location = "tl")
+
+# d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu', 
+#             labRow = heatmap_anomalies_by_day$journey_name, labColSize = 3,
+#             scale = 'row', key.title = "Legend", print.values = F,
+#             notecol = 'red') %>% 
+#     hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
+#     hmAxis("y", title = "Journey", location = 'left') %>% 
+#     hmCells(font.size = 10, color = 'blue') %>% 
+#     hmLegend(show = F, title = "Title", location = "tl")
+
+```
+
+
+
 

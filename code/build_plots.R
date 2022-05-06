@@ -400,6 +400,35 @@ sl3 <- compare_to_day %>%
   facet_wrap(vars(journey_name), scales = "free")
 
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                                  HEATMAPS                                ----
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+heatmap_visits_by_day <- journey_data %>% 
+  filter(Day >= last_valid_date-180 & Day < last_valid_date) %>% 
+  select(journey_name, Day, Visits) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), Day) %>% 
+  tidyr::pivot_wider(
+    names_from = 'Day',
+    values_from = 'Visits')
+
+
+heatmap_anomalies_by_day <- anomaly_data %>%  
+  filter(day >= last_valid_date-180 & day < last_valid_date) %>% 
+  filter(metric == 'visits') %>% 
+  select(journey_name, day, dataAnomalyDetected_0_1) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), day) %>% 
+  tidyr::pivot_wider(
+    names_from = 'day',
+    values_from = 'dataAnomalyDetected_0_1')
+
+
 # Commercial Plots for Revenue, AOV, Sales Performance
 # Shop Pre Funnel Plot
 shop_step_labels <- c("Order Step 1 - Basket", 
