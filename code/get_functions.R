@@ -225,3 +225,56 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
     )
   return (s2)
 }
+
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                      Dumb Bell Plot for Journey Summary                   ---
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+get_journey_plot <- function(data_journey_plot){
+
+journey_before_after_plot <- plotly::plot_ly(
+  data = data_journey_plot, mode = 'markers') %>% 
+  add_segments(
+    x = ~pre, y = ~journey_name,
+    xend = ~post, yend = ~journey_name, 
+    color = I("gray"), line = list(
+      color = 'rgb(192,192,192)',
+      width = 7
+    ), showlegend = FALSE
+  ) %>%
+  add_markers(
+    x = ~pre, y = ~journey_name, 
+    marker = list(
+      color = 'rgb(64, 104, 130)',
+      size = 10,
+      line = list(
+        color = 'rgb(192,192,192)',
+        width = 0.1
+      )
+    ),
+    name = "Pre"
+  ) %>%
+  add_markers(
+    x = ~post, y = ~journey_name,
+    marker = list(
+      color = 'rgb(240, 84, 84)',
+      size = 10,
+      line = list(
+        color = 'rgb(128,128,128)',
+        width = 0.1
+      )
+    ),
+    name  = "Post"
+  ) %>%
+  layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
+  layout(yaxis = list(title = "Journey Name"))
+
+return (journey_before_after_plot)
+}

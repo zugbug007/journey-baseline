@@ -1,5 +1,5 @@
 h1.title{
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: ##3f433D; 
 }
@@ -27,6 +27,7 @@ body > p {
     line-height: 1.42857143;
     color: #221f20;
 }
+
 div.main-container {
   max-width: 1600px !important;
 }

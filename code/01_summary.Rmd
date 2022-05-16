@@ -5,11 +5,79 @@ Below is a summary of what we found when checking the rsid report suite looking 
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-```{r before_after_plot, echo=FALSE,message=FALSE, warning=FALSE}
-# 3.0 BEFORE-AFTER PLOTS ----
-# before_after <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
-#   plot_befafter_colors(journey_type, Visits_mean, journey_name)
-# 
-# before_after
+
+## Results {.tabset}
+
+### All Journeys
+
+All major journeys across the National Trust website areas.
+
+```{r all_journeys_before_after, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_journeys_before_after_plot)
+
+```
+### Landing Pages
+
+First pages of a user journey. 
+
+```{r all_landing_page_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_landing_page_journeys)
+
 ```
 
+
+### Device
+
+Journeys from specfic devices or operating systems.
+
+```{r all_device_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_device_journeys)
+
+```
+
+
+### Commercial
+
+Any journey that contains a commercial journey.
+
+```{r all_commercial_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_commercial_journeys)
+
+```
+
+
+### Top Level
+
+Journeys from the home page onward to other significant areas of the website.
+
+```{r all_top_level_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_top_level_journeys)
+
+```
+
+### Property Pages
+
+Journeys to a NT property page.
+
+```{r all_property_page_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_property_page_journeys)
+
+```
+
+### Discovery
+
+Journeys categorised as a research or discovery journey.
+
+```{r all_discovery_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_discovery_journeys)
+
+```
+
+## {-}

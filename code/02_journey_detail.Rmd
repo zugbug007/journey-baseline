@@ -1,19 +1,70 @@
 
-```{r top10,echo=FALSE}
-ggplotly(top10)
+```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
+  top_bot
 ```
 
-```{r bottom10,echo=FALSE}
-ggplotly(bot10)
+
+```{r highlow,echo=FALSE,fig.height=7, fig.width=9}
+#ggplotly(highlow_count)
+
+high_low_table
+
+
 ```
 
-```{r highlow,echo=FALSE}
-ggplotly(highlow_count)
+
+### Heatmaps 
+Insights:
+
+
+```{r journey_heatmap, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
+# OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds
+
+library (d3heatmap)
+
+    d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
+          labRow = heatmap_visits_by_day$journey_name, labColSize = 3,
+          scale = 'row', key.title = "Legend", print.values = F,
+          notecol = 'red') %>% 
+  hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
+  hmAxis("y", title = "Journey", location = 'left') %>% 
+  hmCells(font.size = 10, color = 'blue') %>% 
+  hmLegend(show = F, title = "Title", location = "tl")
+  
+  # d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu', 
+  #            labRow = heatmap_anomalies_by_day$journey_name, labColSize = 3,
+  #            scale = 'row', key.title = "Legend", print.values = F,
+  #            notecol = 'red') %>% 
+  #    hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
+  #    hmAxis("y", title = "Journey", location = 'left') %>% 
+  #    hmCells(font.size = 10, color = 'blue') %>% 
+  #    hmLegend(show = F, title = "Title", location = "tl")
+    
+detach("package:d3heatmap", unload = TRUE)
 ```
+
+### Anomaly Analysis By Journey
+Below is the count of anomalies detected for each journey, this is sorted by the number detected in the post launch period.
+Journeys higher up this list will need more investigation than lower journeys.  
+
+Positive anomalies are where the visit data exceeded the upper boundary of the data window.
+Negative anomalies are where the visit data fell below the lower boundary of the data window.
+The Net value is an overall count of the anomalies: (Positive Anomalies - Negative Anomalies = Net).  
+
+Higher negative values for Net columns indicate the journey fell below the expected amounts for the journey. 
+1 Anomaly = 1 day where the data was above or below expectations.
+
+```{r, echo=FALSE,fig.height=7, fig.width=9}
+# Build Cont Table of Anomalies for each journey. Get the number POST change so identify biggest differences after the cut over.
+
+anomaly_count
+
+```
+
 
 ### Baseline Summary
 
-Below is a summary of the website journeys looking at data from **`r pre_start_date` to `r post_end_date`**. 
+Below is a summary of the website journeys looking at data from **`r pre_start_date` to `r last_valid_date`**. 
 This table is sorted by the difference between the baseline and the new site baseline difference percentage.
 Poor performing new journeys should come to the top.
 
@@ -29,26 +80,22 @@ baseline_visits_mean
 
 ```
 
-### Anomaly Analysis By Journey
-Below is the count of anomalies detected for each journey, this is sorted by the number detected in the post launch period.
-Journeys higher up this list will need more investigation than lower journeys.
-
-```{r, echo=FALSE,fig.height=7, fig.width=9}
-# Build Cont Table of Anomalies for each journey. Get the number POST change so identify biggest differences after the cut over.
-
-anomaly_count
-```
-
 ### Anomaly Plots By Journey
 Baseline Dates: **`r pre_start_date` to `r pre_end_date`**. 
 Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 
-```{r anomaly_plots,echo=FALSE,fig.height=7, fig.width=9}
+```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=7}
 #Anomaly Plots for each journey with Ribbon and Pre/Post separations
 for (i in 1:nrow(journey_unique_names)) {
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
-anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'visits')     # Subset the anomaly data for journey and metric
-plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+
+anomaly_subset <- anomaly_data %>% 
+  filter(journey_name == plot_journey_name & metric == 'visits') # Subset the anomaly data for journey and metric
+
+plot_metric_name <- anomaly_subset %>% 
+  filter(row_number()==1) %>% 
+  pull(metric)                       # Get the metric name from the first row
+
 p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
   ggplot(aes_string(x = "day")) +
   geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
@@ -69,34 +116,6 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
 print(p2)
 }
 ```
-
-### Heatmaps 
-Insights:
-
-
-```{r journey_heatmap, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
-# OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds
-library(d3heatmap)
-d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
-          labRow = heatmap_visits_by_day$journey_name, labColSize = 3,
-          scale = 'row', key.title = "Legend", print.values = F,
-          notecol = 'red') %>% 
-  hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
-  hmAxis("y", title = "Journey", location = 'left') %>% 
-  hmCells(font.size = 10, color = 'blue') %>% 
-  hmLegend(show = F, title = "Title", location = "tl")
-
-# d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu', 
-#             labRow = heatmap_anomalies_by_day$journey_name, labColSize = 3,
-#             scale = 'row', key.title = "Legend", print.values = F,
-#             notecol = 'red') %>% 
-#     hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
-#     hmAxis("y", title = "Journey", location = 'left') %>% 
-#     hmCells(font.size = 10, color = 'blue') %>% 
-#     hmLegend(show = F, title = "Title", location = "tl")
-
-```
-
 
 
 

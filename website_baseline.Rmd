@@ -1,6 +1,6 @@
 ---
-title: "National Trust - Website Baseline"
-author: "Alan Millington"
+title: "Website Journey Analysis"
+author: "Alan Millington"  
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
   html_document: 
@@ -16,7 +16,9 @@ params:
 editor_options: 
   chunk_output_type: inline
 ---
-```{r eval=FALSE, message=FALSE, warning=FALSE, ECHO=FALSE, include=FALSE}
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #load("output/baseline-workspace.RData")
 ```
 
@@ -55,6 +57,7 @@ pacman::p_load(tidyverse,
                flextable,
                kableExtra,
                RColorBrewer,
+               forcats,
                sparkline)
 
 gs4_auth(email = params$google_account)
@@ -136,7 +139,6 @@ source("code/post_processing.R")
 source("code/build_plots.R")
 source("code/get_forecasts.R")
 
-
   
 ```
 
@@ -154,6 +156,6 @@ source("code/get_forecasts.R")
 ## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
-save.image(file = "output/baseline-workspace.RData")
+#save.image(file = "output/baseline-workspace.RData")
 ```
 

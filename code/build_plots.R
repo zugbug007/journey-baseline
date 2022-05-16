@@ -18,10 +18,11 @@ post_baseline <- journey_data %>% filter(journey_type=="post") %>%
 
 baseline <- rbind(pre_baseline, post_baseline)
 
-baseline_flex_table <- baseline %>% 
-  arrange(journey_name) %>% 
-  kbl() %>%
-  kable_styling(bootstrap_options = c("striped", "condensed"))
+# baseline_flex_table <- baseline %>% 
+#   arrange(journey_name) %>% 
+#   kbl() %>%
+#   kable_styling(bootstrap_options = c("striped", "condensed"))
+  
 
 baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_name" = "journey_name"), suffix =c(".a.pre", ".b.post")) %>% select(-journey_type.a.pre, -journey_type.b.post) %>% select(journey_name, order(colnames(.))) 
 baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
@@ -64,9 +65,53 @@ compare_to_day <- compare_baseline %>%
 ##             Build the Anomaly Counts Table                               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-anomaly_count <- anomaly_data %>% filter(dataAnomalyDetected == T & journey_type == "post") %>% count(journey_name, journey_desc, dataAnomalyDetected) %>% 
-  select(-dataAnomalyDetected) %>% arrange(desc(n)) %>% 
-  kable(col.names = c("Journey Name", "Journey Description", "No. of Anomalies (Post Launch)")) %>% kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+# Calculating incorrectly - fix needed
+
+# Pre column - good
+pre_anomaly_good <- anomaly_data %>% 
+  select(day, metric, journey_name, journey_type, dataAnomalyDetected_0_1, anomalies_good) %>% 
+  filter(metric =='visits' & journey_type == 'pre') %>% 
+  group_by(journey_name) %>% 
+  summarise(journey_name, pre_good = sum(anomalies_good)) %>% 
+  distinct_all()
+
+pre_anomaly_bad <- anomaly_data %>% 
+  select(day, metric, journey_name, journey_type, dataAnomalyDetected_0_1, anomalies_bad) %>% 
+  filter(metric =='visits' & journey_type == 'pre') %>% 
+  group_by(journey_name) %>% 
+  summarise(journey_name, pre_bad = sum(anomalies_bad)) %>% 
+  distinct_all()
+
+pre_anomaly <- merge(x = pre_anomaly_good, y = pre_anomaly_bad, by = "journey_name", all = TRUE)
+pre_anomaly <- pre_anomaly %>% mutate(pre_net = pre_good - pre_bad)
+  
+
+post_anomaly_good <- anomaly_data %>% 
+  select(day, metric, journey_name, journey_type, dataAnomalyDetected_0_1, anomalies_good) %>% 
+  filter(metric =='visits' & journey_type == 'post') %>% 
+  group_by(journey_name) %>% 
+  summarise(journey_name, post_good = sum(anomalies_good)) %>% 
+  distinct_all()
+
+post_anomaly_bad <- anomaly_data %>% 
+  select(day, metric, journey_name, journey_type, dataAnomalyDetected_0_1, anomalies_bad) %>% 
+  filter(metric =='visits' & journey_type == 'post') %>% 
+  group_by(journey_name) %>% 
+  summarise(journey_name, post_bad = sum(anomalies_bad)) %>% 
+  distinct_all()
+
+post_anomaly <- merge(x = post_anomaly_good, y = post_anomaly_bad, by = "journey_name", all = TRUE)
+post_anomaly <- post_anomaly %>% mutate(post_net = post_good - post_bad)
+
+anomaly_count <- merge(x = pre_anomaly, y = post_anomaly, by = "journey_name", all = TRUE)
+
+anomaly_count <- anomaly_count %>% arrange(post_net) %>% 
+  kable(col.names = c("Journey Name", "Positive", "Negative", "Net", "Positive", "Negative", "Net")) %>% 
+  add_header_above(c(" " = 1, "Pre Launch Anomalies" = 3, "Post Launch Anomalies" = 3)) %>% 
+  column_spec(7, color = "white", bold = T,
+              background = spec_color(1:43, end = 1, option = "viridis", direction = 1),
+              popover = paste("am:", anomaly_count$post_net[1:43])) %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,7 +206,7 @@ shop_events <- shop_events %>% kable(col.names = c("Date Range", "Journey Name",
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                      Dumbbell Plot for Journey Summary                   ----
+##                  Dumbbell Plot for All Journey Summary Tabs              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 options(scipen = 999) #disable scientific notation in ggplot
@@ -175,53 +220,63 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   mutate(journey_name = fct_reorder(journey_name, post)) %>% 
   mutate(diff_vs_baseline = ((post - pre)/pre)) %>%
   mutate(rank = order(order(diff_vs_baseline))) %>% 
-  mutate(change = ifelse(post > pre, "Higher", "Lower"))
+  mutate(change = ifelse(post > pre, "Higher", "Lower")) %>% 
+  mutate(change_0_1 = ifelse(post > pre, 1, 0))  # Added column to simplify downstream sums
 
 db1 <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
   pivot_wider(
     names_from = journey_type,
     values_from = 'Visits_mean') %>% 
-  mutate(journey_name = forcats::fct_reorder(journey_name, post)) %>% 
-  filter(post > 10000) %>% droplevels()
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
 
-db2 <- plot_ly(
-  data = db1,
-  marker = list(size = 20)) %>%
-  add_segments(
-    x = ~pre, y = ~journey_name,
-    xend = ~post, yend = ~journey_name, 
-    color = I("gray"), line = list(
-      color = 'rgb(192,192,192)',
-      width = 14
-    ), showlegend = FALSE
-  ) %>%
-  add_markers(
-    x = ~pre, y = ~journey_name, 
-    marker = list(
-      color = 'rgb(64, 104, 130)',
-      size = 15,
-      line = list(
-        color = 'rgb(192,192,192)',
-        width = 0.1
-      )
-    ),
-    name = "Pre"
-  ) %>%
-  add_markers(
-    x = ~post, y = ~journey_name,
-    marker = list(
-      color = 'rgb(240, 84, 84)',
-      size = 15,
-      line = list(
-        color = 'rgb(128,128,128)',
-        width = 0.1
-      )
-    ),
-    name  = "Post"
-  ) %>%
-  layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
-          layout(yaxis = list(title = "Journey Name"))
-db2
+
+all_journeys_before_after_plot <- left_join(db1, journey_data %>% 
+        dplyr::select(journey_name, journey_desc, category, sub_category), by = "journey_name") %>% 
+        distinct() %>% 
+        arrange(post) %>% 
+        mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+        droplevels()
+
+all_landing_page_journeys <- all_journeys_before_after_plot %>% filter(category == "landing") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+
+all_device_journeys <- all_journeys_before_after_plot %>% filter(sub_category == "device") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_commercial_journeys <- all_journeys_before_after_plot %>% 
+  filter(sub_category == "renew"| sub_category == "donate"| sub_category == "holidays"| sub_category == "membership") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_top_level_journeys <- all_journeys_before_after_plot %>% filter(category == "primary_menu") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_top_level_journeys <- all_journeys_before_after_plot %>% filter(category == "primary_menu") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_property_page_journeys <- all_journeys_before_after_plot %>% filter(sub_category == "property_page") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_discovery_journeys <- all_journeys_before_after_plot %>% filter(category == "discovery") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels() 
+
+
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##              Percentage Change Relative to the Baseline Summary          ----
@@ -308,6 +363,24 @@ bot10 <- ggplot(bot_10_journeys) +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
 
+top_bot_journeys <- rbind(top_10_journeys,bot_10_journeys)
+top_bot <- ggplot(top_bot_journeys) +
+  aes(
+    x = journey_name,
+    fill = change,
+    weight = diff_vs_baseline*100
+  ) +
+  geom_bar() +
+  scale_fill_hue(direction = -1) +
+  labs(
+    x = "Journey Name",
+    y = "% Percentage inc./dec. over the baseline",
+    title = "Top 10 Highest & Lowest Performing Journeys",
+    fill = "Performance"
+  ) +
+  coord_flip() +
+  ggthemes::theme_pander()
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##            Total Number of Journeys Higher or Lower than Baseline        ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -321,6 +394,28 @@ highlow_count<- ggplot(db_plot_data) +
   theme_bw() +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
+
+high_low_table <- db_plot_data %>% select(change_0_1) %>% 
+  mutate(Higher = sum(change_0_1 == 1)) %>% 
+           mutate(Lower = sum(change_0_1 == 0)) %>% 
+  distinct() %>% select(-change_0_1) %>% 
+  kbl(caption = "Number of Journeys Higher or Lower than the Baseline") %>%
+  column_spec(1:2, width = "30em") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+high_low_table
+# df <- db_plot_data %>% 
+#   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
+#   arrange(diff_vs_baseline) 
+# 
+# ggplot(df) +
+#   aes(x = journey_name, fill = change, weight = diff_vs_baseline) +
+#   geom_bar() +
+#   scale_fill_hue(direction = -1) +
+#   labs(x = "d", y = "e", title = "a", subtitle = "b", caption = "c", 
+#        fill = "f") +
+#   coord_flip() +
+#   ggthemes::theme_pander()
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##           Parallel Plot Graph Comparing Journey Changes Over Time        ----
@@ -534,49 +629,5 @@ shop_orders <- ggplotly(shop_orders) %>%
 
 
 
-
-
-
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                                                                            ~~
-##                        COMPUTE INDEPENDENT SAMPLE T-TEST                 ----
-##                                                                            ~~
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Paired t-tests: Compare the means of two sets of paired samples, taken from two populations with unknown variance
-# The two-sample unpaired t-test is a commonly used test that compares the means of two samples.
-# Appropriate data
-# •  Two-sample data.  That is, one measurement variable in two groups or samples
-# •  Dependent variable is interval/ratio, and is continuous
-# •  Independent variable is a factor with two levels.  That is, two groups
-# •  Data for each population are normally distributed
-# •  For Student's t-test, the two samples need to have the same variance.  However, Welch’s t-test, which is used by default in R, does not assume equal variances.
-# •  Observations between groups are independent.  That is, not paired or repeated measures data
-# •  Moderate skewness is permissible if the data distribution is unimodal without outliers
-
-# Hypotheses
-# •  Null hypothesis:  The means of the populations from which the data were sampled for each group are equal.
-# •  Alternative hypothesis (two-sided): The means of the populations from which the data were sampled for each group are not equal.
-
-# Interpretation
-# Reporting significant results as “Mean of variable Y for group A was different than that for group B.” is acceptable.
-
-library(ggpubr)
-library(rstatix)
-journey_name_Stat <- "Commercial: Shop Checkout Steps 1-4"
-pre <- journey_data %>% select(journey_name, journey_type, Day, Visits) %>% filter(journey_name == journey_name_Stat & journey_type =="pre") %>% 
-  group_by(journey_type) %>% arrange(Day) #%>% pull(Visits)
-post <- journey_data %>% select(journey_name, journey_type, Day, Visits) %>% filter(journey_name == journey_name_Stat & journey_type =="post") %>% 
-  group_by(journey_type) %>% arrange(Day) #%>%  pull(Visits)
-
-df1 <- journey_data %>% select(journey_name, journey_type, Day, Visits) %>% filter(journey_name == journey_name_Stat) %>% 
-  group_by(journey_type) %>% arrange(Day)
-
-# https://uc-r.github.io/t_test
-ggplot(df1, aes(journey_type, Visits)) + geom_boxplot()
-
-t.test(Visits ~ journey_type, data = df1)
 
 
