@@ -278,3 +278,31 @@ journey_before_after_plot <- plotly::plot_ly(
 
 return (journey_before_after_plot)
 }
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                      Internal Search Functions                            ---
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+get_search_data <- function(date_range) {
+  adobeanalyticsr::aw_freeform_table(
+    company_id = Sys.getenv("AW_COMPANY_ID"),
+    rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+    date_range = date_range,
+    dimensions = c("evar13"),
+    metrics = c("evar13instances"),
+    top = c(5000),
+    page = 0,
+    filterType = "breakdown",
+    segmentId = "s1957_619389fabb66f417bb8adc2f",
+    metricSort = "desc",
+    include_unspecified = TRUE,
+    # search = c("CONTAINS 'mem'"),
+    search = NA,
+    prettynames = FALSE,
+    debug = FALSE
+  )
+}

@@ -36,6 +36,20 @@ post <- journey_data %>% select(journey_name, journey_type, Day, Visits) %>% fil
 df1 <- journey_data %>% select(journey_name, journey_type, Day, Visits) %>% filter(journey_name == journey_name_Stat) %>% 
   group_by(journey_type) %>% arrange(Day)
 
+# Load the data
+data("genderweight", package = "datarium")
+# Show a sample of the data by group
+set.seed(123)
+genderweight %>% sample_n_by(group, size = 2)
+
+genderweight %>%
+  group_by(group) %>%
+  get_summary_stats(weight, type = "mean_sd")
+
+# Compute t-test
+res <- t.test(weight ~ group, data = genderweight)
+res
+
 # https://uc-r.github.io/t_test
 ggplot(df1, aes(journey_type, Visits)) + geom_boxplot()
 
@@ -79,19 +93,19 @@ df = data.frame(
 )
 
 
-df_cp <- journey_data %>% select(Day, journey_name, Visits) %>% filter(journey_name == "Members Area Entry") %>% arrange((Day)) %>% 
+shop_cp <- journey_data %>% select(Day, journey_name, Visits) %>% filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% arrange((Day)) %>% 
   select(-journey_name) 
 
-fit_changepoint = cpt.mean(df_cp$Visits)
+fit_changepoint = cpt.mean(shop_cp$Visits)
 
 # Return estimates
 c(ints = param.est(fit_changepoint)$mean,
   cp = cpts(fit_changepoint))
 
 plot(fit_changepoint)
-changepoint.np::cpt.np(df_cp$Visits)@cpts
 
-plot(changepoint.np::cpt.np(df_cp$Visits)@cpts)
+
+------------------------------------------------------
 
 ggplot(melt(data.frame(time=as.numeric(time(var.Bu.Dis@data.set)), var.Bu.Dis@data.set), id.vars="time"), aes(time, value)) + 
   geom_line() +

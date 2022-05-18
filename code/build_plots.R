@@ -28,44 +28,8 @@ baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_na
 baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##             Build the Daily Comparison of Journey Changes Table          ----
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-compare_day <- journey_data %>% 
-  select(Day, journey_type, journey_name, Visits, category, sub_category) %>% 
-  group_by(journey_name) %>%
-  right_join(baseline, by.x = C("journey_name" = "journey_name","journey_type" = "journey_type")) %>% 
-  select(Day, journey_type, journey_name, Visits, Visits_mean, category, sub_category) %>% 
-  rename(baseline_pre = Visits_mean) 
-
-compare_baseline <- compare_day %>% filter(journey_type == "pre") %>% 
-  select(journey_name, baseline_pre, sub_category) %>% group_by(journey_name) %>% distinct()
-
-compare_yesterday <- compare_day %>% filter(Day == yesterday & journey_type == "post") %>%
-  mutate(visits_yest = mean(Visits)) %>% select(journey_name, visits_yest) %>% distinct()
-
-compare_3_day <- compare_day %>% filter(Day >= three_days_ago & Day < last_valid_date & journey_type == "post") %>%
-  mutate(visits_3_da = mean(Visits)) %>% select(journey_name, visits_3_da) %>% distinct()
-
-compare_7_day <- compare_day %>% filter(Day >= seven_days_ago & Day < last_valid_date & journey_type == "post") %>%
-  mutate(visits_7_da = mean(Visits)) %>% select(journey_name, visits_7_da) %>% distinct()
-
-compare_14_day <- compare_day %>% filter(Day >= fourteen_days_ago & Day < last_valid_date & journey_type == "post") %>%
-  mutate(visits_14_da = mean(Visits)) %>% select(journey_name, visits_14_da) %>% distinct()
-
-compare_to_day <- compare_baseline %>% 
-  right_join(compare_14_day, by = "journey_name") %>% 
-  right_join(compare_7_day, by = "journey_name") %>% 
-  right_join(compare_3_day, by = "journey_name") %>% 
-  right_join(compare_yesterday, by = "journey_name") %>% 
-  relocate(sub_category, .after = journey_name)
-
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##             Build the Anomaly Counts Table                               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Calculating incorrectly - fix needed
 
 # Pre column - good
 pre_anomaly_good <- anomaly_data %>% 
@@ -109,8 +73,8 @@ anomaly_count <- anomaly_count %>% arrange(post_net) %>%
   kable(col.names = c("Journey Name", "Positive", "Negative", "Net", "Positive", "Negative", "Net")) %>% 
   add_header_above(c(" " = 1, "Pre Launch Anomalies" = 3, "Post Launch Anomalies" = 3)) %>% 
   column_spec(7, color = "white", bold = T,
-              background = spec_color(1:43, end = 1, option = "viridis", direction = 1),
-              popover = paste("am:", anomaly_count$post_net[1:43])) %>% 
+              background = spec_color(1:44, end = 1, option = "viridis", direction = 1),
+              popover = paste("am:", anomaly_count$post_net[1:44])) %>% 
   kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
 
 
@@ -203,8 +167,6 @@ shop_events_post <- journey_data %>%
 shop_events <- rbind(shop_events_pre, shop_events_post)
 shop_events <- shop_events %>% kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3", "Step 4 - Confirmation")) %>% kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
 
-
-
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                  Dumbbell Plot for All Journey Summary Tabs              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,59 +241,6 @@ all_discovery_journeys <- all_journeys_before_after_plot %>% filter(category == 
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##              Percentage Change Relative to the Baseline Summary          ----
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-p1 <- relative_change %>%
-  filter(journey_name %in% c("ALL Mobile", "ALL Visits", "ALL Tablet", "ALL SEO")) %>%
-  ggplot() +
-  aes(x = Day, y = diff_to_mean, colour = journey_name) +
-  geom_line(size = 0.5) +
-  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype=4, lwd = .8, alpha=0.5) +
-  geom_hline(yintercept=0, linetype=3, col = 'blue', lwd = .8, alpha=0.5) +
-  scale_color_hue(direction = 1) +
-  labs(
-    x = "90 Days Pre & 90 Days Post",
-    y = "% Change Relative to Baseline",
-    title = "Percentage Change Relative to Baseline",
-    subtitle = "Baseline Pre & Post CMS Launch",
-    caption = "% Change Relative to Baseline"
-  ) +
-  theme_bw() +
-  scale_y_continuous(labels = percent) +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 2L) +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                      Box Plot - Journey Pre/Post Comparison               ----
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-c1 <- relative_change %>%
-  filter(str_detect(journey_name,"Commercial")) %>%
-  ggplot() +
-  aes(x = journey_name, y = Visits, fill = journey_type) +
-  geom_boxplot(shape = "circle") +
-  scale_fill_hue(direction = 1) +
-  labs(x = "Journey Name", y = "Visits", title = "Journey Pre & Post Comparison", 
-       subtitle = "Box Plot") +
-  coord_flip() +
-  theme_bw() +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-
-r1 <- relative_change %>%
-  filter(!(sub_category %in% c("social", "shop", "holidays"))) %>%
-  ggplot() +
-  aes(x = sub_category, y = Visits, fill = journey_type) +
-  geom_boxplot(shape = "circle") +
-  scale_fill_hue(direction = 1) +
-  labs(x = "Journey Category", y = "Visits", title = "Journey Categorisations", 
-       subtitle = "Grouped Journeys") +
-  coord_flip() +
-  theme_bw() +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
-
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                      Top/Bottom 10 Journeys By Improvement               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -396,109 +305,41 @@ highlow_count<- ggplot(db_plot_data) +
 
 
 high_low_table <- db_plot_data %>% select(change_0_1) %>% 
-  mutate(Higher = sum(change_0_1 == 1)) %>% 
-           mutate(Lower = sum(change_0_1 == 0)) %>% 
-  distinct() %>% select(-change_0_1) %>% 
-  kbl(caption = "Number of Journeys Higher or Lower than the Baseline") %>%
-  column_spec(1:2, width = "30em") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
-
+  mutate(Lower = sum(change_0_1 == 0)) %>% 
+           mutate(Higher = sum(change_0_1 == 1)) %>% 
+   select(-change_0_1) %>% distinct() %>%
+  pivot_longer(
+    everything()
+    ) %>%     
+  kable(col.names = c("Number of Journeys Higher or Lower than Baseline", "No.")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
 high_low_table
-# df <- db_plot_data %>% 
-#   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
-#   arrange(diff_vs_baseline) 
-# 
-# ggplot(df) +
-#   aes(x = journey_name, fill = change, weight = diff_vs_baseline) +
-#   geom_bar() +
-#   scale_fill_hue(direction = -1) +
-#   labs(x = "d", y = "e", title = "a", subtitle = "b", caption = "c", 
-#        fill = "f") +
-#   coord_flip() +
-#   ggthemes::theme_pander()
 
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##           Parallel Plot Graph Comparing Journey Changes Over Time        ----
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+low_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
+  mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
+  filter(change == "Lower") %>% 
+  arrange(diff_vs_baseline) %>% 
+  kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
+  column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
+  
+#low_detail
 
-# Facet wrap all journey comparisons
-sl1 <- compare_to_day %>%
-  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
-                                         '14 Day Avg' = visits_14_da, 
-                                         '7 Day Avg' = visits_7_da, 
-                                         '3 Day Avg' = visits_3_da,  
-                                         'Yesterday' = visits_yest) %>% 
-  ggparcoord(
-    columns = 3:ncol(compare_to_day), groupColumn = 1,
-    alphaLines = 0.9,    
-    splineFactor = TRUE,
-    scale = "globalminmax",
-    #scale="std",
-    showPoints = TRUE, 
-    title = "Journey Changes over Time",
-    mapping = ggplot2::aes_string(x = "`All Journeys`", y = "Visits")
-  ) +
-  theme(
-    plot.title = element_text(size=10),
-    legend.position = "none"
-  ) +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 5L)
+high_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
+  mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
+  filter(change == "Higher") %>% 
+  arrange(desc(diff_vs_baseline)) %>% 
+  kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
+  #column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
 
-
-# Specific Journeys
-sl2 <- compare_to_day %>%
-  filter(journey_name %in% c("ALL Apple iOS", "ALL Visits", "ALL SEO", "Days Out Entry")) %>% 
-  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
-                                         '14 Day Avg' = visits_14_da, 
-                                         '7 Day Avg' = visits_7_da, 
-                                         '3 Day Avg' = visits_3_da, 
-                                         'Yesterday' = visits_yest) %>% 
-  ggparcoord(
-    columns = 3:ncol(compare_to_day), groupColumn = 1,
-    alphaLines = 0.9,    
-    splineFactor = TRUE,
-    scale = "globalminmax",
-    #scale="std",
-    showPoints = TRUE, 
-    title = "Journey Changes over Time",
-    mapping = ggplot2::aes_string(x = "Journeys", y = "Visits")
-  ) +
-  theme(
-    plot.title = element_text(size=10),
-    legend.position = "none"
-  ) +
-  facet_wrap(vars(journey_name), scales = "free", ncol = 5L)
-
-
-# Sub Category Group of Pages
-sl3 <- compare_to_day %>%
- # filter(sub_category %in% c("landing_pages")) %>% 
-  arrange(desc(journey_name)) %>% rename('Baseline' = baseline_pre, 
-                                         '14 Day Avg' = visits_14_da, 
-                                         '7 Day Avg' = visits_7_da, 
-                                         '3 Day Avg' = visits_3_da,  
-                                         'Yesterday' = visits_yest) %>% 
-  ggparcoord(
-    columns = 3:ncol(compare_to_day), groupColumn = 1,
-    alphaLines = 0.9,    
-    splineFactor = TRUE,
-    scale = "globalminmax",
-    #scale="std",
-    showPoints = TRUE, 
-    title = "Journey Changes over Time",
-    mapping = ggplot2::aes_string(x = "`Landing Page Journey`", y = "Visits")
-  ) +
-  theme(
-    plot.title = element_text(size=10),
-    legend.position = "none"
-  ) +
-  facet_wrap(vars(journey_name), scales = "free")
+high_detail
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                                                            ~~
-##                                  HEATMAPS                                ----
+##                                  HEATMAP                                 ----
 ##                                                                            ~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -524,8 +365,102 @@ heatmap_anomalies_by_day <- anomaly_data %>%
     values_from = 'dataAnomalyDetected_0_1')
 
 
-# Commercial Plots for Revenue, AOV, Sales Performance
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                          Commercial Funnel Plots                         ----
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Membership Funnel Plot
+# Pre Plot
+membership_step_labels <- c("Step 1", 
+                            "Step 2", 
+                            "Step 3", 
+                            "Step 4 - Confirmation")
+
+
+# Add the Join Us Page to the top of the funnel
+add_start_page_value_pre <- journey_data %>% 
+  filter(journey_name == "Membership: Join Us") %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>%
+  c(., recursive=TRUE)
+
+
+membership_funnel_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+  select(Day, journey_name, 
+         `Membership Step 1.0 (Serialized) (ev30)`,
+         `Membership Step 2.0 (Serialized) (ev24)`,
+         `Membership Step 3.0 (Serialized) (ev25)`,
+         `Membership Step 4.0 - Confirmation (Serialized) (ev26)`) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>%
+  c(., recursive=TRUE)
+ 
+membership_fun_pre_plot <- plot_ly() 
+membership_fun_pre_plot <- membership_fun_pre_plot %>%
+  add_trace(
+    type = "funnel",
+    y = membership_step_labels,
+    x = membership_funnel_pre, 
+    textinfo = "value+percent initial",
+    opacity = 0.8)
+membership_fun_pre_plot <- membership_fun_pre_plot %>%
+  layout(yaxis = list(categoryarray = membership_step_labels))
+
+# Build Pre with a start Page
+membership_funnel_pre_start_values <- c()
+membership_funnel_pre_start_values <- c(add_start_page_value_pre, membership_funnel_pre)
+membership_step_labels_start <- c("Join Us Page", membership_step_labels)
+
+membership_fun_pre_plot_start <- plot_ly() 
+membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
+  add_trace(
+    type = "funnel",
+    y = membership_step_labels_start,
+    x = membership_funnel_pre_start_values, 
+    textinfo = "value+percent initial",
+    opacity = 0.8)
+membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
+  layout(yaxis = list(categoryarray = membership_step_labels_start))
+#--------------------------------------------------------------------------------------------
+
+# Post Plot
+# Membership Post Funnel Plot
+membership_funnel_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+  select(Day, journey_name, 
+         `Membership Step 1.0 (Serialized) (ev30)`,
+         `Membership Step 2.0 (Serialized) (ev24)`,
+         `Membership Step 3.0 (Serialized) (ev25)`,
+         `Membership Step 4.0 - Confirmation (Serialized) (ev26)`) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+membership_fun_post_plot <- plot_ly() 
+membership_fun_post_plot <- membership_fun_post_plot %>%
+  add_trace(
+    type = "funnel",
+    y = membership_step_labels,
+    x = membership_funnel_post, 
+    textinfo = "value+percent initial",
+    opacity = 0.8)
+membership_fun_post_plot <- membership_fun_post_plot %>%
+  layout(yaxis = list(categoryarray = membership_step_labels))
+
+
+#--------------------------------------------------------------------------------
+
 # Shop Pre Funnel Plot
+
 shop_step_labels <- c("Order Step 1 - Basket", 
                       "Order Step 2 - Delivery Details", 
                       "Order Step 3 - Payment Details", 
@@ -590,6 +525,7 @@ shop_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & jo
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
   ylab("Revenue") +
   xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
   scale_y_continuous(labels = dollar_format(prefix = "£")) +
   expand_limits(y=0)
 shop_revenue <- ggplotly(shop_revenue) %>%
@@ -618,7 +554,8 @@ shop_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & jou
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
   ylab("Orders") +
   xlab("Day") +
-  #scale_y_continuous(labels = dollar_format(suffix = "", prefix = "£")) +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  #scale_y_continuous(labels = dollar_format(prefix = "£")) +
   expand_limits(y=0)
 shop_orders <- ggplotly(shop_orders) %>%
   layout(title = list(text = paste0(shop_orders_plot_title,
@@ -628,6 +565,118 @@ shop_orders <- ggplotly(shop_orders) %>%
                                     '</sup>')))
 
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                          Change Points Graphs                            ----
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+holidays_cp <- journey_data %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(journey_name == "Commercial: Holidays Checkout Steps 1-4") %>% 
+  arrange((Day)) %>% 
+  select(-journey_name) 
+
+fit_changepoint_holidays = cpt.mean(holidays_cp$Visits)
+
+# Return estimates
+c(ints = param.est(fit_changepoint_holidays)$mean,
+  cp = cpts(fit_changepoint_holidays))
 
 
+shop_cp <- journey_data %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
+  arrange((Day)) %>% 
+  select(-journey_name) 
+
+fit_changepoint_shop = cpt.mean(shop_cp$Visits)
+
+# Return estimates
+c(ints = param.est(fit_changepoint_shop)$mean,
+  cp = cpts(fit_changepoint_shop))
+
+donate_cp <- journey_data %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
+  arrange((Day)) %>% 
+  select(-journey_name) 
+
+fit_changepoint_donate = cpt.mean(donate_cp$Visits)
+
+# Return estimates
+c(ints = param.est(fit_changepoint_donate)$mean,
+  cp = cpts(fit_changepoint_donate))
+
+renew_cp <- journey_data %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(journey_name == "Commercial: Renew Checkout Steps 1-3") %>% 
+  arrange((Day)) %>% 
+  select(-journey_name) 
+
+fit_changepoint_renew = cpt.mean(renew_cp$Visits)
+
+# Return estimates
+c(ints = param.est(fit_changepoint_renew)$mean,
+  cp = cpts(fit_changepoint_renew))
+
+membership_cp <- journey_data %>% 
+  select(Day, journey_name, Visits) %>% 
+  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+  arrange((Day)) %>% 
+  select(-journey_name) 
+
+fit_changepoint_membership = cpt.mean(membership_cp$Visits)
+
+# Return estimates
+c(ints = param.est(fit_changepoint_membership)$mean,
+  cp = cpts(fit_changepoint_membership))
+
+
+# Internal Search Data Pull and Processing
+# -----------------------------------------------------------------------------------------------------------------------
+days <- seq(from=post_start_date_14, to=post_end_date, by='days')
+days_count <- length(days)
+search_datalist = list()
+for ( i in seq_along(days)) {
+  day_date <- c(as.Date(days[i]), as.Date(days[i]))
+  search_term_data_main_site  <- get_search_data(day_date)
+  search_term_data_main_site$day <- days[i]
+  search_datalist[[i]] <- search_term_data_main_site
+  pc = round((i/days_count)*100, 0)
+  print(paste0("Search terms for day: ", i, " of ", days_count, " - Completed: ",days[i], " ", " - Progress: ",pc,"%"))
+}
+search_term_data_main_site <- data.table::rbindlist(search_datalist, fill = TRUE)
+
+# Clean up table and rename/relocate columns into a better order.
+search_term_data_main_site <- search_term_data_main_site %>% 
+  rename(searches = evar13instances) %>% 
+  rename(search_term = evar13) %>% 
+  relocate(day, .before = search_term) %>% 
+  mutate(search_term = tolower(search_term))
+
+# Prep for calculations
+# calculate total searches for a day, divide by number of total searches that contain a string/search term.
+
+# Plots
+# Sort the data by each term into a time series for plotting.
+
+search_terms_trended_flex_table <- search_term_data_main_site %>% 
+  arrange(desc(search_term), day) %>% 
+  group_by(search_term) %>% 
+  add_count() %>% 
+  select(search_term, searches) %>% 
+  mutate(total = sum(searches)) %>% 
+  select(search_term, total) %>% 
+  arrange(desc(total)) %>% 
+  distinct() %>% 
+  ungroup() %>% 
+  slice(1:50) %>% 
+  kable(col.names = c("Search Term", "Total Searches")) %>% 
+  column_spec(2, color = "white", bold = T, background = spec_color(1:50)) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+
+search_terms_trended_flex_table
 

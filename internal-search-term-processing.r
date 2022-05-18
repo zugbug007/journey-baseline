@@ -29,7 +29,7 @@ post_start_date_14 <- post_end_date - 14
 post_start_date_30 <- post_end_date - 30
 post_start_date_60 <- post_end_date - 60
 
-keyword <- 'pod'
+keyword <- 'shop'
 
 get_search_data <- function(date_range) {
   adobeanalyticsr::aw_freeform_table(
@@ -96,24 +96,24 @@ search_terms_trended <- search_term_data_main_site %>%
     add_count() %>% 
    # filter(str_detect(search_term, keyword)) %>% 
     filter(n > 10)
-
-runcharter(search_terms_trended,
-           direction = "above",
-           med_rows = 7,
-           runlength = 5,
-           datecol = day, 
-           grpvar = search_term,
-           yval = searches, 
-           chart_title = "Runs identified",
-           point_size =0.5,
-           facet_cols = NULL,
-           facet_scales = "free_y",
-           chart_breaks = "14 days",
-           line_colr = "#6ca0c7", # blue
-           line_size = 0.5,
-           point_colr ="#6ca0c7", # blue
-           median_colr = "#c76ca0", # orange
-           chart_subtitle = "Runs above the median signalling improvement")
+# 
+# runcharter(search_terms_trended,
+#            direction = "above",
+#            med_rows = 7,
+#            runlength = 5,
+#            datecol = day, 
+#            grpvar = search_term,
+#            yval = searches, 
+#            chart_title = "Runs identified",
+#            point_size =0.5,
+#            facet_cols = NULL,
+#            facet_scales = "free_y",
+#            chart_breaks = "14 days",
+#            line_colr = "#6ca0c7", # blue
+#            line_size = 0.5,
+#            point_colr ="#6ca0c7", # blue
+#            median_colr = "#c76ca0", # orange
+#            chart_subtitle = "Runs above the median signalling improvement")
 # total_queries <- search_terms_trended %>% mutate(grand_total = sum(searches)) %>% select(grand_total) %>% flextable::flextable()
 # total_queries
 

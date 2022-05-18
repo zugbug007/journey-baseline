@@ -1,0 +1,37 @@
+
+Baseline Dates: **`r pre_start_date` to `r pre_end_date`**. 
+Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
+
+```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=7}
+#Anomaly Plots for each journey with Ribbon and Pre/Post separations
+for (i in 1:nrow(journey_unique_names)) {
+plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
+
+anomaly_subset <- anomaly_data %>% 
+  filter(journey_name == plot_journey_name & metric == 'visits') # Subset the anomaly data for journey and metric
+
+plot_metric_name <- anomaly_subset %>% 
+  filter(row_number()==1) %>% 
+  pull(metric)                       # Get the metric name from the first row
+
+p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+                      aes_string(y ='data'),color="red", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+                subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
+                caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  scale_y_continuous(labels = scales::comma) +
+  expand_limits(y=0) +
+  ylab("Visits") +
+  facet_wrap(~journey_name, dir = "v")
+print(p2)
+}
+```

@@ -15,10 +15,51 @@ Insights:
 
 
 #### Funnels
+**Previous Week performance**
+
+Membership funnel completions through the journey. This data is based on the VISITOR.
+
+Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
+```{r membership_funnel_pre, echo=FALSE}
+
+# Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
+# Before and after next to each other using patchwork. 
+# Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
+
+membership_fun_pre_plot
+
+```
+
+**Last 7 days funnel performance**
+Hover over for fallout details at each stage.  
+
+Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
+```{r membership_funnel_post, echo=FALSE}
+
+membership_fun_post_plot
+
+```
+
+**Previous Week performance**
+This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
+
+Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
+```{r membership_funnel_pre_start, echo=FALSE}
+
+membership_fun_pre_plot_start
+
+```
+
+**Last 7 days funnel performance**
+This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
+
+Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
+```{r membership_funnel_post_start, echo=FALSE}
 
 
+```
 
-#### Journeys
+#### Sales & Revenue
 
 
 
@@ -57,8 +98,17 @@ membership_conv_flow_plot
 ```
 
 
-#### Forecast
+#### Change Point
 
+This plot shows the change in the mean visits through the funnel over the series.  
+Change point occurred on day: **`r fit_changepoint_membership@cpts[1]`**.
+
+```{r membership_changepoints, echo=FALSE}
+
+
+plot(fit_changepoint_membership)
+
+```
 
 ### {-}
 
@@ -74,7 +124,7 @@ Insights:
 
 
 
-#### Journeys
+#### Sales & Revenue
 
 
 
@@ -93,7 +143,23 @@ membership_renewals_conv_flow_plot
 
 ```
 
-#### Forecast
+#### Change Point
+
+
+This plot shows the change in the mean visits through the funnel over the series.  
+Change point occurred on day: **`r fit_changepoint_renew@cpts[1]`**.
+
+
+```{r renew_changepoints, echo=FALSE}
+
+
+plot(fit_changepoint_renew)
+
+
+```
+
+
+
 
 ### {-}
 
@@ -109,7 +175,7 @@ Insights:
 
 
 
-#### Journeys
+#### Sales & Revenue
 
 
 
@@ -127,7 +193,17 @@ holidays_conv_flow_plot
 ```
 
 
-#### Forecast
+#### Change Point
+
+This plot shows the change in the mean visits through the funnel over the series.  
+Change point occurred on day: **`r fit_changepoint_holidays@cpts[1]`**.
+
+```{r holidays_changepoints, echo=FALSE}
+
+plot(fit_changepoint_holidays)
+
+```
+
 
 ### {-}
 
@@ -148,7 +224,7 @@ head(mtcars)
 
 #### Funnels
 
-We show the data in this tab.
+Shop funnel completions through the journey. This data is 
 
 Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
 ```{r shop_funnel_pre, echo=FALSE}
@@ -177,7 +253,7 @@ Here is the individual trends for each metric in the shop funnel.
 
 Revenue:
 
-```{r shop_revenue, echo=FALSE}
+```{r shop_revenue, echo=FALSE, fig.height=7, fig.width=9}
 
 ggplotly(shop_revenue)
 
@@ -185,7 +261,7 @@ ggplotly(shop_revenue)
 Shop Orders:  
 
 Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
-```{r shop_orders, echo=FALSE}
+```{r shop_orders, echo=FALSE, fig.height=7, fig.width=9}
 
 ggplotly(shop_orders)
 
@@ -208,14 +284,25 @@ Shop conversions by Channel. Start: **`r previous_week_7_start` to `r previous_w
 
 ```{r shop_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
 
-
 shop_conv_scatter_plot  
 shop_conv_flow_plot
 
 ```
 
 
-#### Forecast
+#### Change Point
+
+This plot shows the change in the mean visits through the funnel over the series.  
+Change point occurred on day: **`r fit_changepoint_shop@cpts[1]`**.
+
+```{r shop_changepoints, echo=FALSE}
+
+plot(fit_changepoint_shop)
+
+```
+
+
+
 
 ### {-}
 
@@ -230,7 +317,7 @@ Insights:
 
 
 
-#### Journeys
+#### Sales & Revenue
 
 
 
@@ -250,6 +337,17 @@ donate_conv_flow_plot
 ```
 
 
-#### Forecast
+#### Change Point
+This plot shows the change in the mean visits through the funnel over the series.  
+Change point occurred on day: **`r fit_changepoint_donate@cpts[1]`**.
+
+```{r donate_changepoints, echo=FALSE}
+
+plot(fit_changepoint_donate)
+
+```
+
+
+
 
 ### {-}

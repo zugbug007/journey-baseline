@@ -1,5 +1,5 @@
 ---
-title: "Website Journey Analysis"
+title: " "
 author: "Alan Millington"  
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
@@ -17,12 +17,11 @@ editor_options:
   chunk_output_type: inline
 ---
 
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #load("output/baseline-workspace.RData")
 ```
 
-```{r setup, include=FALSE, warning =FALSE, message=FALSE}
+```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -58,6 +57,7 @@ pacman::p_load(tidyverse,
                kableExtra,
                RColorBrewer,
                forcats,
+               changepoint,
                sparkline)
 
 gs4_auth(email = params$google_account)
@@ -156,6 +156,31 @@ source("code/get_forecasts.R")
 ## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
-#save.image(file = "output/baseline-workspace.RData")
+
+```
+
+## Internal Searches
+
+```{r child = "code/04_internal_search.Rmd"}
+
+```
+
+
+## Anomaly Plots By Journey
+
+```{r child = "code/03_anomalys_detail.Rmd"}
+
+```
+
+```{r runtime, echo=FALSE}
+monitorEndTime_baseline <- Sys.time()
+# Write out to the console how long it took for the entire process to run.
+lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
+lastrunTime_baseline
+```
+
+
+```{r save_workspace_image, echo=FALSE}
+save.image(file = "output/baseline-workspace.RData")
 ```
 
