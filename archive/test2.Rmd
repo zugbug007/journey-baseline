@@ -1,0 +1,70 @@
+---
+title: ""
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo = FALSE}
+
+.section.level2 {
+  display: none;
+}
+
+```
+
+```{js, echo = FALSE}
+
+$(document).ready(function () {
+
+  $('.section.level2:first').show();
+
+});
+
+// force this to wait till all the other js is loaded
+$(window).on('load', function() {
+
+  $('.tocify-item.list-group-item').click(function(event){
+
+    $('.section.level2').hide();
+
+    var id = $(this).data('unique');
+
+    $('#'+id).show();
+
+  });
+
+});
+  
+```
+
+## Outline {#Outline}
+
+This is an R Markdown document.
+
+
+## R Markdown {#R_Markdown}
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots {#Including_Plots}
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

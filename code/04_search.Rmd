@@ -1,0 +1,41 @@
+
+## Internal & External Search {.tabset}
+
+### Internal Search
+
+#### Top Internal Search Terms
+
+Timeframe: **`r post_start_date_14` to `r post_end_date`**.
+
+```{r internal_search_terms, echo=FALSE}
+search_terms_trended_flex_table
+```
+
+
+### External Search
+
+#### Google Search Console
+
+Timeframe: **`r post_start_date_30` to `r post_end_date`**.
+
+
+```{r search_console, echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+search_product_table
+
+product_clicks
+
+ggplotly(br)
+
+search_terms_facet_grid
+
+search_by_device
+
+#brand_non_branded
+#search_term_by_ctr
+#search_term_by_impressions
+#search_term_by_position
+#search_term_clicks
+```
+
+
+## {-}

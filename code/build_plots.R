@@ -273,22 +273,21 @@ bot10 <- ggplot(bot_10_journeys) +
 
 
 top_bot_journeys <- rbind(top_10_journeys,bot_10_journeys)
+
 top_bot <- ggplot(top_bot_journeys) +
-  aes(
-    x = journey_name,
-    fill = change,
-    weight = diff_vs_baseline*100
-  ) +
-  geom_bar() +
-  scale_fill_hue(direction = -1) +
-  labs(
-    x = "Journey Name",
-    y = "% Percentage inc./dec. over the baseline",
-    title = "Top 10 Highest & Lowest Performing Journeys",
-    fill = "Performance"
-  ) +
-  coord_flip() +
-  ggthemes::theme_pander()
+ aes(
+   x = journey_name, 
+   fill = change, 
+   weight = diff_vs_baseline*100) +
+ geom_bar() +
+ scale_fill_manual(values = c(Higher = "#406882", Lower = "#F05454")) +
+ labs(
+   x = "Journey Name", 
+   y = "% Percentage inc./dec. over the baseline", 
+ title = "Top 10 Highest & Lowest Performing Journeys", 
+ fill = "Performance") +
+ coord_flip() +
+ ggthemes::theme_pander()
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##            Total Number of Journeys Higher or Lower than Baseline        ----
@@ -409,8 +408,10 @@ membership_fun_pre_plot <- membership_fun_pre_plot %>%
     type = "funnel",
     y = membership_step_labels,
     x = membership_funnel_pre, 
+    textposition = "inside",
     textinfo = "value+percent initial",
-    opacity = 0.8)
+    opacity = 0.8,
+marker = list(color = c("#406882")))
 membership_fun_pre_plot <- membership_fun_pre_plot %>%
   layout(yaxis = list(categoryarray = membership_step_labels))
 
@@ -425,8 +426,11 @@ membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
     type = "funnel",
     y = membership_step_labels_start,
     x = membership_funnel_pre_start_values, 
+    textposition = "inside",
     textinfo = "value+percent initial",
-    opacity = 0.8)
+    opacity = 0.8,
+    marker = list(color = c("#406882"))
+    )
 membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
   layout(yaxis = list(categoryarray = membership_step_labels_start))
 #--------------------------------------------------------------------------------------------
@@ -451,8 +455,10 @@ membership_fun_post_plot <- membership_fun_post_plot %>%
     type = "funnel",
     y = membership_step_labels,
     x = membership_funnel_post, 
+    textposition = "inside",
     textinfo = "value+percent initial",
-    opacity = 0.8)
+    opacity = 0.8,
+    marker = list(color = c("#406882")))
 membership_fun_post_plot <- membership_fun_post_plot %>%
   layout(yaxis = list(categoryarray = membership_step_labels))
 
@@ -480,8 +486,10 @@ shop_fun_pre_plot <- shop_fun_pre_plot %>%
     type = "funnel",
     y = shop_step_labels,
     x = shop_funnel_pre, 
+    textposition = "inside",
     textinfo = "value+percent initial",
-    opacity = 0.8)
+    opacity = 0.8,
+    marker = list(color = c("#406882")))
 shop_fun_pre_plot <- shop_fun_pre_plot %>%
   layout(yaxis = list(categoryarray = shop_step_labels))
 
@@ -500,8 +508,10 @@ shop_fun_post_plot <- shop_fun_post_plot %>%
     type = "funnel",
     y = shop_step_labels,
     x = shop_funnel_post, 
+    textposition = "inside",
     textinfo = "value+percent initial",
-    opacity = 0.8)
+    opacity = 0.8,
+    marker = list(color = c("#406882")))
 shop_fun_post_plot <- shop_fun_post_plot %>%
   layout(yaxis = list(categoryarray = shop_step_labels))
 
@@ -513,11 +523,11 @@ anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & me
 plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
 shop_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
   ggplot(aes_string(x = "day")) +
-  geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
   geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
-             aes_string(y ='data'),color="red", size = 1.8) +
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
   geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
-  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
   labs(title = plot_journey_name,
        caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
   theme_bw() +
@@ -542,11 +552,11 @@ anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & me
 plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
 shop_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
   ggplot(aes_string(x = "day")) +
-  geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
   geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
-             aes_string(y ='data'),color="red", size = 1.8) +
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
   geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
-  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
   labs(title = plot_journey_name,
        caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
   theme_bw() +
@@ -673,10 +683,193 @@ search_terms_trended_flex_table <- search_term_data_main_site %>%
   arrange(desc(total)) %>% 
   distinct() %>% 
   ungroup() %>% 
-  slice(1:50) %>% 
+  slice(1:10) %>% 
   kable(col.names = c("Search Term", "Total Searches")) %>% 
-  column_spec(2, color = "white", bold = T, background = spec_color(1:50)) %>% 
+  column_spec(2, color = "white", bold = T, background = spec_color(1:10)) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
 
 search_terms_trended_flex_table
 
+# Google Search Console Plots and Data -----------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------------
+#scr_auth()
+
+
+
+
+days <- seq(from=post_start_date_30, to=post_end_date, by='days')
+days_count <- length(days)
+search_console_datalist = list()
+for ( i in seq_along(days)) {
+  search_console_data  <- get_search_console_data(days[i], days[i])
+  search_console_data$day <- days[i]
+  search_console_datalist[[i]] <- search_console_data
+  pc = round((i/days_count)*100, 0)
+  print(paste0("Search Console data for : ", i, " of ", days_count, " - Completed: ",days[i], " ", " - Progress: ",pc,"%"))
+}
+search_console_data <- data.table::rbindlist(search_console_datalist, fill = TRUE)
+search_console_data <-  na.omit(search_console_data)
+
+# Add a column to identify brand terms
+data_brand <- search_console_data %>% mutate(brand = case_when(grepl("national trust|national.trust", query) ~ 'brand', TRUE ~ 'nonbrand')) 
+
+branded_search <- data_brand %>% group_by(day, brand) %>%
+  summarize(clicks = sum(clicks)) 
+
+br <- ggplot(branded_search) +
+  geom_line(aes(day, clicks, color = brand)) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  theme_bw() +
+  labs(
+    x = "Day",
+    y = "Clicks",
+    title = "National Trust Brand vs. Non Brand Clicks",
+    subtitle = "Last 90 Days"
+  )
+
+# NT Product Type Segmentation
+search_products <- search_console_data %>%
+  mutate(product_type = case_when(grepl("mem|membership|member", query) ~ 'Membership',
+                                  grepl("donation|donate|support", query) ~ 'Donation',
+                                  grepl("shop|shopping", query) ~ 'Shop',
+                                  grepl("holiday|hols|holidays", query) ~ 'Holidays',
+                                  TRUE ~ 'Other'),
+         brand = case_when(grepl("national trust|national.trust", query) ~ 'brand', TRUE ~ 'nonbrand')) %>% drop_na()
+
+product_clicks <- search_products %>%
+  group_by(day, product_type) %>%
+  summarize(clicks = sum(clicks)) %>%
+  filter(product_type != 'Other') %>% # Exclude Other
+  ggplot() +
+  geom_line(aes(day, clicks, color = product_type), size = 0.7) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  theme_minimal() +
+  labs(
+    x = "Day",
+    y = "Clicks",
+    title = "National Trust Product Clicks",
+    subtitle = "Last 90 Days",
+    color = "Product Type"
+  )
+
+# Aggregate Product Metrics by Product Type
+search_product_table <- search_products %>%
+  group_by(product_type) %>%
+  summarise(clicks = sum(clicks),
+            impressions = sum(impressions),
+            position = mean(position)) %>%
+  mutate(ctr = 100 * (clicks / impressions)) %>%
+  arrange(desc(product_type)) %>% 
+  kable(col.names = c("Product Type", "Clicks", "Impressions", "Position", "CTR")) %>% 
+  column_spec(5, color = "white", bold = T, background = spec_color(1:5)) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+  
+search_product_table
+
+brand_non_branded <- search_products %>%
+  ggplot() +
+  geom_histogram(aes(ctr, fill = brand), binwidth = 0.01) +   # ADD FILL = BRAND
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_continuous(labels = comma_format()) +
+  labs(x = 'Click-through Rate',
+       y = 'Count') +
+  theme_bw()
+
+search_console_date <- search_analytics(siteURL = website, 
+                                        startDate = post_start_date, 
+                                        endDate = post_end_date, 
+                                        dimensions = 'date', 
+                                        searchType = type)
+search_console_devices <- search_analytics(siteURL = website, 
+                                           startDate = post_start_date, 
+                                           endDate = post_end_date, 
+                                           dimensions = 'device', 
+                                           searchType = type)
+search_console_pages <- search_analytics(siteURL = website, 
+                                         startDate = post_start_date, 
+                                         endDate = post_end_date, 
+                                         dimensions = 'page', 
+                                         searchType = type)
+
+keyword_utilisation <- search_products %>%
+  ggplot() +
+  stat_ecdf(aes(ctr, color = brand)) +
+  scale_x_continuous(labels = percent_format()) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x = 'Click-through Rate',
+       y = 'Keyword %') +
+  theme_bw()
+
+# Visualise the top 5 terms
+search_console_vis <- search_console_data %>% 
+  filter(day >= post_start_date & day <= post_end_date) %>% 
+  group_by(query) %>% 
+  add_count() %>% filter(n > 2) %>% 
+  filter(str_detect(query, 'mem')) %>% 
+  mutate(query = str_remove_all(query, "national trust | national trust")) %>%
+  group_by(day)
+
+search_terms_facet_grid <- ggplot(search_console_vis) +
+  aes(x = day, y = clicks, colour = query) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  labs(x = "Day", y = "Number of National Trust Google Searches Made", title = "Searches containing 'mem'",  
+       subtitle = "Any search on Google contains the word 'mem'.", fill = "Search Term",
+       caption = "Google Search Console Data") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(vars(query), scales = "free_y")
+
+# Plot Click Through Rate by Above Search Terms
+search_term_by_ctr <- ggplot(search_console_vis) +
+  aes(x = day, y = ctr, colour = query) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  labs(x = "Day", y = "CTR", title = "Search Console CTR", subtitle = "Click Through Rate by Term", 
+       caption = "Search Console", color = "Search Term") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(vars(query), scales = "free")
+
+# Plot Impressions by Above Search Terms
+search_term_by_impressions <- ggplot(search_console_vis) +
+  aes(x = day, y = impressions, colour = query) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  labs(x = "Day", y = "Impressions", title = "Search Impressions", subtitle = "Impressions by Term", 
+       caption = "Search Console", color = "Search Term") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(vars(query), scales = "free")
+
+# Plot Position by Above Search Terms
+search_term_by_position <- ggplot(search_console_vis) +
+  aes(x = day, y = position, colour = query) +
+  geom_line(size = 0.5) +
+  scale_color_hue(direction = 1) +
+  labs(x = "Day", y = "Position", title = "Search Position", subtitle = "Position by Term", 
+       caption = "Search Console", color = "Search Term") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(vars(query), scales = "free")
+
+# Line Graph Trend of the NT Clicks from Google
+search_term_clicks <- ggplot(search_console_date) +
+  aes(x = date, y = clicks) +
+  geom_line(size = 0.6, colour = "#46337E") +
+  labs(
+    x = "Day",
+    y = "Clicks",
+    title = "National Trust Search Console Clicks",
+    subtitle = "Last 90 Days"
+  ) +
+  theme_light()
+
+# Bar Chart - Clicks by Device Typescipen=999
+search_by_device <- ggplot(search_console_devices) +
+  aes(x = device, fill = device, weight = clicks) +
+  geom_bar() +
+  scale_fill_hue(direction = 1) +
+  labs(x = "Device", y = "Clicks", title = "Google Clicks by Device Type", subtitle = "Google Search Console", 
+       fill = "Device") +
+  theme_minimal()

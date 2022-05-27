@@ -1,0 +1,31 @@
+---
+title: "NBA Scoring (2008)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(d3heatmap)
+library(flexdashboard)
+
+url <- "http://datasets.flowingdata.com/ppg2008.csv"
+nba_players <- read.csv(url, row.names = 1)
+```
+
+### Stats by Player {data-width=650}
+
+```{r}
+
+d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = TRUE, col = 'RdYlGn', labRow = heatmap_visits_by_day$journey_name,
+          scale = 'row', key.title = "Legend", print.values = F,
+          notecol = 'white') %>% 
+  hmAxis("x", title = "Day", location = 'bottom') %>% 
+  hmAxis("y", title = "Journey", location = 'left') %>% 
+  hmCells(font.size = 8, color = 'blue') %>% 
+  hmLegend(show = F, title = "Title", location = "tl")
+```
+

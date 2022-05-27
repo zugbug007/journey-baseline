@@ -20,7 +20,7 @@ Insights:
 Membership funnel completions through the journey. This data is based on the VISITOR.
 
 Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r membership_funnel_pre, echo=FALSE}
+```{r membership_funnel_pre, fig.align='center', echo=FALSE}
 
 # Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
 # Before and after next to each other using patchwork. 
@@ -34,7 +34,7 @@ membership_fun_pre_plot
 Hover over for fallout details at each stage.  
 
 Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r membership_funnel_post, echo=FALSE}
+```{r membership_funnel_post, fig.align='center',echo=FALSE}
 
 membership_fun_post_plot
 
@@ -44,7 +44,7 @@ membership_fun_post_plot
 This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
 
 Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r membership_funnel_pre_start, echo=FALSE}
+```{r membership_funnel_pre_start,fig.align='center',echo=FALSE}
 
 membership_fun_pre_plot_start
 
@@ -54,7 +54,7 @@ membership_fun_pre_plot_start
 This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
 
 Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r membership_funnel_post_start, echo=FALSE}
+```{r membership_funnel_post_start,fig.align='center',echo=FALSE}
 
 
 ```
@@ -66,21 +66,21 @@ Start: **`r start_7_sun_start` to `r end_7_sun_end`**.
 
 #### Metrics
 ```{r membership_metrics}
-mpg_list <- split(mtcars$mpg, mtcars$cyl)
-disp_list <- split(mtcars$disp, mtcars$cyl)
-inline_plot <- data.frame(cyl = c(4, 6, 8), mpg_box = "", mpg_hist = "",
-                          mpg_line1 = "", mpg_line2 = "",
-                          mpg_points1 = "", mpg_points2 = "", mpg_poly = "")
-inline_plot %>%
-  kbl(booktabs = TRUE) %>%
-  kable_paper(full_width = FALSE) %>%
-  column_spec(2, image = spec_boxplot(mpg_list)) %>%
-  column_spec(3, image = spec_hist(mpg_list)) %>%
-  column_spec(4, image = spec_plot(mpg_list, same_lim = TRUE)) %>%
-  column_spec(5, image = spec_plot(mpg_list, same_lim = FALSE)) %>%
-  column_spec(6, image = spec_plot(mpg_list, type = "p")) %>%
-  column_spec(7, image = spec_plot(mpg_list, disp_list, type = "p")) %>%
-  column_spec(8, image = spec_plot(mpg_list, polymin = 5))
+# mpg_list <- split(mtcars$mpg, mtcars$cyl)
+# disp_list <- split(mtcars$disp, mtcars$cyl)
+# inline_plot <- data.frame(cyl = c(4, 6, 8), mpg_box = "", mpg_hist = "",
+#                           mpg_line1 = "", mpg_line2 = "",
+#                           mpg_points1 = "", mpg_points2 = "", mpg_poly = "")
+# inline_plot %>%
+#   kbl(booktabs = TRUE) %>%
+#   kable_paper(full_width = FALSE) %>%
+#   column_spec(2, image = spec_boxplot(mpg_list)) %>%
+#   column_spec(3, image = spec_hist(mpg_list)) %>%
+#   column_spec(4, image = spec_plot(mpg_list, same_lim = TRUE)) %>%
+#   column_spec(5, image = spec_plot(mpg_list, same_lim = FALSE)) %>%
+#   column_spec(6, image = spec_plot(mpg_list, type = "p")) %>%
+#   column_spec(7, image = spec_plot(mpg_list, disp_list, type = "p")) %>%
+#   column_spec(8, image = spec_plot(mpg_list, polymin = 5))
 
 # https://cranky-chandrasekhar-cfefcd.netlify.app/
 # https://haozhu233.github.io/kableExtra/awesome_table_in_html.html#Row_spec
@@ -92,7 +92,7 @@ inline_plot %>%
 
 Membership conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
-```{r membership_flow_scatter_plot, echo=FALSE, fig.height=7, fig.width=9, warning=FALSE}
+```{r membership_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 membership_conv_scatter_plot  
 membership_conv_flow_plot
 ```
@@ -103,7 +103,7 @@ membership_conv_flow_plot
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_membership@cpts[1]`**.
 
-```{r membership_changepoints, echo=FALSE}
+```{r membership_changepoints, echo=FALSE, fig.height=5, fig.width=7}
 
 
 plot(fit_changepoint_membership)
@@ -136,7 +136,7 @@ Insights:
 #### Flows
 Renewals conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
-```{r renewals_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+```{r renewals_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 
 membership_renewals_conv_scatter_plot  
 membership_renewals_conv_flow_plot
@@ -150,7 +150,7 @@ This plot shows the change in the mean visits through the funnel over the series
 Change point occurred on day: **`r fit_changepoint_renew@cpts[1]`**.
 
 
-```{r renew_changepoints, echo=FALSE}
+```{r renew_changepoints, echo=FALSE, fig.height=5, fig.width=7}
 
 
 plot(fit_changepoint_renew)
@@ -185,7 +185,7 @@ Insights:
 
 
 #### Flows
-```{r holidays_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+```{r holidays_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 
 holidays_conv_scatter_plot  
 holidays_conv_flow_plot
@@ -198,7 +198,7 @@ holidays_conv_flow_plot
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_holidays@cpts[1]`**.
 
-```{r holidays_changepoints, echo=FALSE}
+```{r holidays_changepoints, echo=FALSE, fig.height=5, fig.width=7}
 
 plot(fit_changepoint_holidays)
 
@@ -217,7 +217,7 @@ Insights:
 #### Summary
 
 
-```{r shop_summary, ECHO=FALSE}
+```{r shop_summary, fig.align='center', fig.height=5, fig.width=7, ECHO=FALSE}
 head(mtcars)
 ```
 
@@ -227,7 +227,7 @@ head(mtcars)
 Shop funnel completions through the journey. This data is 
 
 Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r shop_funnel_pre, echo=FALSE}
+```{r shop_funnel_pre, fig.align='center',echo=FALSE}
 
 # Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
 # Before and after next to each other using patchwork. 
@@ -241,7 +241,7 @@ shop_fun_pre_plot
 Hover over for fallout details at each stage.  
 
 Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r shop_funnel_post, echo=FALSE}
+```{r shop_funnel_post, fig.align='center',echo=FALSE}
 
 shop_fun_post_plot
 
@@ -251,17 +251,18 @@ shop_fun_post_plot
 
 Here is the individual trends for each metric in the shop funnel.
 
-Revenue:
+##### Revenue:
 
-```{r shop_revenue, echo=FALSE, fig.height=7, fig.width=9}
+```{r shop_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
 ggplotly(shop_revenue)
 
 ```
-Shop Orders:  
+
+##### Shop Orders:  
 
 Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
-```{r shop_orders, echo=FALSE, fig.height=7, fig.width=9}
+```{r shop_orders, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
 ggplotly(shop_orders)
 
@@ -273,7 +274,7 @@ ggplotly(shop_orders)
 Here is the individual trends for shop sales.
 Add Revenue events too.
 
-```{r shop_metrics, echo=FALSE}
+```{r shop_metrics, fig.align='center',echo=FALSE}
 # Anomaly Plots for each journey with Ribbon and Pre/Post separations
 shop_events
 
@@ -282,7 +283,7 @@ shop_events
 #### Flows
 Shop conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
-```{r shop_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+```{r shop_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 
 shop_conv_scatter_plot  
 shop_conv_flow_plot
@@ -295,7 +296,7 @@ shop_conv_flow_plot
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_shop@cpts[1]`**.
 
-```{r shop_changepoints, echo=FALSE}
+```{r shop_changepoints, echo=FALSE, fig.height=5, fig.width=7}
 
 plot(fit_changepoint_shop)
 
@@ -329,7 +330,7 @@ Insights:
 #### Flows
 Donate conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
-```{r donate_flow_scatter_plot, warning=FALSE,echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+```{r donate_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 
 donate_conv_scatter_plot  
 donate_conv_flow_plot
@@ -341,7 +342,7 @@ donate_conv_flow_plot
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_donate@cpts[1]`**.
 
-```{r donate_changepoints, echo=FALSE}
+```{r donate_changepoints, echo=FALSE,fig.height=5, fig.width=7}
 
 plot(fit_changepoint_donate)
 

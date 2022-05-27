@@ -13,12 +13,15 @@ params:
   company_id: "thenat3"
   rsid: "nationaltrustmainsiteprod"
   google_account: "alan.millington@nationaltrust.org.uk"
+  alt_google_account: "alan.d.millington@gmail.com"
 editor_options: 
   chunk_output_type: inline
 ---
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #load("output/baseline-workspace.RData")
+# Blue = "#406882", red = "#f05454"
+
 ```
 
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
@@ -58,17 +61,20 @@ pacman::p_load(tidyverse,
                RColorBrewer,
                forcats,
                changepoint,
+               searchConsoleR,
+               prophet,
+               vistime,
                sparkline)
 
 gs4_auth(email = params$google_account)
-
+scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
 #aw_token()
 
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-aw_segments <- aw_get_segments(rsid = rsid)
-rm(aw_segments)
+#aw_segments <- aw_get_segments(rsid = rsid)
+#rm(aw_segments)
 
 # Test GSheets Connections
 gsheet = "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0"
@@ -118,10 +124,14 @@ last_7_full_week <- c(start_7_sun_start, end_7_sun_end)
 last_two_full_weeks <- c(two_weeks_ago[1], last_7_full_week[2])
 
 # Previous Week
-previous_week_7 <- floor_date(Sys.Date(), "week")
+previous_week_7 <- lubridate::floor_date(Sys.Date(), "week")
 previous_week_7_end <- previous_week_7
 previous_week_7_start <- previous_week_7 - 7
 previous_week <- c(previous_week_7_start, previous_week_7_end)
+
+website <- "https://www.nationaltrust.org.uk"
+download_dimensions <- c('query')
+type <- c('web')
   
 ```
 
@@ -142,6 +152,12 @@ source("code/get_forecasts.R")
   
 ```
 
+
+## Timeline of Activity
+
+```{r child = "code/00_timeline.Rmd"}
+```
+
 ## Summary of Website Journeys
 
 ```{r child = "code/01_summary.Rmd"}
@@ -159,9 +175,9 @@ source("code/get_forecasts.R")
 
 ```
 
-## Internal Searches
+## Search Analysis
 
-```{r child = "code/04_internal_search.Rmd"}
+```{r child = "code/04_search.Rmd"}
 
 ```
 
@@ -171,6 +187,7 @@ source("code/get_forecasts.R")
 ```{r child = "code/03_anomalys_detail.Rmd"}
 
 ```
+
 
 ```{r runtime, echo=FALSE}
 monitorEndTime_baseline <- Sys.time()

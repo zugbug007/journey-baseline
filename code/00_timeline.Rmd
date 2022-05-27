@@ -1,0 +1,25 @@
+---
+title: "activity_timeline"
+author: "Alan Millington"
+date: "20/05/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Activity Timeline
+
+Overview of the reporting time frame within this analysis. Major milestones or changes will be added to the time line below as the site gains new or changed content.
+```{r timeline, echo=FALSE, fig.width=12}
+timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "Post Launch (New CMS)"),
+                            start = c(first_valid_date, post_start_date),
+                            end = c(pre_end_date, last_valid_date),
+                            group = "CMS Lauch",
+                            color = c("#406882", "#f05454"))
+                            
+hc_vistime(timeline_data, optimize_y = FALSE ) %>% highcharter::hc_size(height = 250)
+
+```
+

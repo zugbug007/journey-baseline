@@ -1,4 +1,3 @@
-
 ### Highest & Lowest Performing Journeys
 
 ```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
@@ -21,6 +20,12 @@ baseline_visits_mean <- baseline_summary %>%
   kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F)
 
 baseline_visits_mean
+
+```
+
+Below is a summary of the total number of journeys which are higher or lower than their baseline.
+
+```{r summary_table_high_low, echo=FALSE}
 
 high_low_table
 
@@ -63,19 +68,16 @@ Journeys higher up this list will need more investigation than lower journeys.
 
 Positive anomalies are where the visit data exceeded the upper boundary of the data window.
 Negative anomalies are where the visit data fell below the lower boundary of the data window.
-The Net value is an overall count of the anomalies: (Positive Anomalies - Negative Anomalies = Net).  
+The Net value is an overall count of the anomalies: (Positive Anomalies - Negative Anomalies = Net).
 
 Higher negative values for Net columns indicate the journey fell below the expected amounts for the journey. 
 1 Anomaly = 1 day where the data was above or below expectations.
 
-```{r, echo=FALSE,fig.height=7, fig.width=9}
+```{r anomaly_net_table, echo=FALSE, fig.height=7, fig.width=9}
 # Build Cont Table of Anomalies for each journey. Get the number POST change so identify biggest differences after the cut over.
 
 anomaly_count
 
 ```
-
-
-
 
 

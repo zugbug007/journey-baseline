@@ -29,6 +29,8 @@ anomaly_data$anomalies_bad <- ifelse(anomaly_data$dataAnomalyDetected == "TRUE",
 # Find the last date in the data set and calculate back the 3, 7, 14 day baselines.
 # Find the last valid date in the dataset and work back from there
 last_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange(desc(Day)) %>% slice(1:1) %>% pull(Day))
+first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))
+
 today <- last_valid_date
 yesterday <- last_valid_date - 1
 three_days_ago <- last_valid_date - 3
