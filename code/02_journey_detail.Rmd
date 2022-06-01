@@ -1,4 +1,4 @@
-### Highest & Lowest Performing Journeys
+### Journey Performance
 
 ```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
   top_bot
@@ -41,7 +41,7 @@ Insights:
 
 library (d3heatmap)
 
-    d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
+   d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
           labRow = heatmap_visits_by_day$journey_name, labColSize = 3,
           scale = 'row', key.title = "Legend", print.values = F,
           notecol = 'red') %>% 
@@ -50,17 +50,18 @@ library (d3heatmap)
   hmCells(font.size = 10, color = 'blue') %>% 
   hmLegend(show = F, title = "Title", location = "tl")
   
-  # d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu', 
+  # d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu',
   #            labRow = heatmap_anomalies_by_day$journey_name, labColSize = 3,
   #            scale = 'row', key.title = "Legend", print.values = F,
-  #            notecol = 'red') %>% 
-  #    hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
-  #    hmAxis("y", title = "Journey", location = 'left') %>% 
-  #    hmCells(font.size = 10, color = 'blue') %>% 
+  #            notecol = 'red') %>%
+  #    hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>%
+  #    hmAxis("y", title = "Journey", location = 'left') %>%
+  #    hmCells(font.size = 10, color = 'blue') %>%
   #    hmLegend(show = F, title = "Title", location = "tl")
-    
-detach("package:d3heatmap", unload = TRUE)
+  detach("package:d3heatmap", unload = TRUE)  
+
 ```
+
 
 ### Anomaly Analysis By Journey
 Below is the count of anomalies detected for each journey, this is sorted by the number detected in the post launch period.

@@ -1,9 +1,3 @@
----
-title: Commercial Funnels
-output:
-  html_document:
-    css: styles.css
----
 
 ### Membership {.tabset}
 
@@ -11,53 +5,50 @@ Insights:
 
 #### Summary
 
+```{r insights_membership, echo=FALSE}
+# min
+paste0('The lowest amount of Visits was ', journey.insight$min.Visits, ' observed on ', format(journey.insight$min.Visits.Date.Name, "%d %b"), '.')
+# average
+paste0('It was ', journey.insight$min.avg.diff, '% less than the average of ', journey.insight$avg.Visits, '.')
+# max
+paste0('During this period, the amount of Visits peaked at ', journey.insight$max.Visits, ' on ', format(journey.insight$max.Visits.Date.Name, "%d %b"), '.')
+# spike
+paste0('The most recent spike in Visits increased notably on ', format(journey.spike.most.recent.date$Day, "%d %b"), 
+       ' where a peak of ',journey.spike.most.recent.date$Visits, ' Visits was observed. This was 1 Standard Deviation above the mean.')
+```
 
 
 
 #### Funnels
-**Previous Week performance**
+**Week on Week performance**
 
-Membership funnel completions through the journey. This data is based on the VISITOR.
+Membership funnel completions through the journey.   
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
 
-Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r membership_funnel_pre, fig.align='center', echo=FALSE}
-
-# Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
-# Before and after next to each other using patchwork. 
-# Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
-
-membership_fun_pre_plot
-
-```
-
-**Last 7 days funnel performance**
 Hover over for fallout details at each stage.  
 
-Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r membership_funnel_post, fig.align='center',echo=FALSE}
-
-membership_fun_post_plot
+```{r membership_funnel_pre_post, echo=FALSE}
+#library(plotly)
+  membership_pre_post_funnel 
 
 ```
 
-**Previous Week performance**
-This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
+**Week on Week performance**
 
-Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
+Membership funnel completions through the checkout journey, this variation includes the Join Us page prior to the start of the Membership funnel journey.  
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+
 ```{r membership_funnel_pre_start,fig.align='center',echo=FALSE}
 
-membership_fun_pre_plot_start
+membership_pre_post_start_funnel
 
 ```
 
-**Last 7 days funnel performance**
-This funnel includes the page directly before the start of the Membership funnel: Join Us Page.
-
-Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r membership_funnel_post_start,fig.align='center',echo=FALSE}
-
-
-```
 
 #### Sales & Revenue
 
@@ -66,26 +57,8 @@ Start: **`r start_7_sun_start` to `r end_7_sun_end`**.
 
 #### Metrics
 ```{r membership_metrics}
-# mpg_list <- split(mtcars$mpg, mtcars$cyl)
-# disp_list <- split(mtcars$disp, mtcars$cyl)
-# inline_plot <- data.frame(cyl = c(4, 6, 8), mpg_box = "", mpg_hist = "",
-#                           mpg_line1 = "", mpg_line2 = "",
-#                           mpg_points1 = "", mpg_points2 = "", mpg_poly = "")
-# inline_plot %>%
-#   kbl(booktabs = TRUE) %>%
-#   kable_paper(full_width = FALSE) %>%
-#   column_spec(2, image = spec_boxplot(mpg_list)) %>%
-#   column_spec(3, image = spec_hist(mpg_list)) %>%
-#   column_spec(4, image = spec_plot(mpg_list, same_lim = TRUE)) %>%
-#   column_spec(5, image = spec_plot(mpg_list, same_lim = FALSE)) %>%
-#   column_spec(6, image = spec_plot(mpg_list, type = "p")) %>%
-#   column_spec(7, image = spec_plot(mpg_list, disp_list, type = "p")) %>%
-#   column_spec(8, image = spec_plot(mpg_list, polymin = 5))
 
-# https://cranky-chandrasekhar-cfefcd.netlify.app/
-# https://haozhu233.github.io/kableExtra/awesome_table_in_html.html#Row_spec
 ```
-
 
 
 #### Flows
@@ -98,19 +71,18 @@ membership_conv_flow_plot
 ```
 
 
-#### Change Point
+#### Change Point {.unlisted .unnumbered}
 
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_membership@cpts[1]`**.
 
 ```{r membership_changepoints, echo=FALSE, fig.height=5, fig.width=7}
 
-
 plot(fit_changepoint_membership)
 
 ```
 
-### {-}
+### {.unlisted .unnumbered}
 
 
 ### Renewals {.tabset}
@@ -122,6 +94,33 @@ Insights:
 
 #### Funnels
 
+**Week on Week performance**
+
+Renewal funnel completions through the journey.   
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+```{r renew_funnel_pre, fig.align='center',echo=FALSE}
+
+renew_pre_post_funnel
+
+```
+
+**Week on Week performance**
+
+Renewal funnel completions through the checkout journey, this variation includes the Join or Renew page traffic prior to the start of the funnel journey.  
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+```{r renew_funnel_pre_start,fig.align='center',echo=FALSE}
+
+renew_pre_post_start_funnel
+
+```
 
 
 #### Sales & Revenue
@@ -143,7 +142,7 @@ membership_renewals_conv_flow_plot
 
 ```
 
-#### Change Point
+#### Change Point {.unlisted .unnumbered}
 
 
 This plot shows the change in the mean visits through the funnel over the series.  
@@ -158,10 +157,7 @@ plot(fit_changepoint_renew)
 
 ```
 
-
-
-
-### {-}
+### {.unlisted .unnumbered}
 
 
 ### Holidays {.tabset}
@@ -173,6 +169,33 @@ Insights:
 
 #### Funnels
 
+**Week on Week performance**
+
+Holidays funnel completions through the journey.   
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+ 
+```{r holidays_funnel_pre, fig.align='center',echo=FALSE}
+
+holidays_pre_post_funnel
+
+```
+
+**Week on Week performance**
+
+Holidays funnel completions through the checkout journey, this variation includes the any page in the Holidays section prior to the start of the funnel journey. 
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+
+```{r holidays_funnel_post, fig.align='center',echo=FALSE}
+
+holidays_pre_post_start_funnel
+```
 
 
 #### Sales & Revenue
@@ -193,7 +216,7 @@ holidays_conv_flow_plot
 ```
 
 
-#### Change Point
+#### Change Point {.unlisted .unnumbered}
 
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_holidays@cpts[1]`**.
@@ -205,7 +228,7 @@ plot(fit_changepoint_holidays)
 ```
 
 
-### {-}
+### {.unlisted .unnumbered}
 
 
 ### Shop {.tabset}
@@ -224,28 +247,35 @@ head(mtcars)
 
 #### Funnels
 
-Shop funnel completions through the journey. This data is 
+**Week on Week performance**
 
-Start: **`r start_14_sun_start` to `r end_14_sun_end`**. 
-```{r shop_funnel_pre, fig.align='center',echo=FALSE}
+Shop funnel completions through the checkout journey.   
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
 
-# Journey Data steps, build each table based on shop, holidays, donate, membership event funnels.
-# Before and after next to each other using patchwork. 
-# Currently baseline for thi starts 14 days ago for the 7 days after. comparison starts 7 days back from today.
-
-shop_fun_pre_plot
-
-```
-
-**Last 7 days funnel performance**
 Hover over for fallout details at each stage.  
 
-Start: **`r start_7_sun_start` to `r end_7_sun_end`**. 
-```{r shop_funnel_post, fig.align='center',echo=FALSE}
+```{r shop_funnel_pre, fig.align='center',echo=FALSE}
 
-shop_fun_post_plot
+shop_pre_post_funnel
 
 ```
+
+**Week on Week performance**
+
+Shop funnel completions through the checkout journey, this variation includes the any page in the Shop section prior to the start of the funnel journey.
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+```{r shop_funnel_pre_start,fig.align='center',echo=FALSE}
+
+shop_pre_post_start_funnel
+
+```
+
+
 
 #### Sales & Revenue
 
@@ -291,7 +321,7 @@ shop_conv_flow_plot
 ```
 
 
-#### Change Point
+#### Change Point {.unlisted .unnumbered}
 
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_shop@cpts[1]`**.
@@ -305,7 +335,7 @@ plot(fit_changepoint_shop)
 
 
 
-### {-}
+### {.unlisted .unnumbered}
 
 ### Donate {.tabset}
 
@@ -316,6 +346,19 @@ Insights:
 
 #### Funnels
 
+**Week on Week performance**
+
+Donation funnel completions through the checkout journey.   
+Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
+Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+```{r donate_funnel_pre_post, fig.align='center',echo=FALSE}
+
+donate_pre_post_funnel
+
+```
 
 
 #### Sales & Revenue
@@ -338,7 +381,7 @@ donate_conv_flow_plot
 ```
 
 
-#### Change Point
+#### Change Point {.unlisted .unnumbered}
 This plot shows the change in the mean visits through the funnel over the series.  
 Change point occurred on day: **`r fit_changepoint_donate@cpts[1]`**.
 
@@ -351,4 +394,4 @@ plot(fit_changepoint_donate)
 
 
 
-### {-}
+### {.unlisted .unnumbered}

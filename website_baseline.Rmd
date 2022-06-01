@@ -1,14 +1,12 @@
 ---
-title: " "
-author: "Alan Millington"  
-date: '`r format(Sys.time(), "%d %B, %Y")`'
+title: ""
 output:
   html_document: 
-    theme: spacelab
-    toc: yes
-    toc_float: yes
+    theme: flatly
+    toc: true
+    toc_float: true
     css: styles.css
-    self_contained: yes
+    self_contained: true
 params:
   company_id: "thenat3"
   rsid: "nationaltrustmainsiteprod"
@@ -18,9 +16,14 @@ editor_options:
   chunk_output_type: inline
 ---
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r load_workspace_from_file, echo=FALSE, message=FALSE, warning=FALSE}
 #load("output/baseline-workspace.RData")
-# Blue = "#406882", red = "#f05454"
+
+# Blue = "#406882"
+# Red = "#f05454"
+# Purple = "#824068"
+# Green ="#688240"
+# Dark Blue = "#4d4082"
 
 ```
 
@@ -69,11 +72,12 @@ pacman::p_load(tidyverse,
 gs4_auth(email = params$google_account)
 scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
+#library(adobeanalyticsr)
 #aw_token()
-
+#aw_auth()
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-#aw_segments <- aw_get_segments(rsid = rsid)
+#aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
 #rm(aw_segments)
 
 # Test GSheets Connections
@@ -140,7 +144,7 @@ type <- c('web')
 
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
-#source("code/get_journey_data.R")
+#source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
 
 journey_data <- readRDS("output/df_journey_data.rds")
 anomaly_data <- readRDS("output/df_anomaly_data.rds")
@@ -153,7 +157,11 @@ source("code/get_forecasts.R")
 ```
 
 
-## Timeline of Activity
+# Summary
+This tool builds the baseline for many journeys across the website.  
+
+
+## Timeline of Activity  
 
 ```{r child = "code/00_timeline.Rmd"}
 ```
@@ -175,12 +183,6 @@ source("code/get_forecasts.R")
 
 ```
 
-## Search Analysis
-
-```{r child = "code/04_search.Rmd"}
-
-```
-
 
 ## Anomaly Plots By Journey
 
@@ -196,6 +198,7 @@ lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - mo
 lastrunTime_baseline
 ```
 
+Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'
 
 ```{r save_workspace_image, echo=FALSE}
 save.image(file = "output/baseline-workspace.RData")

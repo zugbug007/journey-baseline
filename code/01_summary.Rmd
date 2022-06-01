@@ -1,7 +1,7 @@
 
-## Top line Journey Results {.tabset}
+### Top line Journey Results {.tabset}
 
-### All Journeys
+#### All Journeys
 
 All major journeys across the National Trust website areas.
 
@@ -10,7 +10,7 @@ All major journeys across the National Trust website areas.
 get_journey_plot(all_journeys_before_after_plot)
 
 ```
-### Landing Pages
+#### Landing Pages
 
 First pages of a user journey. 
 
@@ -21,7 +21,7 @@ get_journey_plot(all_landing_page_journeys)
 ```
 
 
-### Device
+#### Device
 
 Journeys from specfic devices or operating systems.
 
@@ -32,7 +32,7 @@ get_journey_plot(all_device_journeys)
 ```
 
 
-### Commercial
+#### Commercial
 
 Any journey that contains a commercial journey.
 
@@ -43,7 +43,7 @@ get_journey_plot(all_commercial_journeys)
 ```
 
 
-### Top Level
+#### Top Level
 
 Journeys from the home page onward to other significant areas of the website.
 
@@ -53,7 +53,7 @@ get_journey_plot(all_top_level_journeys)
 
 ```
 
-### Property Pages
+#### Property Pages
 
 Journeys to a NT property page.
 
@@ -63,7 +63,7 @@ get_journey_plot(all_property_page_journeys)
 
 ```
 
-### Discovery
+#### Discovery
 
 Journeys categorised as a research or discovery journey.
 
@@ -73,4 +73,4 @@ get_journey_plot(all_discovery_journeys)
 
 ```
 
-## {-}
+### {.unlisted .unnumbered}
