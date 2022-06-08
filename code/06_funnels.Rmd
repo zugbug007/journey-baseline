@@ -5,17 +5,38 @@ Insights:
 
 #### Summary
 
+
 ```{r insights_membership, echo=FALSE}
-# min
-paste0('The lowest amount of Visits was ', journey.insight$min.Visits, ' observed on ', format(journey.insight$min.Visits.Date.Name, "%d %b"), '.')
-# average
-paste0('It was ', journey.insight$min.avg.diff, '% less than the average of ', journey.insight$avg.Visits, '.')
-# max
-paste0('During this period, the amount of Visits peaked at ', journey.insight$max.Visits, ' on ', format(journey.insight$max.Visits.Date.Name, "%d %b"), '.')
-# spike
-paste0('The most recent spike in Visits increased notably on ', format(journey.spike.most.recent.date$Day, "%d %b"), 
-       ' where a peak of ',journey.spike.most.recent.date$Visits, ' Visits was observed. This was 1 Standard Deviation above the mean.')
+
+journey_name.insight <- "Commercial: Membership Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight)
+
+# # Journey Name:
+# paste0('Insight for Journey: ', journey.insight$journey_name,'.')
+# # min
+# paste0('[Min] The lowest amount of Visits was ', journey.insight$min.Visits, ' observed on ', format(journey.insight$min.Visits.Date.Name, "%d %b"), '.')
+# # average
+# paste0('[Average] This was ', journey.insight$min.avg.diff, '% less than the average of ', journey.insight$avg.Visits, '.')
+# # max
+# paste0('[Max] During this period, the amount of Visits peaked at ', journey.insight$max.Visits, ' on ', format(journey.insight$max.Visits.Date.Name, "%d %b"), '.')
+# # spike
+# paste0('[Spike] The most recent peak in Visits increased notably on ', format(journey.insight$Day, "%d %b"), 
+#        ' where a significant peak of ',journey.insight$Visits, ' Visits was observed. This was at least 2 Standard Deviations above the mean.')
+# # Trend
+# paste0('[Trend] Throughout the duration of the analysis period, the overall trend has been ',journey.insight$trend.slope.correlation ,'.',' In the previous week the trend was ', journey.insight$correlation.14,', over the last 7 days the trend has been ', journey.insight$correlation.7, '. This is a ', journey.insight$trend.change.relative, '% difference from the previous week.')
 ```
+
+Insight for Journey: **`r journey.insight$journey_name`**
+
+* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+
+* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+
+* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
 

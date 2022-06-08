@@ -332,7 +332,7 @@ high_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %
   #column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
 
-high_detail
+#high_detail
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1070,31 +1070,3 @@ c(ints = param.est(fit_changepoint_membership)$mean,
   cp = cpts(fit_changepoint_membership))
 
 
-
-#------------------------------------------------------
-#     Insight Generator
-#------------------------------------------------------
-
-test.data <- journey_data %>% 
-  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
-  filter(Day >= first_valid_date & Day < last_valid_date) %>% 
-  select(journey_name, journey_type, Day, Visits) %>% 
-  group_by(journey_name) %>% 
-  arrange(desc(journey_name), Day)
-
-
-journey.insight <- test.data %>% group_by(journey_name) %>% 
-  summarize(min.Visits = min(Visits), min.Visits.Date.Name = Day[which.min(Visits)],
-            max.Visits = max(Visits), max.Visits.Date.Name = Day[which.max(Visits)],
-            avg.Visits = round(mean(Visits), digits = 0),
-            sd.Visits = round(sd(Visits), digits = 0),
-            sd.1.Visits = round(sd.Visits+avg.Visits, digits = 0),
-            sd.2.Visits = round((2*sd.Visits)+avg.Visits, digits = 0)) %>% 
-  mutate(min.avg.diff = round((min.Visits/avg.Visits -1) * 100, digits = 1))
-            
-
-journey.spike.most.recent.date <- test.data %>% group_by(journey_name) %>% 
-  mutate(sd.1.spike = Visits > journey.insight$sd.1.Visits) %>% 
-  filter(sd.1.spike == TRUE) %>% 
-  arrange(desc(Day)) %>% 
-  slice(1:1)

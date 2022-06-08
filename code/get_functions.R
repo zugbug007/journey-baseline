@@ -323,3 +323,120 @@ get_search_console_data <- function(start, end) {
                    dimensions = download_dimensions, 
                    searchType = type)
 }
+
+
+
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                        Insight Generator Function                         ---
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+get_insights <- function(journey_name_insight){
+journey.insight <- data.frame()  
+
+insight.data <- journey_data %>% 
+  filter(journey_name == journey_name_insight) %>% 
+  filter(Day >= first_valid_date & Day < last_valid_date) %>% 
+  select(journey_name, journey_type, Day, Visits) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), Day) %>% 
+  mutate(trend.avg.3da = round(zoo::rollmean(Visits, k = 3, fill = NA),digits = 0),
+         trend.avg.5da = round(zoo::rollmean(Visits, k = 5, fill = NA),digits = 0),
+         trend.avg.7da = round(zoo::rollmean(Visits, k = 7, fill = NA),digits = 0),
+         trend.avg.15da = round(zoo::rollmean(Visits, k = 15, fill = NA),digits = 0),
+         trend.avg.21da = round(zoo::rollmean(Visits, k = 21, fill = NA),digits = 0),
+         trend.avg.30da = round(zoo::rollmean(Visits, k = 30, fill = NA),digits = 0),
+         day.x = as.numeric(Day) # Add a column to get the date as a numeric value for the LM model
+  ) %>% 
+  replace(is.na(.), 0) %>% 
+  mutate(trend.slope.test = abs(lm(day.x ~ Visits)$coefficients[2])) %>% 
+  mutate(trend.slope = cor(day.x, Visits)) # Correlation between the variables
+
+# Build the summary table of key metrics for the insight generator.
+
+journey.insight <- insight.data %>% group_by(journey_name) %>% 
+  summarize(min.Visits = min(Visits), min.Visits.Date.Name = Day[which.min(Visits)],
+            max.Visits = max(Visits), max.Visits.Date.Name = Day[which.max(Visits)],
+            trend.avg.3da = round(mean(trend.avg.3da), digits = 0),
+            trend.avg.5da = round(mean(trend.avg.5da), digits = 0),
+            trend.avg.7da = round(mean(trend.avg.7da), digits = 0),
+            trend.avg.15da = round(mean(trend.avg.15da), digits = 0),
+            trend.avg.21da = round(mean(trend.avg.21da), digits = 0),
+            trend.avg.30da = round(mean(trend.avg.30da), digits = 0),
+            avg.Visits = round(mean(Visits), digits = 0),
+            sd.Visits = round(sd(Visits), digits = 0),
+            sd.1.Visits = round(sd.Visits+avg.Visits, digits = 0),
+            sd.2.Visits = round((2*sd.Visits)+avg.Visits, digits = 0),
+            trend.slope = signif(mean(trend.slope),digits = 2),
+            trend.slope.test = signif(mean(trend.slope.test),digits = 2)
+  ) %>% 
+  mutate(min.avg.diff = round((min.Visits/avg.Visits -1) * 100, digits = 1),
+         trend.slope.correlation = ifelse(sign(trend.slope) == -1, "NEGATIVE",
+                                       ifelse(sign(trend.slope) == 1, "POSITIVE",
+                                              ifelse(sign(trend.slope) == 0, "FLAT")))
+         )
+
+# Find the date and amount of the highest most significant spike that is at least 2 SD above the mean.
+journey.spike.most.recent.date <- data.frame()
+
+journey.spike.most.recent.date <- insight.data %>% 
+  select(journey_name, Day, Visits) %>%
+  group_by(journey_name) %>%
+  mutate(sd.2.spike = Visits > journey.insight$sd.2.Visits) %>%
+  mutate(sd.1.spike = Visits > journey.insight$sd.1.Visits) %>%
+  filter(sd.2.spike == TRUE) %>%
+  arrange(desc(Day)) %>%
+  slice(1:1) 
+#journey.spike.most.recent.date
+# If no spikes are found fill the data table with appropriate info.
+if (nrow(journey.spike.most.recent.date) == 0) {
+  print("No Data for Spikes")
+  journey.spike.most.recent.date <- insight.data %>% 
+    select(journey_name, Day, Visits) %>%
+    group_by(journey_name) %>%
+    mutate(sd.2.spike = "No Spikes Detected",
+           sd.1.spike = "No Spikes Detected",
+           Day = NA) %>% slice(1:1) 
+}
+# Previous Week
+trend.7 <-  insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
+  # filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
+  filter(Day >= "2022-05-22" & Day <= "2022-05-28") %>% 
+  summarize(trend.slope.7 = cor(day.x, Visits)) %>% 
+  mutate(correlation.7 = ifelse(sign(trend.slope.7) == -1, "NEGATIVE",
+                                ifelse(sign(trend.slope.7) == 1, "POSITIVE",
+                                       ifelse(sign(trend.slope.7) == 0, "FLAT")))
+  )
+
+
+# Last Week
+trend.14 <- insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
+  # filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% 
+  filter(Day >= "2022-05-15" & Day <= "2022-05-21") %>% 
+  summarize(trend.slope.14 = cor(day.x, Visits)) %>% 
+  mutate(correlation.14 = ifelse(sign(trend.slope.14) == -1, "NEGATIVE",
+                                 ifelse(sign(trend.slope.14) == 1, "POSITIVE",
+                                        ifelse(sign(trend.slope.14) == 0, "FLAT")))
+  )
+# Merge the two tables together to build a trend comparison over the last two weeks.
+trend <- merge(x = trend.14, y = trend.7, by = 'journey_name')
+# Merge into the main journey insight table 
+journey.insight <- merge(x = journey.insight, y = trend, by= 'journey_name')
+# Calculate the change values in slope.
+journey.insight <- journey.insight %>% mutate(trend.change = round((trend.slope.7 / trend.slope.14), digits = 1),
+                                              trend.change.relative = round(((trend.slope.14 - trend.slope.7) / trend.slope.14), digits = 1))
+
+journey.insight <- merge(x = journey.insight, y = journey.spike.most.recent.date, by = 'journey_name')
+
+rm(trend.7)
+rm(trend.14)
+
+return(journey.insight)
+
+}
+
