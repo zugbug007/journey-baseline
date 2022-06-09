@@ -145,7 +145,7 @@ type <- c('web')
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
 #source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
-# Next data update remove lines in get function for hard coded dates lines 397/408
+
 journey_data <- readRDS("output/df_journey_data.rds")
 anomaly_data <- readRDS("output/df_anomaly_data.rds")
 

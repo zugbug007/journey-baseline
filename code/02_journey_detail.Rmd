@@ -42,8 +42,8 @@ Insights:
 library (d3heatmap)
 
    d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
-          labRow = heatmap_visits_by_day$journey_name, labColSize = 3,
-          scale = 'row', key.title = "Legend", print.values = F,
+          labRow = heatmap_visits_by_day$journey_name, labColSize = 3, labRowSize = 3,
+          scale = 'row', print.values = F,
           notecol = 'red') %>% 
   hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
   hmAxis("y", title = "Journey", location = 'left') %>% 

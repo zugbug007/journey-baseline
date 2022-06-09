@@ -405,8 +405,7 @@ if (nrow(journey.spike.most.recent.date) == 0) {
 }
 # Previous Week
 trend.7 <-  insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
-  # filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
-  filter(Day >= "2022-05-22" & Day <= "2022-05-28") %>% 
+ filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
   summarize(trend.slope.7 = cor(day.x, Visits)) %>% 
   mutate(correlation.7 = ifelse(sign(trend.slope.7) == -1, "NEGATIVE",
                                 ifelse(sign(trend.slope.7) == 1, "POSITIVE",
@@ -416,8 +415,7 @@ trend.7 <-  insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_
 
 # Last Week
 trend.14 <- insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
-  # filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% 
-  filter(Day >= "2022-05-15" & Day <= "2022-05-21") %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% 
   summarize(trend.slope.14 = cor(day.x, Visits)) %>% 
   mutate(correlation.14 = ifelse(sign(trend.slope.14) == -1, "NEGATIVE",
                                  ifelse(sign(trend.slope.14) == 1, "POSITIVE",

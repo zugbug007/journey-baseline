@@ -11,19 +11,6 @@ Insights:
 journey_name.insight <- "Commercial: Membership Checkout Steps 1-4" # No Spike Data
 journey.insight <- get_insights(journey_name.insight)
 
-# # Journey Name:
-# paste0('Insight for Journey: ', journey.insight$journey_name,'.')
-# # min
-# paste0('[Min] The lowest amount of Visits was ', journey.insight$min.Visits, ' observed on ', format(journey.insight$min.Visits.Date.Name, "%d %b"), '.')
-# # average
-# paste0('[Average] This was ', journey.insight$min.avg.diff, '% less than the average of ', journey.insight$avg.Visits, '.')
-# # max
-# paste0('[Max] During this period, the amount of Visits peaked at ', journey.insight$max.Visits, ' on ', format(journey.insight$max.Visits.Date.Name, "%d %b"), '.')
-# # spike
-# paste0('[Spike] The most recent peak in Visits increased notably on ', format(journey.insight$Day, "%d %b"), 
-#        ' where a significant peak of ',journey.insight$Visits, ' Visits was observed. This was at least 2 Standard Deviations above the mean.')
-# # Trend
-# paste0('[Trend] Throughout the duration of the analysis period, the overall trend has been ',journey.insight$trend.slope.correlation ,'.',' In the previous week the trend was ', journey.insight$correlation.14,', over the last 7 days the trend has been ', journey.insight$correlation.7, '. This is a ', journey.insight$trend.change.relative, '% difference from the previous week.')
 ```
 
 Insight for Journey: **`r journey.insight$journey_name`**
@@ -73,11 +60,32 @@ membership_pre_post_start_funnel
 
 #### Sales & Revenue
 
+Metric: Membership Revenue (ev5) (event5)
 
+##### Revenue:
+
+```{r membership_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
+
+ggplotly(membership_revenue)
+
+```
+
+##### Sales: 
+
+Metric: Membership Step 4.0 - Confirmation (Serialized) (ev26) (event26)
+
+```{r membership_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
+
+ggplotly(membership_sales)
+
+```
 
 
 #### Metrics
-```{r membership_metrics}
+
+```{r membership_metrics, fig.align='center',echo=FALSE}
+
+membership_events
 
 ```
 
@@ -111,6 +119,25 @@ plot(fit_changepoint_membership)
 Insights:
 
 #### Summary
+
+```{r insights_renewals, echo=FALSE}
+
+journey_name.insight <- "Commercial: Renew Checkout Steps 1-3" # No Spike Data
+journey.insight <- get_insights(journey_name.insight)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**
+
+* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+
+* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+
+* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
 #### Funnels
@@ -146,11 +173,33 @@ renew_pre_post_start_funnel
 
 #### Sales & Revenue
 
+##### Revenue:
 
+Metric: Renew Revenue - Serialized (ev79) (event79)
 
+```{r renew_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
+
+ggplotly(renew_revenue)
+
+```
+
+##### Sales: 
+
+Metric: Renew Step 3.0 - Confirmation - Serialized (ev76) (event76)
+
+```{r renew_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
+
+ggplotly(renew_sales)
+
+```
 
 #### Metrics
 
+```{r renewal_metrics, fig.align='center',echo=FALSE}
+
+renewals_events
+
+```
 
 
 #### Flows
@@ -187,6 +236,25 @@ Insights:
 
 #### Summary
 
+```{r insights_holidays, echo=FALSE}
+
+journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**
+
+* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+
+* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+
+* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
+
 
 #### Funnels
 
@@ -221,11 +289,35 @@ holidays_pre_post_start_funnel
 
 #### Sales & Revenue
 
+Metric: Holidays Booking Total Revenue (Serialised) (ev125) (event125)
+
+##### Revenue:
+
+```{r holidays_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
+
+ggplotly(holidays_revenue)
+
+```
+
+##### Sales: 
+
+Metric: Holidays Booking Step 4.0 - Confirmation - Serialised (ev134) (event134)
+
+```{r holidays_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
+
+ggplotly(holidays_sales)
+
+```
 
 
 
 #### Metrics
 
+```{r holidays_metrics, fig.align='center',echo=FALSE}
+
+holidays_events
+
+```
 
 
 #### Flows
@@ -260,10 +352,24 @@ Insights:
 
 #### Summary
 
+```{r insights_shop, echo=FALSE}
 
-```{r shop_summary, fig.align='center', fig.height=5, fig.width=7, ECHO=FALSE}
-head(mtcars)
+journey_name.insight <- "Commercial: Shop Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight)
+
 ```
+
+Insight for Journey: **`r journey.insight$journey_name`**
+
+* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+
+* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+
+* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
 #### Funnels
@@ -300,7 +406,7 @@ shop_pre_post_start_funnel
 
 #### Sales & Revenue
 
-Here is the individual trends for each metric in the shop funnel.
+Metric: Shop - Revenue
 
 ##### Revenue:
 
@@ -312,7 +418,8 @@ ggplotly(shop_revenue)
 
 ##### Shop Orders:  
 
-Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
+Metric: Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
+
 ```{r shop_orders, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
 ggplotly(shop_orders)
@@ -364,6 +471,25 @@ Insights:
 
 #### Summary
 
+```{r insights_donate, echo=FALSE}
+
+journey_name.insight <- "Commercial: Donate Checkout Steps 1-2" # No Spike Data
+journey.insight <- get_insights(journey_name.insight)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**
+
+* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+
+* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+
+* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
+
 
 #### Funnels
 
@@ -382,13 +508,35 @@ donate_pre_post_funnel
 ```
 
 
-#### Sales & Revenue
+#### Sales & Revenue:
 
+Metric: Donate Revenue (Serialized) (ev114) (event114)
 
+##### Revenue:
+```{r donate_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
+
+ggplotly(donate_revenue)
+
+```
+
+##### Sales: 
+
+Metric: Donate Step 2.0 - Complete (Serialized) (ev116) (event116)
+
+```{r donate_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
+
+ggplotly(donate_sales)
+
+```
 
 
 #### Metrics
 
+```{r donate_metrics, fig.align='center',echo=FALSE}
+
+donate_events
+
+```
 
 
 #### Flows

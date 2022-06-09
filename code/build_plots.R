@@ -141,31 +141,175 @@ donate_conv_flow_plot <- get_conversion_flow(previous_week, "event116", "s1957_6
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                            SHOP EVENT DATA                               ----                                                                     
+##                               METRICS DATA                               ----                                                                     
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Shop =========================================================================
 shop_events_pre <- journey_data %>% 
   filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, contains("Shop - Order Step")) %>% 
+  select(Day, journey_name, `Shop - Order Step 1 - Basket (ev179)`,
+         `Shop - Order Step 2 - Delivery Details (ev180)`,
+         `Shop - Order Step 3 - Payment Details (ev181)`,
+         `Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`,
+         `Shop - Revenue`) %>% 
   filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(start_14_sun_start," to ", end_14_sun_end)) %>% 
+  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
 
 shop_events_post <- journey_data %>% 
   filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
-  select(Day, journey_name, contains("Shop - Order Step")) %>% 
+  select(Day, journey_name, `Shop - Order Step 1 - Basket (ev179)`,
+         `Shop - Order Step 2 - Delivery Details (ev180)`,
+         `Shop - Order Step 3 - Payment Details (ev181)`,
+         `Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`,
+         `Shop - Revenue`) %>% 
   filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(start_7_sun_start," to ", end_7_sun_end)) %>% 
+  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>%  
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
 
 shop_events <- rbind(shop_events_pre, shop_events_post)
-shop_events <- shop_events %>% kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3", "Step 4 - Confirmation")) %>% kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+shop_events <- shop_events %>% kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3", "Step 4 - Confirm", "£ Revenue")) %>% kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
+# Membership =========================================================================
+membership_events_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+  select(Day, journey_name, `Membership Step 1.0 (Serialized) (ev30)`,
+         `Membership Step 2.0 (Serialized) (ev24)`,
+         `Membership Step 3.0 (Serialized) (ev25)`,
+         `Membership Step 4.0 - Confirmation (Serialized) (ev26)`,
+         `Membership Revenue (ev5)`) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+membership_events_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+  select(Day, journey_name, `Membership Step 1.0 (Serialized) (ev30)`,
+         `Membership Step 2.0 (Serialized) (ev24)`,
+         `Membership Step 3.0 (Serialized) (ev25)`,
+         `Membership Step 4.0 - Confirmation (Serialized) (ev26)`,
+         `Membership Revenue (ev5)`) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+membership_events <- rbind(membership_events_pre, membership_events_post)
+membership_events <- membership_events %>% 
+  kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3", "Step 4 - Confirm", "£ Revenue")) %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
+# Renewals =========================================================================
+renewals_events_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Renew Checkout Steps 1-3") %>% 
+  select(Day, journey_name, `Renew Step 1.0 (ev71)`,
+                            `Renew Step 2.0 (ev72)`,
+         `Renew Step 3.0 - Confirmation - Serialized (ev76)`,
+         `Renew Revenue - Serialized (ev79)`) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+renewals_events_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Renew Checkout Steps 1-3") %>% 
+  select(Day, journey_name, `Renew Step 1.0 (ev71)`,
+         `Renew Step 2.0 (ev72)`,
+         `Renew Step 3.0 - Confirmation - Serialized (ev76)`,
+         `Renew Revenue - Serialized (ev79)`) %>%
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+renewals_events <- rbind(renewals_events_pre, renewals_events_post)
+renewals_events <- renewals_events %>% 
+  kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3 - Confirm", "£ Revenue")) %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
+# Holidays =========================================================================
+holidays_events_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Holidays Checkout Steps 1-4") %>% 
+  select(Day, journey_name, `Holidays Booking Step 1.0 - Serialised (ev131)`,
+         `Holidays Booking Step 2.0 - Serialised (ev132)`,
+         `Holidays Booking Step 3.0 - Serialised (ev133)`,
+         `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`,
+         `Holidays Booking Total Revenue (Serialised) (ev125)`) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+holidays_events_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Holidays Checkout Steps 1-4") %>% 
+  select(Day, journey_name, `Holidays Booking Step 1.0 - Serialised (ev131)`,
+         `Holidays Booking Step 2.0 - Serialised (ev132)`,
+         `Holidays Booking Step 3.0 - Serialised (ev133)`,
+         `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`,
+         `Holidays Booking Total Revenue (Serialised) (ev125)`) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+holidays_events <- rbind(holidays_events_pre, holidays_events_post)
+holidays_events <- holidays_events %>% 
+  kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2", "Step 3", "Step 4 - Confirm", "£ Revenue")) %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
+# Donate =========================================================================
+donate_events_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
+  select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
+         `Donate Step 2.0 - Complete (Serialized) (ev116)`,
+         `Donate Revenue (Serialized) (ev114)`) %>% 
+  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+donate_events_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
+  select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
+         `Donate Step 2.0 - Complete (Serialized) (ev116)`,
+         `Donate Revenue (Serialized) (ev114)`) %>%
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  relocate(`Date Range`, .before = journey_name) %>% 
+  slice (1:1)
+
+donate_events <- rbind(donate_events_pre, donate_events_post)
+donate_events <- donate_events %>% 
+  kable(col.names = c("Date Range", "Journey Name", "Step 1", "Step 2 - Confirm", "£ Revenue")) %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+
+
+
+
+
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                  Dumbbell Plot for All Journey Summary Tabs              ----
@@ -998,6 +1142,263 @@ shop_orders <- ggplotly(shop_orders) %>%
                                     '<sup>',
                                     'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
                                     '</sup>')))
+
+# Membership Revenue and Sales ----------------------------------------------------------------------------------------------------
+membership_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Membership Checkout Steps 1-4")
+membership_revenue_plot_title <- "Membership Sales Revenue Trended"
+plot_journey_name <- membership_funnel$journey_name    # Get the journey name
+
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event5')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+membership_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Revenue") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+membership_revenue <- ggplotly(membership_revenue) %>%
+  layout(title = list(text = paste0(membership_revenue_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+
+# Membership Sales Trended
+membership_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Membership Checkout Steps 1-4")
+membership_orders_plot_title <- "Membership Sales Trended"
+plot_journey_name <- membership_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event26')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+membership_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Sales") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  #scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+membership_sales <- ggplotly(membership_orders) %>%
+  layout(title = list(text = paste0(membership_orders_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+# Holidays Revenue and Sales ----------------------------------------------------------------------------------------------------
+holidays_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Holidays Checkout Steps 1-4")
+holidays_revenue_plot_title <- "Holidays Sales Revenue Trended"
+plot_journey_name <- holidays_funnel$journey_name    # Get the journey name
+
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event125')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+holidays_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Revenue") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+holidays_revenue <- ggplotly(holidays_revenue) %>%
+  layout(title = list(text = paste0(holidays_revenue_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+
+# holidays Sales Trended
+holidays_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Holidays Checkout Steps 1-4")
+holidays_orders_plot_title <- "Holidays Sales Trended"
+plot_journey_name <- holidays_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event134')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+holidays_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Sales") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  #scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+holidays_sales <- ggplotly(holidays_orders) %>%
+  layout(title = list(text = paste0(holidays_orders_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+# Donate Revenue and Sales ----------------------------------------------------------------------------------------------------
+donate_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Donate Checkout Steps 1-2")
+donate_revenue_plot_title <- "Donate Sales Revenue Trended"
+plot_journey_name <- donate_funnel$journey_name    # Get the journey name
+
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event114')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+donate_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Revenue") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+donate_revenue <- ggplotly(donate_revenue) %>%
+  layout(title = list(text = paste0(donate_revenue_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+
+# donate Sales Trended
+donate_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Donate Checkout Steps 1-2")
+donate_orders_plot_title <- "Donations Trended"
+plot_journey_name <- donate_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event116')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+donate_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Donations") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  #scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+donate_sales <- ggplotly(donate_orders) %>%
+  layout(title = list(text = paste0(donate_orders_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+
+# Renewals Revenue and Sales ----------------------------------------------------------------------------------------------------
+renew_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Renew Checkout Steps 1-3")
+renew_revenue_plot_title <- "Renew Sales Revenue Trended"
+plot_journey_name <- renew_funnel$journey_name    # Get the journey name
+
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event79')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+renew_revenue <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Revenue") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+renew_revenue <- ggplotly(renew_revenue) %>%
+  layout(title = list(text = paste0(renew_revenue_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
+
+# Renewals Sales Trended
+renew_funnel <- journey_unique_names %>% filter(journey_name == "Commercial: Renew Checkout Steps 1-3")
+renew_orders_plot_title <- "Renewals Trended"
+plot_journey_name <- renew_funnel$journey_name    # Get the journey name
+anomaly_subset <- anomaly_data %>% filter(journey_name == plot_journey_name & metric == 'event76')     # Subset the anomaly data for journey and metric
+plot_metric_name <- anomaly_subset %>% filter(row_number()==1) %>% pull(metric)                       # Get the metric name from the first row
+renew_orders <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
+  ggplot(aes_string(x = "day")) +
+  geom_line(aes_string( y = 'data'), color="#406882", size = 0.8) +
+  geom_point(data = anomaly_data %>% dplyr::filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name),
+             aes_string(y ='data'),color="#F05454", size = 1.8) +
+  geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+  geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "#F05454", linetype='dotted', lwd = .8, alpha=0.5) +
+  labs(title = plot_journey_name,
+       caption = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
+  ylab("Renewals") +
+  xlab("Day") +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y")+
+  #scale_y_continuous(labels = dollar_format(prefix = "£")) +
+  expand_limits(y=0)
+renew_sales <- ggplotly(renew_orders) %>%
+  layout(title = list(text = paste0(renew_orders_plot_title,
+                                    '<br>',
+                                    '<sup>',
+                                    'There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.',
+                                    '</sup>')))
+
+
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
