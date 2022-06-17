@@ -6,7 +6,7 @@
 
 ### Baseline Summary
 
-Below is a summary of the website journeys looking at data from **`r pre_start_date` to `r last_valid_date`**. 
+Below is a summary of the website journeys looking at data from **`r format(pre_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.  
 This table is sorted by the difference between the baseline and the new site baseline difference percentage.
 Poor performing new journeys should come to the top.
 
@@ -33,22 +33,20 @@ high_low_table
 
 
 ### Journey Heatmap
-Insights:
 
-
-```{r journey_heatmap, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
+```{r journey_heatmap, echo=FALSE, fig.height=10, fig.width=13, message=FALSE, warning=FALSE}
 # OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds
 
 library (d3heatmap)
 
    d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
-          labRow = heatmap_visits_by_day$journey_name, labColSize = 3, labRowSize = 3,
+          labRow = heatmap_visits_by_day$journey_name, labRowSize = 150,
           scale = 'row', print.values = F,
-          notecol = 'red') %>% 
-  hmAxis("x", title = "Day", location = 'bottom', angle = 90) %>% 
-  hmAxis("y", title = "Journey", location = 'left') %>% 
-  hmCells(font.size = 10, color = 'blue') %>% 
-  hmLegend(show = F, title = "Title", location = "tl")
+          notecol = 'red', anim_duration = 0, cellnote_val = "Visits") %>% 
+  hmAxis("x", title = "Day", location = 'bottom', angle = 90, font.size = '5px') %>% 
+  hmAxis("y", title = "Journey Name", location = 'right', font.size = '10px') %>% 
+  hmCells(font.size = 10, color = 'blue')# %>% 
+  #hmLegend(show = T, title = "Title", location = "tl")
   
   # d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu',
   #            labRow = heatmap_anomalies_by_day$journey_name, labColSize = 3,

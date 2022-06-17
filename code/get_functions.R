@@ -336,77 +336,90 @@ get_search_console_data <- function(start, end) {
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-get_insights <- function(journey_name_insight){
+get_insights <- function(journey_name_insight, insight_metric){
+#Testing
+#insight_metric <- "Page Views"
+#journey_name_insight <- "Commercial: Membership Checkout Steps 1-4"
+  
 journey.insight <- data.frame()  
+
+metric <- insight_metric
+metric
 
 insight.data <- journey_data %>% 
   filter(journey_name == journey_name_insight) %>% 
   filter(Day >= first_valid_date & Day < last_valid_date) %>% 
-  select(journey_name, journey_type, Day, Visits) %>% 
+  select(journey_name, journey_type, Day, !!as.name(metric)) %>% 
   group_by(journey_name) %>% 
   arrange(desc(journey_name), Day) %>% 
-  mutate(trend.avg.3da = round(zoo::rollmean(Visits, k = 3, fill = NA),digits = 0),
-         trend.avg.5da = round(zoo::rollmean(Visits, k = 5, fill = NA),digits = 0),
-         trend.avg.7da = round(zoo::rollmean(Visits, k = 7, fill = NA),digits = 0),
-         trend.avg.15da = round(zoo::rollmean(Visits, k = 15, fill = NA),digits = 0),
-         trend.avg.21da = round(zoo::rollmean(Visits, k = 21, fill = NA),digits = 0),
-         trend.avg.30da = round(zoo::rollmean(Visits, k = 30, fill = NA),digits = 0),
+  mutate(trend.avg.3da = round(zoo::rollmean(metric, k = 3, fill = NA),digits = 0),
+         trend.avg.5da = round(zoo::rollmean(metric, k = 5, fill = NA),digits = 0),
+         trend.avg.7da = round(zoo::rollmean(metric, k = 7, fill = NA),digits = 0),
+         trend.avg.15da = round(zoo::rollmean(metric, k = 15, fill = NA),digits = 0),
+         trend.avg.21da = round(zoo::rollmean(metric, k = 21, fill = NA),digits = 0),
+         trend.avg.30da = round(zoo::rollmean(metric, k = 30, fill = NA),digits = 0),
          day.x = as.numeric(Day) # Add a column to get the date as a numeric value for the LM model
   ) %>% 
   replace(is.na(.), 0) %>% 
-  mutate(trend.slope.test = abs(lm(day.x ~ Visits)$coefficients[2])) %>% 
-  mutate(trend.slope = cor(day.x, Visits)) # Correlation between the variables
+  mutate(trend.slope.test = abs(lm(day.x ~ !!as.name(metric))$coefficients[2])) %>% 
+  mutate(trend.slope = cor(day.x, !!as.name(metric))) %>% 
+  mutate(metric_name = metric) %>% 
+  relocate(metric_name, .after = journey_name)
 
 # Build the summary table of key metrics for the insight generator.
 
 journey.insight <- insight.data %>% group_by(journey_name) %>% 
-  summarize(min.Visits = min(Visits), min.Visits.Date.Name = Day[which.min(Visits)],
-            max.Visits = max(Visits), max.Visits.Date.Name = Day[which.max(Visits)],
+  summarize(min.metric = min(!!as.name(metric)), min.metric.Date.Name = Day[which.min(!!as.name(metric))],
+            max.metric = max(!!as.name(metric)), max.metric.Date.Name = Day[which.max(!!as.name(metric))],
             trend.avg.3da = round(mean(trend.avg.3da), digits = 0),
             trend.avg.5da = round(mean(trend.avg.5da), digits = 0),
             trend.avg.7da = round(mean(trend.avg.7da), digits = 0),
             trend.avg.15da = round(mean(trend.avg.15da), digits = 0),
             trend.avg.21da = round(mean(trend.avg.21da), digits = 0),
             trend.avg.30da = round(mean(trend.avg.30da), digits = 0),
-            avg.Visits = round(mean(Visits), digits = 0),
-            sd.Visits = round(sd(Visits), digits = 0),
-            sd.1.Visits = round(sd.Visits+avg.Visits, digits = 0),
-            sd.2.Visits = round((2*sd.Visits)+avg.Visits, digits = 0),
+            avg.metric = round(mean(!!as.name(metric)), digits = 0),
+            sd.metric = round(sd(!!as.name(metric)), digits = 0),
+            sd.1.metric = round(sd.metric+avg.metric, digits = 0),
+            sd.2.metric = round((2*sd.metric)+avg.metric, digits = 0),
             trend.slope = signif(mean(trend.slope),digits = 2),
             trend.slope.test = signif(mean(trend.slope.test),digits = 2)
   ) %>% 
-  mutate(min.avg.diff = round((min.Visits/avg.Visits -1) * 100, digits = 1),
+  mutate(min.avg.diff = round((min.metric/avg.metric -1) * 100, digits = 1),
          trend.slope.correlation = ifelse(sign(trend.slope) == -1, "NEGATIVE",
-                                       ifelse(sign(trend.slope) == 1, "POSITIVE",
-                                              ifelse(sign(trend.slope) == 0, "FLAT")))
-         )
+                                          ifelse(sign(trend.slope) == 1, "POSITIVE",
+                                                 ifelse(sign(trend.slope) == 0, "FLAT")))
+  ) %>% 
+  mutate(metric_name = metric) %>% 
+  relocate(metric_name, .after = journey_name)
 
 # Find the date and amount of the highest most significant spike that is at least 2 SD above the mean.
 journey.spike.most.recent.date <- data.frame()
 
 journey.spike.most.recent.date <- insight.data %>% 
-  select(journey_name, Day, Visits) %>%
+  select(journey_name, Day, !!as.name(metric)) %>%
   group_by(journey_name) %>%
-  mutate(sd.2.spike = Visits > journey.insight$sd.2.Visits) %>%
-  mutate(sd.1.spike = Visits > journey.insight$sd.1.Visits) %>%
+  mutate(sd.2.spike = !!as.name(metric) > journey.insight$sd.2.metric) %>%
+  mutate(sd.1.spike = !!as.name(metric) > journey.insight$sd.1.metric) %>%
   filter(sd.2.spike == TRUE) %>%
   arrange(desc(Day)) %>%
-  slice(1:1) 
+  rename(metric.spike = !!as.name(metric)) %>% 
+  slice(1:1)  
+
 #journey.spike.most.recent.date
 # If no spikes are found fill the data table with appropriate info.
 if (nrow(journey.spike.most.recent.date) == 0) {
   print("No Data for Spikes")
   journey.spike.most.recent.date <- insight.data %>% 
-    select(journey_name, Day, Visits) %>%
+    select(journey_name, Day, !!as.name(metric)) %>%
     group_by(journey_name) %>%
     mutate(sd.2.spike = "No Spikes Detected",
            sd.1.spike = "No Spikes Detected",
            Day = NA) %>% slice(1:1) 
 }
 # Previous Week
-trend.7 <-  insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
- filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
-  summarize(trend.slope.7 = cor(day.x, Visits)) %>% 
+trend.7 <-  insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
+  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
+  summarize(trend.slope.7 = cor(day.x, !!as.name(metric))) %>% 
   mutate(correlation.7 = ifelse(sign(trend.slope.7) == -1, "NEGATIVE",
                                 ifelse(sign(trend.slope.7) == 1, "POSITIVE",
                                        ifelse(sign(trend.slope.7) == 0, "FLAT")))
@@ -414,9 +427,9 @@ trend.7 <-  insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_
 
 
 # Last Week
-trend.14 <- insight.data %>% select(journey_name, Day, Visits, day.x) %>% group_by(journey_name) %>% 
+trend.14 <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
   filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% 
-  summarize(trend.slope.14 = cor(day.x, Visits)) %>% 
+  summarize(trend.slope.14 = cor(day.x, !!as.name(metric))) %>% 
   mutate(correlation.14 = ifelse(sign(trend.slope.14) == -1, "NEGATIVE",
                                  ifelse(sign(trend.slope.14) == 1, "POSITIVE",
                                         ifelse(sign(trend.slope.14) == 0, "FLAT")))
@@ -435,6 +448,24 @@ rm(trend.7)
 rm(trend.14)
 
 return(journey.insight)
-
 }
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            ~~
+##                          Build Events Trend Graphs                        ---
+##                                                                            ~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+get_events <- function(event_ids){
+  end_date <- Sys.Date() - 1
+  start_date <- Sys.Date() - 90
+  date_range_local <- c(start_date, end_date)
+  df <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), rsid = Sys.getenv("AW_REPORTSUITE_ID"), date_range = date_range_local,
+                          dimensions = "daterangeday",
+                          metrics = event_ids) %>%
+    pivot_longer(-daterangeday) %>%
+    arrange(daterangeday, name) %>% 
+    select(day = daterangeday, id = name, value)
+}

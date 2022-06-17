@@ -1,9 +1,11 @@
 
 ### Top line Journey Results {.tabset}
 
+
+All major journeys across the National Trust website areas.The baseline is created from the last 30 days of data in the pre-launch phase of the previous CMS website.
+
 #### All Journeys
 
-All major journeys across the National Trust website areas.
 
 ```{r all_journeys_before_after, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
 
@@ -72,5 +74,20 @@ Journeys categorised as a research or discovery journey.
 get_journey_plot(all_discovery_journeys)
 
 ```
+
+
+
+#### Baseline Table
+
+
+```{r baseline_journeys_table, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+baseline_flex_table
+
+```
+
+
+
+
 
 ### {.unlisted .unnumbered}

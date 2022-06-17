@@ -1,5 +1,5 @@
 
-```{r process_search_data, echo=FALSE}
+```{r process_search_data, echo=FALSE, message=FALSE, warning=FALSE}
 ## Search Analysis
 #{r child = "code/04_search.Rmd"}
 
@@ -240,7 +240,7 @@ search_by_device <- ggplot(search_console_devices) +
 
 Timeframe: **`r post_start_date_14` to `r post_end_date`**.
 
-```{r internal_search_terms, echo=FALSE}
+```{r internal_search_terms, echo=FALSE, message=FALSE, warning=FALSE}
 search_terms_trended_flex_table
 ```
 
@@ -252,7 +252,7 @@ search_terms_trended_flex_table
 Timeframe: **`r post_start_date_30` to `r post_end_date`**.
 
 
-```{r search_console, echo=FALSE, fig.height=7, fig.width=9, fig.align='center'}
+```{r search_console, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 search_product_table
 
 product_clicks

@@ -6,28 +6,28 @@ Insights:
 #### Summary
 
 
-```{r insights_membership, echo=FALSE}
-
+```{r insights_membership_summary, echo=FALSE}
+use_metric <- "Visits"
 journey_name.insight <- "Commercial: Membership Checkout Steps 1-4" # No Spike Data
-journey.insight <- get_insights(journey_name.insight)
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
 
-Insight for Journey: **`r journey.insight$journey_name`**
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+Evaluating metric: **`r journey.insight$metric_name`**
 
-* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
-* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
 
-* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
 
 * **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
-
-
-#### Funnels
+#### Funnel
 **Week on Week performance**
 
 Membership funnel completions through the journey.   
@@ -58,11 +58,29 @@ membership_pre_post_start_funnel
 ```
 
 
-#### Sales & Revenue
+#### Revenue
 
-Metric: Membership Revenue (ev5) (event5)
+```{r insights_membership_revenue, echo=FALSE}
+use_metric <- "Membership Revenue (ev5)"
+journey_name.insight <- "Commercial: Membership Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
-##### Revenue:
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **£`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **£`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
+
 
 ```{r membership_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
@@ -70,9 +88,29 @@ ggplotly(membership_revenue)
 
 ```
 
-##### Sales: 
+#### Sales
 
-Metric: Membership Step 4.0 - Confirmation (Serialized) (ev26) (event26)
+```{r insights_membership_sales, echo=FALSE}
+use_metric <- "Membership Step 4.0 - Confirmation (Serialized) (ev26)"
+journey_name.insight <- "Commercial: Membership Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
+
 
 ```{r membership_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
@@ -90,7 +128,7 @@ membership_events
 ```
 
 
-#### Flows
+#### Channels
 
 Membership conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
@@ -120,27 +158,29 @@ Insights:
 
 #### Summary
 
-```{r insights_renewals, echo=FALSE}
-
+```{r insights_renewals_summary, echo=FALSE}
+use_metric <- "Visits"
 journey_name.insight <- "Commercial: Renew Checkout Steps 1-3" # No Spike Data
-journey.insight <- get_insights(journey_name.insight)
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
 
-Insight for Journey: **`r journey.insight$journey_name`**
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+Evaluating metric: **`r journey.insight$metric_name`**
 
-* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
-* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
 
-* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
 
 * **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
-#### Funnels
+#### Funnel
 
 **Week on Week performance**
 
@@ -171,11 +211,28 @@ renew_pre_post_start_funnel
 ```
 
 
-#### Sales & Revenue
+#### Revenue
 
-##### Revenue:
+```{r insights_renewals_revenue, echo=FALSE}
+use_metric <- "Renew Revenue - Serialized (ev79)"
+journey_name.insight <- "Commercial: Renew Checkout Steps 1-3" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
-Metric: Renew Revenue - Serialized (ev79) (event79)
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **£`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **£`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r renew_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
@@ -183,9 +240,28 @@ ggplotly(renew_revenue)
 
 ```
 
-##### Sales: 
+#### Sales 
 
-Metric: Renew Step 3.0 - Confirmation - Serialized (ev76) (event76)
+```{r insights_renewals_sales, echo=FALSE}
+use_metric <- "Renew Step 3.0 - Confirmation - Serialized (ev76)"
+journey_name.insight <- "Commercial: Renew Checkout Steps 1-3" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r renew_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
@@ -202,7 +278,7 @@ renewals_events
 ```
 
 
-#### Flows
+#### Channels
 Renewals conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
 ```{r renewals_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
@@ -236,27 +312,29 @@ Insights:
 
 #### Summary
 
-```{r insights_holidays, echo=FALSE}
-
+```{r insights_holidays_summary, echo=FALSE}
+use_metric <- "Visits"
 journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
-journey.insight <- get_insights(journey_name.insight)
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
 
-Insight for Journey: **`r journey.insight$journey_name`**
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+Evaluating metric: **`r journey.insight$metric_name`**
 
-* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
-* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
 
-* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
 
 * **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
-#### Funnels
+#### Funnel
 
 **Week on Week performance**
 
@@ -287,11 +365,28 @@ holidays_pre_post_start_funnel
 ```
 
 
-#### Sales & Revenue
+#### Revenue
 
-Metric: Holidays Booking Total Revenue (Serialised) (ev125) (event125)
+```{r insights_holidays_revenue, echo=FALSE}
+use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
-##### Revenue:
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **£`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **£`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r holidays_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
@@ -299,9 +394,28 @@ ggplotly(holidays_revenue)
 
 ```
 
-##### Sales: 
+#### Sales 
 
-Metric: Holidays Booking Step 4.0 - Confirmation - Serialised (ev134) (event134)
+```{r insights_holidays_sales, echo=FALSE}
+use_metric <- "Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)"
+journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r holidays_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
@@ -320,7 +434,7 @@ holidays_events
 ```
 
 
-#### Flows
+#### Channels
 ```{r holidays_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
 
 holidays_conv_scatter_plot  
@@ -346,33 +460,31 @@ plot(fit_changepoint_holidays)
 
 ### Shop {.tabset}
 
-Insights:
-
-[Min] The lowest amount of Shop - Order Step 4 - Order Confirmation (Serialized) (ev182) was 15, which occurred on Feb. 3rd and was 84% less than the average of 92.
-
 #### Summary
 
-```{r insights_shop, echo=FALSE}
-
+```{r insights_shop_summary, echo=FALSE}
+use_metric <- "Visits"
 journey_name.insight <- "Commercial: Shop Checkout Steps 1-4" # No Spike Data
-journey.insight <- get_insights(journey_name.insight)
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
 
-Insight for Journey: **`r journey.insight$journey_name`**
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+Evaluating metric: **`r journey.insight$metric_name`**
 
-* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
-* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
 
-* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
 
 * **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
-#### Funnels
+#### Funnel
 
 **Week on Week performance**
 
@@ -402,13 +514,28 @@ shop_pre_post_start_funnel
 
 ```
 
+#### Revenue
 
+```{r insights_shop_revenue, echo=FALSE}
+use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
-#### Sales & Revenue
+```
 
-Metric: Shop - Revenue
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-##### Revenue:
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **£`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **£`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r shop_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
@@ -416,9 +543,28 @@ ggplotly(shop_revenue)
 
 ```
 
-##### Shop Orders:  
+#### Sales 
 
-Metric: Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)
+```{r insights_shop_sales, echo=FALSE}
+use_metric <- "Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)"
+journey_name.insight <- "Commercial: Shop Checkout Steps 1-4" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r shop_orders, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
@@ -438,7 +584,7 @@ shop_events
 
 ```
 
-#### Flows
+#### Channels
 Shop conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
 ```{r shop_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}
@@ -471,27 +617,29 @@ Insights:
 
 #### Summary
 
-```{r insights_donate, echo=FALSE}
-
+```{r insights_donate_summary, echo=FALSE}
+use_metric <- "Visits"
 journey_name.insight <- "Commercial: Donate Checkout Steps 1-2" # No Spike Data
-journey.insight <- get_insights(journey_name.insight)
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
 
-Insight for Journey: **`r journey.insight$journey_name`**
+Insight for Journey: **`r journey.insight$journey_name`**   
 
-* **[Min]**         The lowest amount of Visits was **`r journey.insight$min.Visits`** observed on **`r format(journey.insight$min.Visits.Date.Name, "%d %b")`**.  
+Evaluating metric: **`r journey.insight$metric_name`**
 
-* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.Visits`**.  
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
-* **[Max]**         During this period, the amount of Visits peaked at **`r journey.insight$max.Visits`** on **`r format(journey.insight$max.Visits.Date.Name, "%d %b")`**.
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
 
-* **[Spike]**       The most recent peak in Visits increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$Visits`** Visits was observed.  
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
 
 * **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 
-#### Funnels
+#### Funnel
 
 **Week on Week performance**
 
@@ -508,20 +656,57 @@ donate_pre_post_funnel
 ```
 
 
-#### Sales & Revenue:
+#### Revenue:
 
-Metric: Donate Revenue (Serialized) (ev114) (event114)
+```{r insights_donate_revenue, echo=FALSE}
+use_metric <- "Donate Revenue (Serialized) (ev114)"
+journey_name.insight <- "Commercial: Donate Checkout Steps 1-2" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
 
-##### Revenue:
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **£`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **£`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
+
 ```{r donate_revenue, fig.align='center',echo=FALSE, fig.height=5, fig.width=7}
 
 ggplotly(donate_revenue)
 
 ```
 
-##### Sales: 
+#### Sales 
 
-Metric: Donate Step 2.0 - Complete (Serialized) (ev116) (event116)
+```{r insights_donate_sales, echo=FALSE}
+use_metric <- "Donate Step 2.0 - Complete (Serialized) (ev116)"
+journey_name.insight <- "Commercial: Donate Checkout Steps 1-2" # No Spike Data
+journey.insight <- get_insights(journey_name.insight, use_metric)
+
+```
+
+Insight for Journey: **`r journey.insight$journey_name`**   
+
+Evaluating metric: **`r journey.insight$metric_name`**
+
+* **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
+
+* **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
+
+* **[Average]**     This was **`r journey.insight$min.avg.diff`%** less than the average of **`r journey.insight$avg.metric`**.  
+
+* **[Spike]**       The most recent peak in `r journey.insight$metric_name` increased notably on **`r format(journey.insight$Day, "%d %b")`**, where a significant peak of **`r journey.insight$metric.spike`** `r journey.insight$metric_name` was observed.  
+
+* **[Trend]**       Throughout the duration of the analysis period, the overall trend has been **`r journey.insight$trend.slope.correlation`**. In the previous week the trend was **`r journey.insight$correlation.14`** over the last 7 days the trend has been **`r journey.insight$correlation.7`**. This is a **`r journey.insight$trend.change.relative`%** difference from the previous week.
 
 ```{r donate_sales, echo=FALSE, fig.align='center',fig.height=5, fig.width=7}
 
@@ -539,7 +724,7 @@ donate_events
 ```
 
 
-#### Flows
+#### Channels
 Donate conversions by Channel. Start: **`r previous_week_7_start` to `r previous_week_7_end`**. 
 
 ```{r donate_flow_scatter_plot, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, warning=FALSE}

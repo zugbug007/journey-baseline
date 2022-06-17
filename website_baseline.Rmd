@@ -7,6 +7,8 @@ output:
     toc_float: true
     css: styles.css
     self_contained: true
+    includes:
+        after_body: footer.html
 params:
   company_id: "thenat3"
   rsid: "nationaltrustmainsiteprod"
@@ -28,6 +30,9 @@ editor_options:
 ```
 
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
+
+update_data <- FALSE
+
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -77,12 +82,15 @@ scr_auth(email = params$alt_google_account)
 #aw_auth()
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-#aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
-#rm(aw_segments)
+aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
+rm(aw_segments)
 
 # Test GSheets Connections
 gsheet = "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0"
 journey_segments_googlesheet <- read_sheet(gsheet, range = "journey")
+
+# Cutoff for total instances (or occurrences) below which will flag as "Minimal Data"
+min_instances <- 100
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -91,6 +99,7 @@ journey_segments_googlesheet <- read_sheet(gsheet, range = "journey")
 pre_start_date <- Sys.Date() - 180 #180
 pre_end_date <- Sys.Date() - 91  #91
 pre_end_date_7 <- pre_end_date - 7
+pre_end_date_30 <- pre_end_date - 30
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
@@ -136,18 +145,30 @@ previous_week <- c(previous_week_7_start, previous_week_7_end)
 website <- "https://www.nationaltrust.org.uk"
 download_dimensions <- c('query')
 type <- c('web')
-  
+
+df_metrics <- aw_get_metrics(
+    company_id = Sys.getenv("AW_COMPANY_ID"), 
+    rsid = Sys.getenv("AW_REPORTSUITE_ID"))
+      if("description" %in% colnames(df_metrics) == FALSE){
+    df_metrics$description <- ""
+    }
+
 ```
 
 ```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
 # Update the Data
-
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
-#source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
+
+if(update_data == TRUE) {
+  source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
+  source("code/get_events_data.R")
+}
 
 journey_data <- readRDS("output/df_journey_data.rds")
 anomaly_data <- readRDS("output/df_anomaly_data.rds")
+df_events <- readRDS("output/df_events.rds")
+df_events_daily <- readRDS( "output/df_events_daily.rds")
 
 source("code/post_processing.R")
 source("code/build_plots.R")
@@ -184,9 +205,23 @@ This tool builds the baseline for many journeys across the website.
 ```
 
 
-## Anomaly Plots By Journey
+## Journey Trends
 
 ```{r child = "code/03_anomalys_detail.Rmd"}
+
+```
+
+
+## Search Analysis
+
+```{r child = "code/04_search.Rmd"}
+
+```
+
+
+## Events
+
+```{r child = "code/07_events.Rmd"}
 
 ```
 
@@ -200,7 +235,16 @@ lastrunTime_baseline
 
 Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'
 
-```{r save_workspace_image, echo=FALSE}
+```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}
 save.image(file = "output/baseline-workspace.RData")
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                         Outputs to the Google Sheet                      ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#write_sheet(journey_data, gsheet, sheet ="Journey_data")
+#write_sheet(anomaly_data, gsheet, sheet ="Anomaly_data")
+#write_sheet(compare_to_day, gsheet, sheet ="compare_to_day")
+write_sheet(baseline, gsheet, sheet = "Baseline")
 ```
 

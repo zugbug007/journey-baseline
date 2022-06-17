@@ -2,14 +2,17 @@
 ##             Build the Daily Baseline Journey Changes Table          ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pre_baseline <- journey_data %>% filter(journey_type=="pre") %>% 
+pre_baseline <- journey_data %>% 
+  filter(Day >= pre_end_date_30 & Day <= pre_end_date) %>% 
+  filter(journey_type=="pre") %>%
+  arrange(desc(journey_name), Day, journey_type) %>% 
   group_by(journey_name, .drop=FALSE) %>% add_count(journey_name, name = "day_count") %>% 
   summarise(across(where(is.numeric), list(mean = mean, sd = sd, min = min, max = max, median = median), .names = "{.col}_{.fn}")) %>% 
   add_column(journey_type = "pre", .after = "journey_name") %>% 
   mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>% 
   mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
 
-post_baseline <- journey_data %>% filter(journey_type=="post") %>% 
+post_baseline <- journey_data %>% filter(journey_type=="post") %>% arrange(desc(journey_name), Day, journey_type) %>% 
   group_by(journey_name, .drop=FALSE) %>% add_count(journey_name, name = "day_count") %>% 
   summarise(across(where(is.numeric), list(mean = mean, sd = sd, min = min, max = max, median = median), .names = "{.col}_{.fn}")) %>% 
   add_column(journey_type = "post", .after = "journey_name") %>% 
@@ -18,11 +21,11 @@ post_baseline <- journey_data %>% filter(journey_type=="post") %>%
 
 baseline <- rbind(pre_baseline, post_baseline)
 
-# baseline_flex_table <- baseline %>% 
-#   arrange(journey_name) %>% 
-#   kbl() %>%
-#   kable_styling(bootstrap_options = c("striped", "condensed"))
-  
+ baseline_flex_table <- baseline %>% 
+   select(journey_name, journey_type, contains("Visits_mean")) %>% 
+   arrange(journey_name) %>% 
+   kbl() %>%
+   kable_styling(bootstrap_options = c("striped", "condensed"))
 
 baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_name" = "journey_name"), suffix =c(".a.pre", ".b.post")) %>% select(-journey_type.a.pre, -journey_type.b.post) %>% select(journey_name, order(colnames(.))) 
 baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
@@ -454,7 +457,7 @@ high_low_table <- db_plot_data %>% select(change_0_1) %>%
   pivot_longer(
     everything()
     ) %>%     
-  kable(col.names = c("Number of Journeys Higher or Lower than Baseline", "No.")) %>% 
+  kable(col.names = c("Journeys Higher or Lower than Baseline", "# No.")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
 high_low_table
 
