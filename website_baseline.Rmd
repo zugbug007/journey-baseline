@@ -161,20 +161,20 @@ source("code/get_g_sheets.R")
 source("code/get_functions.R")
 
 if(update_data == TRUE) {
+  print("Running Data Load")
   source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
   source("code/get_events_data.R")
+} else {
+  print("Loading local Files")
+  journey_data <- readRDS("output/df_journey_data.rds")
+  anomaly_data <- readRDS("output/df_anomaly_data.rds")
+  df_events <- readRDS("output/df_events.rds")
+  df_events_daily <- readRDS( "output/df_events_daily.rds")
 }
-
-journey_data <- readRDS("output/df_journey_data.rds")
-anomaly_data <- readRDS("output/df_anomaly_data.rds")
-df_events <- readRDS("output/df_events.rds")
-df_events_daily <- readRDS( "output/df_events_daily.rds")
 
 source("code/post_processing.R")
 source("code/build_plots.R")
-source("code/get_forecasts.R")
 
-  
 ```
 
 
@@ -212,11 +212,11 @@ This tool builds the baseline for many journeys across the website.
 ```
 
 
-## Search Analysis
+<!-- ## Search Analysis -->
 
-```{r child = "code/04_search.Rmd"}
+<!-- ```{r child = "code/04_search.Rmd"} -->
 
-```
+<!-- ``` -->
 
 
 ## Events
@@ -226,14 +226,24 @@ This tool builds the baseline for many journeys across the website.
 ```
 
 
+## Forecasts
+
+```{r child = "code/08_forecasts.Rmd"}
+
+```
+
+
+
 ```{r runtime, echo=FALSE}
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
 lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
-lastrunTime_baseline
+#last_run <- as.numeric(monitorEndTime_baseline - monitorStartTime_baseline, units = "mins")
+#last_run
 ```
 
-Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'
+Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'  
+`r lastrunTime_baseline`
 
 ```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}
 save.image(file = "output/baseline-workspace.RData")
@@ -245,6 +255,6 @@ save.image(file = "output/baseline-workspace.RData")
 #write_sheet(journey_data, gsheet, sheet ="Journey_data")
 #write_sheet(anomaly_data, gsheet, sheet ="Anomaly_data")
 #write_sheet(compare_to_day, gsheet, sheet ="compare_to_day")
-write_sheet(baseline, gsheet, sheet = "Baseline")
+#write_sheet(baseline, gsheet, sheet = "Baseline")
 ```
 

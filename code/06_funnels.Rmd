@@ -37,7 +37,7 @@ Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end
 Hover over for fallout details at each stage.  
 
 ```{r membership_funnel_pre_post, echo=FALSE}
-#library(plotly)
+
   membership_pre_post_funnel 
 
 ```
@@ -148,6 +148,24 @@ Change point occurred on day: **`r fit_changepoint_membership@cpts[1]`**.
 plot(fit_changepoint_membership)
 
 ```
+
+
+#### Forecast
+
+```{r membership_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+journey_name_forecast <- "Commercial: Membership Checkout Steps 1-4"
+
+forecast_metric <- "Membership Revenue (ev5)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Membership Step 4.0 - Confirmation (Serialized) (ev26)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Visits"
+get_forecast(journey_name_forecast, forecast_metric)
+
+```
+
 
 ### {.unlisted .unnumbered}
 
@@ -303,6 +321,24 @@ plot(fit_changepoint_renew)
 
 ```
 
+
+#### Forecast
+
+```{r renew_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+journey_name_forecast <- "Commercial: Renew Checkout Steps 1-3"
+
+forecast_metric <- "Renew Revenue - Serialized (ev79)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Renew Step 3.0 - Confirmation - Serialized (ev76)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Visits"
+get_forecast(journey_name_forecast, forecast_metric)
+
+```
+
+
 ### {.unlisted .unnumbered}
 
 
@@ -455,6 +491,23 @@ plot(fit_changepoint_holidays)
 ```
 
 
+#### Forecast
+
+```{r holidays_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+journey_name_forecast <- "Commercial: Holidays Checkout Steps 1-4"
+
+forecast_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Visits"
+get_forecast(journey_name_forecast, forecast_metric)
+
+```
+
+
 ### {.unlisted .unnumbered}
 
 
@@ -517,8 +570,8 @@ shop_pre_post_start_funnel
 #### Revenue
 
 ```{r insights_shop_revenue, echo=FALSE}
-use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
-journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4" # No Spike Data
+use_metric <- "Shop - Revenue"
+journey_name.insight <- "Commercial: Shop Checkout Steps 1-4" # No Spike Data
 journey.insight <- get_insights(journey_name.insight, use_metric)
 
 ```
@@ -607,6 +660,21 @@ plot(fit_changepoint_shop)
 ```
 
 
+#### Forecast
+
+```{r shop_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+journey_name_forecast <- "Commercial: Shop Checkout Steps 1-4"
+
+forecast_metric <- "Shop - Revenue"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Visits"
+get_forecast(journey_name_forecast, forecast_metric)
+
+```
 
 
 ### {.unlisted .unnumbered}
@@ -746,6 +814,21 @@ plot(fit_changepoint_donate)
 ```
 
 
+#### Forecast
+
+```{r donate_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+journey_name_forecast <- "Commercial: Donate Checkout Steps 1-2"
+
+forecast_metric <- "Donate Revenue (Serialized) (ev114)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Donate Step 2.0 - Complete (Serialized) (ev116)"
+get_forecast(journey_name_forecast, forecast_metric)
+
+forecast_metric <- "Visits"
+get_forecast(journey_name_forecast, forecast_metric)
+
+```
 
 
 ### {.unlisted .unnumbered}

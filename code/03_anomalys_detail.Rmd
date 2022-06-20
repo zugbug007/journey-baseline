@@ -2,7 +2,7 @@
 Baseline Dates: **`r pre_start_date` to `r pre_end_date`**. 
 Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 
-```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=7}
+```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=7, fig.align='center'}
 #Anomaly Plots for each journey with Ribbon and Pre/Post separations
 for (i in 1:nrow(journey_unique_names)) {
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
@@ -35,3 +35,5 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
 print(p2)
 }
 ```
+
+

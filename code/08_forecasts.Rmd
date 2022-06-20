@@ -1,0 +1,49 @@
+
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Solid and Dashed]** Indicate a significant changepoint in the data.
+
+
+```{r forecast_plots, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      Build Forecast for every Journey                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+options(scipen = 999)
+journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_count <- nrow(journey_unique_names)
+
+for (i in 1:nrow(journey_unique_names)) {
+  forecast_data <- journey_data %>%
+    select(Day, journey_name, Visits) %>%
+    group_by(journey_name) %>%
+    arrange(desc(journey_name), Day) %>%
+    filter(journey_name == journey_unique_names$journey_name[i]) %>%
+    filter(Day >= pre_start_date & Day <= post_end_date)
+
+prophet_data <- forecast_data %>% ungroup() %>% select(Day, Visits)
+df <- prophet_data
+#tail(df)
+
+names(df) <- c('ds', 'y') 
+m <- prophet(df)
+future <- make_future_dataframe(m, periods=60)
+forecast <- predict(m, future)
+#tail(forecast)
+
+gg <- plot(m, forecast, xlab = "Day", ylab = "Visits") + add_changepoints_to_plot(m)
+#prophet_plot_components(m, forecast)
+plotname <- paste0(journey_unique_names$journey_name[i])
+print(gg + ggplot2::ggtitle(plotname))
+
+# Check Cross Validation
+# df.cv <- cross_validation(m, horizon=40, units='days') 
+# Here we allow 140 days of data to build before cross validating a 30-day forecast every 50 days;
+# tail(df.cv)
+# MAPE (mean absolute percent error)
+# plot_cross_validation_metric(df.cv, metric = 'mape')
+
+}
+```

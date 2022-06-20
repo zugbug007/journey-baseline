@@ -340,6 +340,8 @@ get_insights <- function(journey_name_insight, insight_metric){
 #Testing
 #insight_metric <- "Page Views"
 #journey_name_insight <- "Commercial: Membership Checkout Steps 1-4"
+ # use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+#  journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4"
   
 journey.insight <- data.frame()  
 
@@ -468,4 +470,36 @@ get_events <- function(event_ids){
     pivot_longer(-daterangeday) %>%
     arrange(daterangeday, name) %>% 
     select(day = daterangeday, id = name, value)
+}
+
+
+get_forecast <- function(journey_name_forecast, forecast_metric){
+#options(scipen = 999)
+# Debug
+# journey_name_forecast <- "Commercial: Renew Checkout Steps 1-3"
+# forecast_metric <- "Visits"
+
+forecast_data <- journey_data %>% 
+  filter(journey_name == journey_name_forecast) %>% 
+  filter(Day >= first_valid_date & Day < last_valid_date) %>% 
+  select(journey_name, Day, !!as.name(forecast_metric)) %>% 
+  group_by(journey_name) %>% 
+  arrange(desc(journey_name), Day)
+  
+  prophet_data <- forecast_data %>% ungroup() %>% select(Day, !!as.name(forecast_metric))
+  df <- prophet_data
+  #tail(df)
+  
+  names(df) <- c('ds', 'y') 
+  m <- prophet(df)
+  future <- make_future_dataframe(m, periods=60)
+  forecast <- predict(m, future)
+  #tail(forecast)
+  
+  gg <- plot(m, forecast, xlab = "Day", ylab = forecast_metric) + add_changepoints_to_plot(m)
+  #prophet_plot_components(m, forecast)
+  plotname <- paste0(journey_name_forecast)
+  gg <- gg + ggplot2::ggtitle(plotname)
+  
+  return(gg)
 }

@@ -47,3 +47,5 @@ plot_zoom_png
 *.json
 *.html
 *.html
+*.RData
+*.rds
