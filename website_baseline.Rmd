@@ -212,11 +212,11 @@ This tool builds the baseline for many journeys across the website.
 ```
 
 
-<!-- ## Search Analysis -->
+## Search Analysis
 
-<!-- ```{r child = "code/04_search.Rmd"} -->
+```{r child = "code/04_search.Rmd"}
 
-<!-- ``` -->
+```
 
 
 ## Events
@@ -237,9 +237,10 @@ This tool builds the baseline for many journeys across the website.
 ```{r runtime, echo=FALSE}
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
-lastrunTime_baseline <- paste0("This process took ",monitorEndTime_baseline - monitorStartTime_baseline," minutes to run.",sep=" ")
-#last_run <- as.numeric(monitorEndTime_baseline - monitorStartTime_baseline, units = "mins")
-#last_run
+last_run <- as.numeric(monitorEndTime_baseline - monitorStartTime_baseline, units = "mins")
+last_run <- round(last_run, 2)
+paste0("This process took ",last_run," minutes to complete.",sep=" ")
+
 ```
 
 Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'  

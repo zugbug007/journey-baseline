@@ -49,3 +49,4 @@ plot_zoom_png
 *.html
 *.RData
 *.rds
+/output/

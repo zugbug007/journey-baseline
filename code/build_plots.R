@@ -1033,7 +1033,7 @@ renew_pre_post_start_funnel <- subplot(renew_fun_pre_plot_start, renew_fun_post_
 
 donate_step_labels <- c("Donate Step 1 - Your Details", 
                        "Donate Step 2 - Donate Confirmation")
-
+# Last run date need to be added
 donate_funnel_pre <- journey_data %>% 
   filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
   select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
