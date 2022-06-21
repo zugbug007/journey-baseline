@@ -50,3 +50,4 @@ plot_zoom_png
 *.RData
 *.rds
 /output/
+/archive/
