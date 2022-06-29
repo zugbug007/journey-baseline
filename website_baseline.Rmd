@@ -72,6 +72,7 @@ pacman::p_load(tidyverse,
                searchConsoleR,
                prophet,
                vistime,
+               DT,
                sparkline)
 
 gs4_auth(email = params$google_account)
@@ -83,7 +84,7 @@ scr_auth(email = params$alt_google_account)
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
 aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
-rm(aw_segments)
+#rm(aw_segments)
 
 # Test GSheets Connections
 gsheet = "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0"
@@ -169,7 +170,7 @@ if(update_data == TRUE) {
   journey_data <- readRDS("output/df_journey_data.rds")
   anomaly_data <- readRDS("output/df_anomaly_data.rds")
   df_events <- readRDS("output/df_events.rds")
-  df_events_daily <- readRDS( "output/df_events_daily.rds")
+  df_events_daily <- readRDS("output/df_events_daily.rds")
 }
 
 source("code/post_processing.R")
@@ -182,7 +183,7 @@ source("code/build_plots.R")
 This tool builds the baseline for many journeys across the website.  
 
 
-## Timeline of Activity  
+## Launch Timeline 
 
 ```{r child = "code/00_timeline.Rmd"}
 ```
@@ -238,9 +239,8 @@ This tool builds the baseline for many journeys across the website.
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
 last_run <- as.numeric(monitorEndTime_baseline - monitorStartTime_baseline, units = "mins")
-last_run <- round(last_run, 2)
-paste0("This process took ",last_run," minutes to complete.",sep=" ")
-
+last_run <- round(last_run)
+lastrunTime_baseline <- paste0("This process took ",last_run," minutes to build this analysis.",sep=" ")
 ```
 
 Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'  

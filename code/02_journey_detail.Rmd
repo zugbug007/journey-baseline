@@ -35,17 +35,28 @@ high_low_table
 ### Journey Heatmap
 
 ```{r journey_heatmap, echo=FALSE, fig.height=10, fig.width=13, message=FALSE, warning=FALSE}
-# OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds
+# OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds, Set1
 
 library (d3heatmap)
-
-   d3heatmap(heatmap_visits_by_day, dendrogram = 'none', key = FALSE, col = 'RdYlGn', 
-          labRow = heatmap_visits_by_day$journey_name, labRowSize = 150,
-          scale = 'row', print.values = F,
-          notecol = 'red', anim_duration = 0, cellnote_val = "Visits") %>% 
-  hmAxis("x", title = "Day", location = 'bottom', angle = 90, font.size = '5px') %>% 
+#'YlOrRd'
+   d3heatmap(heatmap_visits_by_day, 
+             dendrogram = 'none', 
+             key = TRUE, 
+             key.location = "fl",
+             col = 'YlOrRd', 
+             keysize = 1,
+             key.title = "Visit Volume",
+             labRow = heatmap_visits_by_day$journey_name, 
+             labRowSize = 150, 
+             scale = 'row',
+             scale.by.range = TRUE,
+             print.values = F,          
+             show_grid = TRUE,
+             anim_duration = 250, 
+             cellnote_val = "Visits") %>% 
+  hmAxis("x", title = "Day", location = 'bottom', angle = 90, font.size = '6px') %>% 
   hmAxis("y", title = "Journey Name", location = 'right', font.size = '10px') %>% 
-  hmCells(font.size = 10, color = 'blue')# %>% 
+  hmCells(font.size = 10)# %>% 
   #hmLegend(show = T, title = "Title", location = "tl")
   
   # d3heatmap(heatmap_anomalies_by_day, dendrogram = 'none', key = FALSE, col = 'RdPu',
@@ -79,4 +90,71 @@ anomaly_count
 
 ```
 
+### Page Metrics
+
+In the table below:   
+**Note:** All Shop & Holidays pages are filtered out of this report. This is for the National Trust Main Site only.
+
+Page Data from: **`r format(last_valid_date-30, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
+Total Pages: **`r nrow(page_data)`**.
+
+* *[Page Name]* Page name of the Main site page. 
+* *[Visits]* Visits made to the page in the time frame.    
+* *[Page Views]* Page Views made to the page in the time frame.   
+* *[Unique Visitors]* Unique Visits made to the page in the time frame. 
+* *[Average Load Time]*  Calculation of the average Page Load time. Based on the Adobe Performance timing data.
+* *[Average Time on Page]*  Calculation of the average time spent on a page.
+* *[Bounce Rate]*  Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.
+* *[Exit Rate]*  Percentage of users who this page was the last piece of content seen before leaving the site.
+
+* *[Tip]* Use the sorting functions to filter the table.   
+Looking for pages with long load times? Look for pages with more than 1000 page views or visits.
+
+
+
+```{r page_analysis, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(page_data, colnames = c('Page Name' = 2, 
+                                  'Avg. Load Time (Sec)' = 6,
+                                  'Avg. Time on Page (Sec)' = 7,
+                                  'Bounce Rate %' = 8,
+                                  'Exit Rate %' = 9), filter = 'top')
+
+```
+
+
+### Marketing Channels
+
+Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded visits:
+
+-   `r mc_low`
+-   `r mc_none`
+-   `r mc_session_refresh`
+
+
+```{r marketing_channels, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+start_date <-  last_valid_date - 30
+end_date <- last_valid_date
+gg_marketing_channels <- ggplot(df_marketing_channels, aes(x = marketingchannel, y = visits, 
+                                                           label = paste0(format(visits, big.mark = ",", trim = TRUE), " (",
+                                                                          percent(pct_visits, accuracy = 0.1), ")"))) +
+  geom_bar(stat = "identity", fill = "#009CAB") +
+  geom_text(aes(y = visits + max(df_marketing_channels$visits) * 0.02), hjust = 0, size = 2.5, color = "gray30") +
+  coord_flip() +
+  scale_y_continuous(expand = c(0,0), limits = c(0, max(df_marketing_channels$visits) * 1.25)) +
+  labs(title = "Visits by Marketing Channel",
+       subtitle = paste0(rsid, ": ", start_date, " to ", end_date),
+       caption = paste("Source: Adobe Analytics - RSID:", rsid, "-", start_date, "to", end_date)) +
+  theme_minimal() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 11, color = "gray20"),
+        plot.subtitle = element_text(size = 10, face = "italic", color = "gray40"),
+        plot.caption = element_text(face = "italic", color = "gray40"),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        panel.grid = element_blank())
+
+gg_marketing_channels
+
+```
 

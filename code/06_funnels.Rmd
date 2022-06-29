@@ -152,6 +152,14 @@ plot(fit_changepoint_membership)
 
 #### Forecast
 
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
+
 ```{r membership_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Membership Checkout Steps 1-4"
 
@@ -324,6 +332,14 @@ plot(fit_changepoint_renew)
 
 #### Forecast
 
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
+
 ```{r renew_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Renew Checkout Steps 1-3"
 
@@ -492,6 +508,14 @@ plot(fit_changepoint_holidays)
 
 
 #### Forecast
+
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
 
 ```{r holidays_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Holidays Checkout Steps 1-4"
@@ -662,6 +686,14 @@ plot(fit_changepoint_shop)
 
 #### Forecast
 
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
+
 ```{r shop_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Shop Checkout Steps 1-4"
 
@@ -815,6 +847,14 @@ plot(fit_changepoint_donate)
 
 
 #### Forecast
+
+In the plots below:     
+
+* **[Black dots]** Represent actual visit data for the journey.    
+* **[Blue lines]** Displays the forecast.     
+* **[Light blue]** Ribbon indicates uncertainty intervals.   
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
 
 ```{r donate_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Donate Checkout Steps 1-2"

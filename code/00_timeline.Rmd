@@ -9,17 +9,35 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Activity Timeline
+### Launch Activity Timeline
 
 Overview of the reporting time frame within this analysis. Major milestones or changes will be added to the time line below as the site gains new or changed content.
 ```{r timeline, echo=FALSE, fig.width=12}
-timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "Post Launch (New CMS)"),
-                            start = c(first_valid_date, post_start_date),
-                            end = c(pre_end_date, last_valid_date),
-                            group = "CMS Lauch",
-                            color = c("#406882", "#f05454"))
+timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "Post Launch (New CMS)", "30 Day Baseline"),
+                            start = c(first_valid_date, post_start_date, pre_end_date_30),
+                            end = c(pre_end_date, last_valid_date, pre_end_date),
+                            group = c("CMS Launch","CMS Launch", "Baseline"),
+                            color = c("#406882", "#f05454", "#688240"))
                             
-hc_vistime(timeline_data, optimize_y = FALSE ) %>% highcharter::hc_size(height = 250)
+hc_vistime(timeline_data, optimize_y = TRUE, title = "CMS Launch Timeline") %>% highcharter::hc_size(height = 250)
+
+# data <- read.csv(text="event,group,start,end,color
+# All Property Pages,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Landing Pages,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Nat. & Reg. Articles,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Nat. & Reg. Content,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Donate - 6 Core Appeals,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Holidays,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Volunteering,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Press Articles,MVP,2022-07-14,2022-07-31,#c8e6c9
+# Trails,Phase 2,2022-08-01,2022-08-31,#a5d6a7
+# Visit: Landing Region & Theme,Phase 3,2022-09-01,2022-09-30,#fb8c00
+# Object Listing,Phase 4,2022-10-01,2022-10-31,#DD4B39
+# Donate & Appeals,Phase 4,2022-10-01,2022-10-31,#DD4B39
+# Recipes,Phase 5,2022-11-01,2022-11-30,#1565c0")
+#                            
+# hc_vistime(data, title = "CMS Content Launch Plan") #%>% highcharter::hc_size(height = 500)
+
 
 ```
 

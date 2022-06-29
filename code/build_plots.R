@@ -380,6 +380,11 @@ all_property_page_journeys <- all_journeys_before_after_plot %>% filter(sub_cate
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels()
 
+all_browser_journeys <- all_journeys_before_after_plot %>% filter(sub_category == "browser") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
 all_discovery_journeys <- all_journeys_before_after_plot %>% filter(category == "discovery") %>% 
   arrange(post) %>% 
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
@@ -1513,10 +1518,58 @@ search_terms_trended_flex_table <- search_term_data_main_site %>%
   arrange(desc(total)) %>%
   distinct() %>%
   ungroup() %>%
-  slice(1:10) %>%
+  slice(1:100) %>%
   kable(col.names = c("Search Term", "Total Searches")) %>%
-  column_spec(2, color = "white", bold = T, background = spec_color(1:10)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+  column_spec(2, color = "white", bold = T, background = spec_color(1:100)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
+  scroll_box(width = "100%", height = "400px")
+
+# 
+# t1 <- search_term_data_main_site %>%
+#   arrange(desc(search_term), day) %>%
+#   group_by(search_term) %>%
+#   add_count() %>%
+#   select(search_term, searches) %>%
+#   mutate(total = sum(searches)) %>%
+#   select(search_term, total) %>%
+#   arrange(desc(total)) %>%
+#   distinct() %>%
+#   ungroup() %>%
+#   slice(1:20)
+# 
+# t2 <- search_term_data_main_site %>%
+#   arrange(desc(search_term), day) %>%
+#   group_by(search_term) %>%
+#   add_count() %>%
+#   select(search_term, searches) %>%
+#   mutate(total = sum(searches)) %>%
+#   select(search_term, total) %>%
+#   arrange(desc(total)) %>%
+#   distinct() %>%
+#   ungroup() %>%
+#   slice(21:40)
+# 
+# t3 <- search_term_data_main_site %>%
+#   arrange(desc(search_term), day) %>%
+#   group_by(search_term) %>%
+#   add_count() %>%
+#   select(search_term, searches) %>%
+#   mutate(total = sum(searches)) %>%
+#   select(search_term, total) %>%
+#   arrange(desc(total)) %>%
+#   distinct() %>%
+#   ungroup() %>%
+#   slice(41:60)
+# 
+# kable(t1) %>%
+#   kable_styling(full_width = FALSE, position = "left")
+# kable(t2) %>%
+#   kable_styling(full_width = FALSE, position = "center")
+# kable(t3) %>%
+#   kable_styling(full_width = FALSE, position = "right")
+
+# kable(t1) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "float_left")
+# kable(t2) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "float_right")
 
 search_terms_trended_flex_table
 
@@ -1701,3 +1754,122 @@ search_by_device <- ggplot(search_console_devices) +
   labs(x = "Device", y = "Clicks", title = "Google Clicks by Device Type", subtitle = "Google Search Console",
        fill = "Device") +
   theme_minimal()
+
+# Get Page Data metrics and page names
+page_date_range <- c(last_valid_date - 30, last_valid_date)
+page_segment_ids <- "s1957_6113b90d5f900636dbd9b2ff"
+page_search_criteria <- c("(CONTAINS 'M|')")
+page_metrics <- c("visits", 
+                  "pageviews", 
+                  "visitors",
+                  "cm1957_5ceff32dc50fd94a13c2cca4", 
+                  "cm1957_565885a3e4b074a4bacd8fd0",
+                  "cm_bouncerate_defaultmetric",
+                  "cm_exit_rate_defaultmetric"
+)
+
+page_data <- get_page_data(page_segment_ids, page_metrics, page_date_range, page_search_criteria)
+
+# Clean up the table by rounding the columns with decimal places.
+page_data <- page_data %>% 
+  mutate(`Bounce Rate` = `Bounce Rate`*100,
+         `Exit Rate` = `Exit Rate`*100,
+         across(5:8, round, 1))
+
+write_rds(page_data, "output/df_page_data.rds")
+
+
+## Marketing Channels Data Extract
+# marketing channels.
+total_visits <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                  rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                  date_range = c(last_valid_date - 30, last_valid_date),
+                                  dimensions = "daterangeyear",
+                                  metrics = "visits") %>% 
+                                  pull(visits) %>% sum()
+
+# Get the marketing channel data
+df_marketing_channels <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                           rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                           date_range = c(last_valid_date - 30, last_valid_date),
+                                           dimensions = "marketingchannel",
+                                           metrics = "visits",
+                                           top = 100)
+
+# Calculate the % of total visits
+df_marketing_channels <- df_marketing_channels %>% 
+  mutate(pct_visits = round(visits/total_visits, 4)) %>% 
+  # Convert to a factor for ordering in the plot
+  mutate(marketingchannel = factor(marketingchannel, levels = rev(marketingchannel)))
+
+# How many channels have pretty low traffic to the site
+mc_low <- paste0("**", df_marketing_channels %>% filter(pct_visits < 0.01) %>% nrow(), " channels** each account for **less than 1% of total visits** to the site.")
+
+# Does "None" occur and, if so, how much?
+mc_none <- case_when(
+  df_marketing_channels %>% filter(marketingchannel == "None") %>% nrow() == 0 ~ 
+    "**None** does not show up at all for marketing channels. This is great!",
+  df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.01 ~ 
+    "**None** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern.",
+  df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.05 ~ 
+    paste0("**None** appears as a marketing channel accounting for **", 
+           df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1),
+           " of traffic**, which is **somewhat concerning**."),
+  TRUE ~ paste0("**None** appears as a marketing channel accounting for **", 
+                df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1),
+                " of traffic**, which is **very concerning**."))
+
+# Does "Session Refresh" (or under another name) occur and, if so, how much? 
+# There could be a channel that is, essentially "Session Refresh", but that isn't 
+# in this list because it is just configured with a different name, so this is 
+# by no means bulletproof
+
+# A few different names get used, so add to this if you come across another one
+session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "Session Timeout",
+                           "Browser left open", "Internal Referrer")
+
+# Find "the one" that is the name used in this case. Get a df with just that one row
+df_session_refresh <- df_marketing_channels %>% 
+  filter(marketingchannel %in% session_refresh_names)
+
+# Find "the one" that is the name used in this case. Get a df with just that one row
+df_session_refresh <- df_marketing_channels %>% 
+  filter(marketingchannel %in% session_refresh_names)
+
+session_refresh_name <- case_when(
+  nrow(df_session_refresh) == 0 ~ "None Found",
+  nrow(df_session_refresh) == 1 ~ as.character(df_session_refresh$marketingchannel[1]),
+  # Having 2 or more rows match would be a surprise. For now, just using the first
+  # row that appears if that happens, but could change later to get fancier
+  TRUE ~ as.character(df_session_refresh$marketingchannel[1])   
+)
+
+mc_session_refresh <- if(session_refresh_name == "None Found"){ 
+  paste("**Session Refresh** does not appear to show up at all for marketing channels. If such a channel exists and",
+        "is properly configured, this is great! If the channel exists, but with a slightly different name that we",
+        "were not able to detect, check the chart below to confirm that it is not showing up more than expected.")
+} else {
+  case_when(
+    df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.01 ~
+      paste0("**", session_refresh_name,"** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern."),
+    
+    df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.05 ~
+      paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **",
+             df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
+               pull(pct_visits) %>% percent(accuracy = 0.1),
+             " of traffic**, which is **somewhat concerning**."),
+    TRUE ~ paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **", 
+                  df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
+                    pull(pct_visits) %>% percent(accuracy = 0.1),
+                  " of traffic**, which is **very concerning**."))
+}
+
+# Write out the various campaign / marketing channels, too. We'll use these if the writing
+# to Google Sheets craps out
+write_rds(list(#cmp_ttl = cmp_ttl,
+               #cmp_class_ttl = cmp_class_ttl,
+               #cmp_class_w_data = cmp_class_w_data,
+               mc_low = mc_low,
+               mc_none = mc_none,
+               mc_session_refresh = mc_session_refresh),
+          "output/marketing_channel_messages.rds")

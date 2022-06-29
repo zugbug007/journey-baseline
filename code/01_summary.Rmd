@@ -45,7 +45,7 @@ get_journey_plot(all_commercial_journeys)
 ```
 
 
-#### Top Level
+#### Home Page
 
 Journeys from the home page onward to other significant areas of the website.
 
@@ -55,7 +55,7 @@ get_journey_plot(all_top_level_journeys)
 
 ```
 
-#### Property Pages
+#### Property
 
 Journeys to a NT property page.
 
@@ -72,6 +72,17 @@ Journeys categorised as a research or discovery journey.
 ```{r all_discovery_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
 get_journey_plot(all_discovery_journeys)
+
+```
+
+
+#### Browser
+
+Journeys categorised as a browser specific journey across the entire website.
+
+```{r all_browser_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_browser_journeys)
 
 ```
 

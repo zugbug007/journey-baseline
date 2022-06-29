@@ -1,0 +1,25 @@
+
+In the table below:   
+
+Page Data from: **`r format(last_valid_date-30, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
+
+* **[Page Name]** Page name of the Main site page. **Note:** All Shop & Holidays pages are filtered out of this report.
+* **[Visits]** Visits made to the page in the time frame.    
+* **[Page Views]** Page Views made to the page in the time frame.   
+* **[Unique Visitors]** Unique Visits made to the page in the time frame. 
+* **[Average Load Time]**  Calculation of the average Page Load time. Based on the Adobe Performance timing data.
+* **[Average Time on Page]**  Calculation of the average time spent on a page.
+* **[Bounce Rate]**  Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.
+* **[Exit Rate]**  Percentage of users who this page was the last piece of content seen before leaving the site.
+
+* **[Tip]** Use the sorting functions to filter the table. 
+* **[Tip]** If looking for pages with long load times, look for pages with more than 1000 page views or visits.
+
+```{r page_analysis, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(page_data, colnames = c('Page Name' = 2, 
+                                  'Avg. Load Time (Sec)' = 6,
+                                  'Avg. Time on Page (Sec)' = 7,
+                                  'Bounce Rate %' = 8,
+                                  'Exit Rate %' = 9), filter = 'top')
+```

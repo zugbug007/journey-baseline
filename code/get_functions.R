@@ -18,6 +18,26 @@ get_segment_data <- function(segment_ids, metrics, date_range) {
   
 }
 
+
+get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
+  adobeanalyticsr::aw_freeform_table(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+                                     date_range = date_range,
+                                     dimensions = "evar26",
+                                     segmentId = segment_ids,          # catch passed comma separated vector segment IDs group to pull data against. 
+                                     prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
+                                     metrics = metrics,       # catch the comma separated vector group of metrics specified for this journey
+                                     include_unspecified = TRUE,
+                                     filterType = "breakdown",
+                                     metricSort = "desc",
+                                     search = search_criteria,
+                                     top = c(50000),
+                                     page = 0,
+                                     debug = FALSE
+  )
+  
+}
+
+
 get_anomaly_data <- function(segment_ids, metrics, data_range){
   adobeanalyticsr::aw_anomaly_report(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
                                      date_range = date_range,
@@ -133,7 +153,7 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
                                            "path_count" = 3)
   df_sankey$path_list = strsplit(x=df_sankey$path, split = ">")
   
-  depth = 5
+  depth = 4
   
   #Generate node labels and label length vectors
   node_labels=rep(list(list()),depth)

@@ -4,7 +4,8 @@ In the plots below:
 * **[Black dots]** Represent actual visit data for the journey.    
 * **[Blue lines]** Displays the forecast.     
 * **[Light blue]** Ribbon indicates uncertainty intervals.   
-* **[Red Solid and Dashed]** Indicate a significant changepoint in the data.
+* **[Red Dashed]** Indicates a significant changepoint in the data.
+* **[Red Solid]**  Indicates the overall trend of the data. 
 
 
 ```{r forecast_plots, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
