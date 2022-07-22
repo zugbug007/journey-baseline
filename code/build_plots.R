@@ -12,7 +12,10 @@ pre_baseline <- journey_data %>%
   mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>% 
   mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
 
-post_baseline <- journey_data %>% filter(journey_type=="post") %>% arrange(desc(journey_name), Day, journey_type) %>% 
+post_baseline <- journey_data %>% 
+  filter(Day >= last_valid_date-30 & Day <= last_valid_date) %>% # Tweak based on launch
+  filter(journey_type=="post") %>% 
+  arrange(desc(journey_name), Day, journey_type) %>% 
   group_by(journey_name, .drop=FALSE) %>% add_count(journey_name, name = "day_count") %>% 
   summarise(across(where(is.numeric), list(mean = mean, sd = sd, min = min, max = max, median = median), .names = "{.col}_{.fn}")) %>% 
   add_column(journey_type = "post", .after = "journey_name") %>% 
@@ -155,9 +158,9 @@ shop_events_pre <- journey_data %>%
          `Shop - Order Step 3 - Payment Details (ev181)`,
          `Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`,
          `Shop - Revenue`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(fourteen_days_ago,"%d")," - ", format(fourteen_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -169,9 +172,9 @@ shop_events_post <- journey_data %>%
          `Shop - Order Step 3 - Payment Details (ev181)`,
          `Shop - Order Step 4 - Order Confirmation (Serialized) (ev182)`,
          `Shop - Revenue`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>%  
+  mutate(`Date Range` = paste0(format(seven_days_ago,"%d")," - ", format(seven_days_ago+6,"%d %B"))) %>%  
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -187,9 +190,9 @@ membership_events_pre <- journey_data %>%
          `Membership Step 3.0 (Serialized) (ev25)`,
          `Membership Step 4.0 - Confirmation (Serialized) (ev26)`,
          `Membership Revenue (ev5)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(fourteen_days_ago,"%d")," - ", format(fourteen_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -201,9 +204,9 @@ membership_events_post <- journey_data %>%
          `Membership Step 3.0 (Serialized) (ev25)`,
          `Membership Step 4.0 - Confirmation (Serialized) (ev26)`,
          `Membership Revenue (ev5)`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(seven_days_ago,"%d")," - ", format(seven_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -220,9 +223,9 @@ renewals_events_pre <- journey_data %>%
                             `Renew Step 2.0 (ev72)`,
          `Renew Step 3.0 - Confirmation - Serialized (ev76)`,
          `Renew Revenue - Serialized (ev79)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(fourteen_days_ago,"%d")," - ", format(fourteen_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -233,9 +236,9 @@ renewals_events_post <- journey_data %>%
          `Renew Step 2.0 (ev72)`,
          `Renew Step 3.0 - Confirmation - Serialized (ev76)`,
          `Renew Revenue - Serialized (ev79)`) %>%
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(seven_days_ago,"%d")," - ", format(seven_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -253,9 +256,9 @@ holidays_events_pre <- journey_data %>%
          `Holidays Booking Step 3.0 - Serialised (ev133)`,
          `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`,
          `Holidays Booking Total Revenue (Serialised) (ev125)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(fourteen_days_ago,"%d")," - ", format(fourteen_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -267,9 +270,9 @@ holidays_events_post <- journey_data %>%
          `Holidays Booking Step 3.0 - Serialised (ev133)`,
          `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`,
          `Holidays Booking Total Revenue (Serialised) (ev125)`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(seven_days_ago,"%d")," - ", format(seven_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -285,9 +288,9 @@ donate_events_pre <- journey_data %>%
   select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
          `Donate Step 2.0 - Complete (Serialized) (ev116)`,
          `Donate Revenue (Serialized) (ev114)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_14_sun_start,"%d")," - ", format(end_14_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(fourteen_days_ago,"%d")," - ", format(fourteen_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -297,9 +300,9 @@ donate_events_post <- journey_data %>%
   select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
          `Donate Step 2.0 - Complete (Serialized) (ev116)`,
          `Donate Revenue (Serialized) (ev114)`) %>%
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(journey_name, across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
-  mutate(`Date Range` = paste0(format(start_7_sun_start,"%d")," - ", format(end_7_sun_end,"%d %B"))) %>% 
+  mutate(`Date Range` = paste0(format(seven_days_ago,"%d")," - ", format(seven_days_ago+6,"%d %B"))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   relocate(`Date Range`, .before = journey_name) %>% 
   slice (1:1)
@@ -332,7 +335,8 @@ db_plot_data <- baseline %>% select(journey_name, journey_type, Visits_mean) %>%
   mutate(change = ifelse(post > pre, "Higher", "Lower")) %>% 
   mutate(change_0_1 = ifelse(post > pre, 1, 0))  # Added column to simplify downstream sums
 
-db1 <- baseline %>% select(journey_name, journey_type, Visits_mean) %>% 
+db1 <- baseline %>% 
+  select(journey_name, journey_type, Visits_mean) %>%
   pivot_wider(
     names_from = journey_type,
     values_from = 'Visits_mean') %>% 
@@ -400,28 +404,28 @@ all_discovery_journeys <- all_journeys_before_after_plot %>% filter(category == 
 top_10_journeys <- db_plot_data %>% 
   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline)) %>% 
   arrange(desc(diff_vs_baseline)) %>% 
-  slice(1:10)
+  slice(1:15)
 
-top10 <- ggplot(top_10_journeys) +
-  aes(x = journey_name, weight = diff_vs_baseline*100) +
-  geom_bar(fill = "#228B22") +
-  labs(x = "Journey Name", y = "% Percentage Increase over Baseline", title = "Top 10 Journeys by Improvement") +
-  coord_flip() +
-  theme_bw() +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+# top10 <- ggplot(top_10_journeys) +
+#   aes(x = journey_name, weight = diff_vs_baseline*100) +
+#   geom_bar(fill = "#228B22") +
+#   labs(x = "Journey Name", y = "% Percentage Increase over Baseline", title = "Top 10 Journeys by Improvement") +
+#   coord_flip() +
+#   theme_bw() +
+#   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
 # Bottom 10 Journeys with Highest Differences to their Baseline
 bot_10_journeys <- db_plot_data %>% 
   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
-  arrange(diff_vs_baseline) %>% slice(1:10)
+  arrange(diff_vs_baseline) %>% slice(1:15)
 
-bot10 <- ggplot(bot_10_journeys) +
-  aes(x = journey_name, weight = diff_vs_baseline*100) +
-  geom_bar(fill = "#B22222") +
-  labs(x = "Journey Name", y = "% Percentage Decrease over Baseline", title = "Bottom 10 Journeys by Decrease") +
-  coord_flip() +
-  theme_bw() +
-  theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+# bot10 <- ggplot(bot_10_journeys) +
+#   aes(x = journey_name, weight = diff_vs_baseline*100) +
+#   geom_bar(fill = "#B22222") +
+#   labs(x = "Journey Name", y = "% Percentage Decrease over Baseline", title = "Bottom 20 Journeys by Decrease") +
+#   coord_flip() +
+#   theme_bw() +
+#   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
 
 top_bot_journeys <- rbind(top_10_journeys,bot_10_journeys)
@@ -436,7 +440,7 @@ top_bot <- ggplot(top_bot_journeys) +
  labs(
    x = "Journey Name", 
    y = "% Percentage inc./dec. over the baseline", 
- title = "Top 10 Highest & Lowest Performing Journeys", 
+ title = "Top 15 Highest & Lowest Performing Journeys", 
  fill = "Performance") +
  coord_flip() +
  ggthemes::theme_pander()
@@ -456,33 +460,34 @@ highlow_count<- ggplot(db_plot_data) +
 
 
 high_low_table <- db_plot_data %>% select(change_0_1) %>% 
+  filter(!is.na(change_0_1)) %>% # Remove post only journeys 
   mutate(Lower = sum(change_0_1 == 0)) %>% 
            mutate(Higher = sum(change_0_1 == 1)) %>% 
    select(-change_0_1) %>% distinct() %>%
   pivot_longer(
     everything()
-    ) %>%     
+    ) %>%   
   kable(col.names = c("Journeys Higher or Lower than Baseline", "# No.")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
-high_low_table
+#high_low_table
 
-low_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
-  mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
-  filter(change == "Lower") %>% 
-  arrange(diff_vs_baseline) %>% 
-  kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
-  column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
+# low_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
+#   mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
+#   filter(change == "Lower") %>% 
+#   arrange(diff_vs_baseline) %>% 
+#   kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
+#   column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
   
 #low_detail
 
-high_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
-  mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
-  filter(change == "Higher") %>% 
-  arrange(desc(diff_vs_baseline)) %>% 
-  kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
-  #column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
+# high_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 
+#   mutate(diff_vs_baseline = round((diff_vs_baseline*100), digits = 0)) %>% 
+#   filter(change == "Higher") %>% 
+#   arrange(desc(diff_vs_baseline)) %>% 
+#   kable(col.names = c("Journey Name", "% Diff. to Baseline", "Change")) %>% 
+#   #column_spec(2, color = "white", bold = T, background = spec_color(1:12)) %>% 
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) 
 
 #high_detail
 
@@ -537,7 +542,7 @@ membership_step_labels <- c("Step 1 - Personal Details",
 add_start_page_value_pre <- journey_data %>% 
   filter(journey_name == "Membership: Join Us" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -546,7 +551,7 @@ add_start_page_value_pre <- journey_data %>%
 add_start_page_value_post <- journey_data %>% 
   filter(journey_name == "Membership: Join Us" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -555,7 +560,7 @@ annotations = list(
   list( 
     x = 0.2,  
     y = 1.0,  
-    text = c(paste0(format(start_14_sun_start, "%d-%b"), " to ", format(end_14_sun_end, "%d-%b"))),  
+    text = c(paste0(format(fourteen_days_ago, "%d-%b"), " to ", format(fourteen_days_ago+6, "%d-%b"))),  
     xref = "paper",  
     yref = "paper",  
     xanchor = "center",  
@@ -565,7 +570,7 @@ annotations = list(
   list( 
     x = 0.8,  
     y = 1,  
-    text = c(paste0(format(start_7_sun_start, "%d-%b"), " to ", format(end_7_sun_end, "%d-%b"))),    
+    text = c(paste0(format(seven_days_ago, "%d-%b"), " to ", format(seven_days_ago+6, "%d-%b"))),    
     xref = "paper",  
     yref = "paper",  
     xanchor = "center",  
@@ -582,7 +587,7 @@ membership_funnel_pre <- journey_data %>%
          `Membership Step 2.0 (Serialized) (ev24)`,
          `Membership Step 3.0 (Serialized) (ev25)`,
          `Membership Step 4.0 - Confirmation (Serialized) (ev26)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -630,7 +635,7 @@ membership_funnel_post <- journey_data %>%
          `Membership Step 2.0 (Serialized) (ev24)`,
          `Membership Step 3.0 (Serialized) (ev25)`,
          `Membership Step 4.0 - Confirmation (Serialized) (ev26)`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -686,7 +691,7 @@ shop_step_labels <- c("Order Step 1 - Basket",
 shop_funnel_pre <- journey_data %>% 
   filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
   select(Day, journey_name, contains("Shop - Order Step")) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -709,7 +714,7 @@ shop_fun_pre_plot <- shop_fun_pre_plot %>%
 add_start_page_value_pre <- journey_data %>% 
   filter(journey_name == "Shop: Any Shop Page to Step 1" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -737,7 +742,7 @@ shop_fun_pre_plot_start <- shop_fun_pre_plot_start %>% layout(yaxis = list(categ
 add_start_page_value_post <- journey_data %>% 
   filter(journey_name == "Shop: Any Shop Page to Step 1" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -746,7 +751,7 @@ add_start_page_value_post <- journey_data %>%
 shop_funnel_post <- journey_data %>% 
   filter(journey_name == "Commercial: Shop Checkout Steps 1-4") %>% 
   select(Day, journey_name, contains("Shop - Order Step")) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -808,7 +813,7 @@ holidays_funnel_pre <- journey_data %>%
          `Holidays Booking Step 2.0 - Serialised (ev132)`,
          `Holidays Booking Step 3.0 - Serialised (ev133)`,
          `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -830,7 +835,7 @@ holidays_fun_pre_plot <- holidays_fun_pre_plot %>% layout(yaxis = list(categorya
 add_start_page_value_pre <- journey_data %>% 
   filter(journey_name == "Holidays: Any Holidays Page to Step 1" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -861,7 +866,7 @@ holidays_funnel_post <- journey_data %>%
          `Holidays Booking Step 2.0 - Serialised (ev132)`,
          `Holidays Booking Step 3.0 - Serialised (ev133)`,
          `Holidays Booking Step 4.0 - Confirmation - Serialised (ev134)`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -885,7 +890,7 @@ holidays_pre_post_funnel <- subplot(holidays_fun_pre_plot, holidays_fun_post_plo
 add_start_page_value_post <- journey_data %>% 
   filter(journey_name == "Holidays: Any Holidays Page to Step 1" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -927,7 +932,7 @@ renew_funnel_pre <- journey_data %>%
   select(Day, journey_name, `Renew Step 1.0 (ev71)`, 
                             `Renew Step 2.0 (ev72)`, 
                             `Renew Step 3.0 - Confirmation - Serialized (ev76)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -950,7 +955,7 @@ renew_fun_pre_plot <- renew_fun_pre_plot %>% layout(yaxis = list(categoryarray =
 add_start_page_value_pre <- journey_data %>% 
   filter(journey_name == "Membership: Renew" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -979,7 +984,7 @@ renew_funnel_post <- journey_data %>%
   select(Day, journey_name, `Renew Step 1.0 (ev71)`, 
          `Renew Step 2.0 (ev72)`, 
          `Renew Step 3.0 - Confirmation - Serialized (ev76)`) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -1003,7 +1008,7 @@ renew_pre_post_funnel <- subplot(renew_fun_pre_plot, renew_fun_post_plot, widths
 add_start_page_value_post <- journey_data %>% 
   filter(journey_name == "Membership: Renew" & journey_type == "post") %>% 
   select(Day, journey_name, Visits) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>%
   c(., recursive=TRUE)
@@ -1025,7 +1030,7 @@ renew_fun_post_plot_start <- renew_fun_post_plot_start %>%
     marker = list(color = c("#824068"))
   )
 renew_fun_post_plot_start <- renew_fun_post_plot_start %>% layout(yaxis = list(categoryarray = renew_step_labels_start))
-renew_fun_post_plot_start
+#renew_fun_post_plot_start
 
 
 # Build the side by side funnel plot for the funnel with the start page
@@ -1043,7 +1048,7 @@ donate_funnel_pre <- journey_data %>%
   filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
   select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
                             `Donate Step 2.0 - Complete (Serialized) (ev116)`) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -1068,7 +1073,7 @@ donate_funnel_post <- journey_data %>%
   filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
   select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
          `Donate Step 2.0 - Complete (Serialized) (ev116)`) %>%
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% arrange(Day) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
   mutate(across(where(is.numeric), round, 0)) %>% 
   c(., recursive=TRUE)
@@ -1508,21 +1513,23 @@ search_term_data_main_site <- search_term_data_main_site %>%
 # Plots
 # Sort the data by each term into a time series for plotting.
 
-search_terms_trended_flex_table <- search_term_data_main_site %>%
-  arrange(desc(search_term), day) %>%
-  group_by(search_term) %>%
-  add_count() %>%
-  select(search_term, searches) %>%
-  mutate(total = sum(searches)) %>%
-  select(search_term, total) %>%
-  arrange(desc(total)) %>%
-  distinct() %>%
-  ungroup() %>%
-  slice(1:100) %>%
-  kable(col.names = c("Search Term", "Total Searches")) %>%
-  column_spec(2, color = "white", bold = T, background = spec_color(1:100)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
-  scroll_box(width = "100%", height = "400px")
+# search_terms_trended_flex_table <- search_term_data_main_site %>%
+#   arrange(desc(search_term), day) %>%
+#   group_by(search_term) %>%
+#   add_count() %>%
+#   select(search_term, searches) %>%
+#   mutate(total = sum(searches)) %>%
+#   select(search_term, total) %>%
+#   arrange(desc(total)) %>%
+#   distinct() %>%
+#   ungroup() %>%
+#   slice(1:100) %>%
+#   kable(col.names = c("Search Term", "Total Searches")) %>%
+#   column_spec(2, color = "white", bold = T, background = spec_color(1:100)) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>% 
+#   scroll_box(width = "100%", height = "400px")
+
+
 
 # 
 # t1 <- search_term_data_main_site %>%
@@ -1571,7 +1578,7 @@ search_terms_trended_flex_table <- search_term_data_main_site %>%
 # kable(t1) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "float_left")
 # kable(t2) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "float_right")
 
-search_terms_trended_flex_table
+#search_terms_trended_flex_table
 
 
 # Google Search Console Plots and Data -----------------------------------------------------------------------------------------
@@ -1645,7 +1652,7 @@ search_product_table <- search_products %>%
   column_spec(5, color = "white", bold = T, background = spec_color(1:5)) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
 
-search_product_table
+#search_product_table
 
 brand_non_branded <- search_products %>%
   ggplot() +
@@ -1765,111 +1772,9 @@ page_metrics <- c("visits",
                   "cm1957_5ceff32dc50fd94a13c2cca4", 
                   "cm1957_565885a3e4b074a4bacd8fd0",
                   "cm_bouncerate_defaultmetric",
+                  "cm1957_618a4fda709efa77430796e5",
                   "cm_exit_rate_defaultmetric"
 )
 
 page_data <- get_page_data(page_segment_ids, page_metrics, page_date_range, page_search_criteria)
 
-# Clean up the table by rounding the columns with decimal places.
-page_data <- page_data %>% 
-  mutate(`Bounce Rate` = `Bounce Rate`*100,
-         `Exit Rate` = `Exit Rate`*100,
-         across(5:8, round, 1))
-
-write_rds(page_data, "output/df_page_data.rds")
-
-
-## Marketing Channels Data Extract
-# marketing channels.
-total_visits <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
-                                  rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
-                                  date_range = c(last_valid_date - 30, last_valid_date),
-                                  dimensions = "daterangeyear",
-                                  metrics = "visits") %>% 
-                                  pull(visits) %>% sum()
-
-# Get the marketing channel data
-df_marketing_channels <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
-                                           rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
-                                           date_range = c(last_valid_date - 30, last_valid_date),
-                                           dimensions = "marketingchannel",
-                                           metrics = "visits",
-                                           top = 100)
-
-# Calculate the % of total visits
-df_marketing_channels <- df_marketing_channels %>% 
-  mutate(pct_visits = round(visits/total_visits, 4)) %>% 
-  # Convert to a factor for ordering in the plot
-  mutate(marketingchannel = factor(marketingchannel, levels = rev(marketingchannel)))
-
-# How many channels have pretty low traffic to the site
-mc_low <- paste0("**", df_marketing_channels %>% filter(pct_visits < 0.01) %>% nrow(), " channels** each account for **less than 1% of total visits** to the site.")
-
-# Does "None" occur and, if so, how much?
-mc_none <- case_when(
-  df_marketing_channels %>% filter(marketingchannel == "None") %>% nrow() == 0 ~ 
-    "**None** does not show up at all for marketing channels. This is great!",
-  df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.01 ~ 
-    "**None** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern.",
-  df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.05 ~ 
-    paste0("**None** appears as a marketing channel accounting for **", 
-           df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1),
-           " of traffic**, which is **somewhat concerning**."),
-  TRUE ~ paste0("**None** appears as a marketing channel accounting for **", 
-                df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1),
-                " of traffic**, which is **very concerning**."))
-
-# Does "Session Refresh" (or under another name) occur and, if so, how much? 
-# There could be a channel that is, essentially "Session Refresh", but that isn't 
-# in this list because it is just configured with a different name, so this is 
-# by no means bulletproof
-
-# A few different names get used, so add to this if you come across another one
-session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "Session Timeout",
-                           "Browser left open", "Internal Referrer")
-
-# Find "the one" that is the name used in this case. Get a df with just that one row
-df_session_refresh <- df_marketing_channels %>% 
-  filter(marketingchannel %in% session_refresh_names)
-
-# Find "the one" that is the name used in this case. Get a df with just that one row
-df_session_refresh <- df_marketing_channels %>% 
-  filter(marketingchannel %in% session_refresh_names)
-
-session_refresh_name <- case_when(
-  nrow(df_session_refresh) == 0 ~ "None Found",
-  nrow(df_session_refresh) == 1 ~ as.character(df_session_refresh$marketingchannel[1]),
-  # Having 2 or more rows match would be a surprise. For now, just using the first
-  # row that appears if that happens, but could change later to get fancier
-  TRUE ~ as.character(df_session_refresh$marketingchannel[1])   
-)
-
-mc_session_refresh <- if(session_refresh_name == "None Found"){ 
-  paste("**Session Refresh** does not appear to show up at all for marketing channels. If such a channel exists and",
-        "is properly configured, this is great! If the channel exists, but with a slightly different name that we",
-        "were not able to detect, check the chart below to confirm that it is not showing up more than expected.")
-} else {
-  case_when(
-    df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.01 ~
-      paste0("**", session_refresh_name,"** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern."),
-    
-    df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.05 ~
-      paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **",
-             df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
-               pull(pct_visits) %>% percent(accuracy = 0.1),
-             " of traffic**, which is **somewhat concerning**."),
-    TRUE ~ paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **", 
-                  df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
-                    pull(pct_visits) %>% percent(accuracy = 0.1),
-                  " of traffic**, which is **very concerning**."))
-}
-
-# Write out the various campaign / marketing channels, too. We'll use these if the writing
-# to Google Sheets craps out
-write_rds(list(#cmp_ttl = cmp_ttl,
-               #cmp_class_ttl = cmp_class_ttl,
-               #cmp_class_w_data = cmp_class_w_data,
-               mc_low = mc_low,
-               mc_none = mc_none,
-               mc_session_refresh = mc_session_refresh),
-          "output/marketing_channel_messages.rds")

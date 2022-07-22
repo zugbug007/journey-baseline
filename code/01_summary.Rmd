@@ -2,7 +2,7 @@
 ### Top line Journey Results {.tabset}
 
 
-All major journeys across the National Trust website areas.The baseline is created from the last 30 days of data in the pre-launch phase of the previous CMS website.
+All major journeys across the National Trust website areas. The baseline is created from the last 30 days of data in the pre-launch phase of the previous CMS website.
 
 #### All Journeys
 

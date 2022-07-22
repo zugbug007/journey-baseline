@@ -11,16 +11,23 @@ This table is sorted by the difference between the baseline and the new site bas
 Poor performing new journeys should come to the top.
 
 ```{r baseline, echo=FALSE}
-baseline_visits_mean <- baseline_summary %>% 
+# baseline_visits_mean <- baseline_summary %>% 
+#   select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
+#   mutate(visits_diff = round(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre)*100, digits = 1)) %>% 
+#   arrange(visits_diff) %>% 
+#   top_n(-10, visits_diff) %>% 
+#   kable(col.names = c("Journey Name", "Baseline Visits", "New Site Visits Avg.", "% Visits Diff.")) %>% 
+#   kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F)
+
+#baseline_visits_mean
+
+datatable(baseline_summary %>% 
   select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
   mutate(visits_diff = round(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre)*100, digits = 1)) %>% 
-  arrange(visits_diff) %>% 
-  top_n(-10, visits_diff) %>% 
-  kable(col.names = c("Journey Name", "Baseline Visits", "New Site Visits Avg.", "% Visits Diff.")) %>% 
-  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F)
-
-baseline_visits_mean
-
+  arrange(visits_diff), colnames = c('Journey Name' = 2, 
+                                  'Baseline Visits' = 3,
+                                  'New Site Visits Avg.' = 4,
+                                  '% Visits Diff.' = 5), filter = 'top')
 ```
 
 Below is a summary of the total number of journeys which are higher or lower than their baseline.
@@ -34,6 +41,10 @@ high_low_table
 
 ### Journey Heatmap
 
+Below is the journey heat map. Each row represents a journey by day for the last 180 days.  
+Darker colours indicate more traffic to that journey. Hover over the cells to see volumes.  
+Select and drag to zoom into a section.
+
 ```{r journey_heatmap, echo=FALSE, fig.height=10, fig.width=13, message=FALSE, warning=FALSE}
 # OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds, Set1
 
@@ -41,7 +52,7 @@ library (d3heatmap)
 #'YlOrRd'
    d3heatmap(heatmap_visits_by_day, 
              dendrogram = 'none', 
-             key = TRUE, 
+             key = FALSE, 
              key.location = "fl",
              col = 'YlOrRd', 
              keysize = 1,
@@ -50,7 +61,10 @@ library (d3heatmap)
              labRowSize = 150, 
              scale = 'row',
              scale.by.range = TRUE,
-             print.values = F,          
+             na.rm = TRUE,
+             na.value = NA,
+             na.color = "#f0f0f0",
+             print.values = FALSE,          
              show_grid = TRUE,
              anim_duration = 250, 
              cellnote_val = "Visits") %>% 
@@ -96,20 +110,20 @@ In the table below:
 **Note:** All Shop & Holidays pages are filtered out of this report. This is for the National Trust Main Site only.
 
 Page Data from: **`r format(last_valid_date-30, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
-Total Pages: **`r nrow(page_data)`**.
+Total Number of Pages: **`r nrow(page_data)`**.
 
-* *[Page Name]* Page name of the Main site page. 
-* *[Visits]* Visits made to the page in the time frame.    
-* *[Page Views]* Page Views made to the page in the time frame.   
-* *[Unique Visitors]* Unique Visits made to the page in the time frame. 
-* *[Average Load Time]*  Calculation of the average Page Load time. Based on the Adobe Performance timing data.
-* *[Average Time on Page]*  Calculation of the average time spent on a page.
-* *[Bounce Rate]*  Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.
-* *[Exit Rate]*  Percentage of users who this page was the last piece of content seen before leaving the site.
-
-* *[Tip]* Use the sorting functions to filter the table.   
-Looking for pages with long load times? Look for pages with more than 1000 page views or visits.
-
+ * **[Page Name]** Page name of the Main site page.   
+ * **[Visits]** Visits made to the page in the time frame.        
+ * **[Page Views]** Page Views made to the page in the time frame.      
+ * **[Unique Visitors]** Unique Visits made to the page in the time frame.    
+ * **[Average Load Time]**  Calculation of the average Page Load time. Based on the Adobe Performance timing data.   
+ * **[Average Time on Page]**  Calculation of the average time spent on a page.   
+ * **[Bounce Rate]**  Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.   
+ * **[Exit Rate]**  Percentage of users who this page was the last piece of content seen before leaving the site.   
+ * **[Repeated Actions]** Higher the number the stronger the potential for users stuck in a loop. 
+    
+ **[Tip]** Use the sorting functions to filter the table.       
+Looking for pages with long load times? Look for pages with more than 1000 page views or visits.    
 
 
 ```{r page_analysis, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
@@ -118,12 +132,99 @@ datatable(page_data, colnames = c('Page Name' = 2,
                                   'Avg. Load Time (Sec)' = 6,
                                   'Avg. Time on Page (Sec)' = 7,
                                   'Bounce Rate %' = 8,
-                                  'Exit Rate %' = 9), filter = 'top')
-
+                                  'Repeated Actions' = 9,
+                                  'Exit Rate %' = 10), filter = 'top')
+  
 ```
 
 
-### Marketing Channels
+### Time on Site {.tabset}
+
+
+#### All Visits
+
+```{r site_wide_page_all_devices, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+# All visits: s1957_6113b90d5f900636dbd9b2ff
+# Tablet: s1957_5cf4ff610f47c76f4e45d26b
+# Mobile: s1957_5cf4febff0f34a6c7c321976
+# Desktop: s1957_5cf4ff035b9ab413eed80b7f
+# Main Site: s1957_611e5647d17b6b04401e42d2
+start_date_tos <- Sys.Date() - 90
+end_date_tos <- Sys.Date()
+plot_title_tos <- "Time on Site: All Main Site, All Devices"
+device_segment_id <- 's1957_6113b90d5f900636dbd9b2ff'
+
+get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
+```
+
+
+#### Mobile
+
+
+```{r site_wide_page_all_mobile, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+# All visits: s1957_6113b90d5f900636dbd9b2ff
+# Tablet: s1957_5cf4ff610f47c76f4e45d26b
+# Mobile: s1957_5cf4febff0f34a6c7c321976
+# Desktop: s1957_5cf4ff035b9ab413eed80b7f
+# Main Site: s1957_611e5647d17b6b04401e42d2
+start_date_tos <- Sys.Date() - 90
+end_date_tos <- Sys.Date()
+plot_title_tos <- "Time on Site: All Main Site, Mobile Devices"
+device_segment_id <- 's1957_5cf4febff0f34a6c7c321976'
+
+get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
+```
+
+
+#### Desktop
+
+
+```{r site_wide_page_all_desktop, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+# All visits: s1957_6113b90d5f900636dbd9b2ff
+# Tablet: s1957_5cf4ff610f47c76f4e45d26b
+# Mobile: s1957_5cf4febff0f34a6c7c321976
+# Desktop: s1957_5cf4ff035b9ab413eed80b7f
+# Main Site: s1957_611e5647d17b6b04401e42d2
+start_date_tos <- Sys.Date() - 90
+end_date_tos <- Sys.Date()
+plot_title_tos <- "Time on Site: All Main Site, Desktop Devices"
+device_segment_id <- 's1957_5cf4ff035b9ab413eed80b7f'
+
+get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
+```
+
+
+#### Tablet
+
+
+```{r site_wide_page_all_tablet, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
+# All visits: s1957_6113b90d5f900636dbd9b2ff
+# Tablet: s1957_5cf4ff610f47c76f4e45d26b
+# Mobile: s1957_5cf4febff0f34a6c7c321976
+# Desktop: s1957_5cf4ff035b9ab413eed80b7f
+# Main Site: s1957_611e5647d17b6b04401e42d2
+start_date_tos <- Sys.Date() - 90
+end_date_tos <- Sys.Date()
+plot_title_tos <- "Time on Site: All Main Site, Tablet Devices"
+device_segment_id <- 's1957_5cf4ff610f47c76f4e45d26b'
+
+get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
+```
+
+
+### {.unlisted .unnumbered}
+
+
+### Marketing Channels {.tabset}
+
+#### This Week
+
+```{r marketing_channels_this_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+
+get_marketing_channels(seven_days_ago, seven_days_ago+6)
+
+```
+Insights:
 
 Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded visits:
 
@@ -132,29 +233,99 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 -   `r mc_session_refresh`
 
 
-```{r marketing_channels, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
-start_date <-  last_valid_date - 30
-end_date <- last_valid_date
-gg_marketing_channels <- ggplot(df_marketing_channels, aes(x = marketingchannel, y = visits, 
-                                                           label = paste0(format(visits, big.mark = ",", trim = TRUE), " (",
-                                                                          percent(pct_visits, accuracy = 0.1), ")"))) +
-  geom_bar(stat = "identity", fill = "#009CAB") +
-  geom_text(aes(y = visits + max(df_marketing_channels$visits) * 0.02), hjust = 0, size = 2.5, color = "gray30") +
-  coord_flip() +
-  scale_y_continuous(expand = c(0,0), limits = c(0, max(df_marketing_channels$visits) * 1.25)) +
-  labs(title = "Visits by Marketing Channel",
-       subtitle = paste0(rsid, ": ", start_date, " to ", end_date),
-       caption = paste("Source: Adobe Analytics - RSID:", rsid, "-", start_date, "to", end_date)) +
-  theme_minimal() +
-  theme(plot.title.position = "plot",
-        plot.title = element_text(size = 11, color = "gray20"),
-        plot.subtitle = element_text(size = 10, face = "italic", color = "gray40"),
-        plot.caption = element_text(face = "italic", color = "gray40"),
-        axis.title = element_blank(),
-        axis.text.x = element_blank(),
-        panel.grid = element_blank())
+#### Last Week
 
-gg_marketing_channels
+
+```{r marketing_channels_last_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+
+get_marketing_channels(fourteen_days_ago, fourteen_days_ago+6)
+
 
 ```
+Insights:
+
+Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded visits:
+
+-   `r mc_low`
+-   `r mc_none`
+-   `r mc_session_refresh`
+
+
+### {.unlisted .unnumbered}
+
+
+### Paid Media {.tabset}
+
+#### Paid Search
+```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+#Last Week
+path <- paste0(getwd(),"/json/paid_search_commercial_last_week.json")
+column_names <- c('Marketing Channel' = 2, 
+                                  'Mem. Revenue' = 3,
+                                  'Shop Revenue' = 4,
+                                  'Donate Revenue' = 5,
+                                  'Renew Revenue' = 6,
+                                  'Holidays Revenue' = 7)
+
+
+paid_search_last_week <- aw_workspace_report(req_body = path,
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  client_id = Sys.getenv("AW_CLIENT_ID"),
+  client_secret = Sys.getenv("AW_CLIENT_SECRET")
+)
+
+datatable(paid_search_last_week, colnames = column_names, caption = 'Last Week: Paid Search Revenue for Commercial Channels.') %>% 
+                        formatCurrency(2:6, currency = "£")
+
+#Two Weeks Ago
+path <- paste0(getwd(),"/json/paid_search_commercial_two_weeks_ago.json")
+paid_search_two_weeks_ago <- aw_workspace_report(req_body = path,
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  client_id = Sys.getenv("AW_CLIENT_ID"),
+  client_secret = Sys.getenv("AW_CLIENT_SECRET")
+)
+
+datatable(paid_search_two_weeks_ago, colnames = column_names, caption = 'Two Weeks Ago: Paid Search Revenue for Commercial Channels.') %>% 
+                        formatCurrency(2:6, currency = "£")
+
+
+```
+
+
+
+#### Paid Social
+```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+#Last Week
+path <- paste0(getwd(),"/json/paid_social_commercial_last_week.json")
+column_names <- c('Marketing Channel' = 2, 
+                                  'Mem. Revenue' = 3,
+                                  'Shop Revenue' = 4,
+                                  'Donate Revenue' = 5,
+                                  'Renew Revenue' = 6,
+                                  'Holidays Revenue' = 7)
+
+paid_social_last_week <- aw_workspace_report(req_body = path,
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  client_id = Sys.getenv("AW_CLIENT_ID"),
+  client_secret = Sys.getenv("AW_CLIENT_SECRET")
+)
+
+datatable(paid_social_last_week, colnames = column_names, caption = 'Last Week: Paid Social Revenue for Commercial Channels.') %>% 
+                        formatCurrency(2:6, currency = "£")
+
+#Two Weeks Ago
+path <- paste0(getwd(),"/json/paid_social_commercial_two_weeks_ago.json")
+paid_social_two_weeks_ago <- aw_workspace_report(req_body = path,
+  company_id = Sys.getenv("AW_COMPANY_ID"),
+  client_id = Sys.getenv("AW_CLIENT_ID"),
+  client_secret = Sys.getenv("AW_CLIENT_SECRET")
+)
+
+datatable(paid_social_two_weeks_ago, colnames = column_names, caption = 'Two Weeks Ago: Paid Social Revenue for Commercial Channels.') %>% 
+                        formatCurrency(2:6, currency = "£")
+
+```
+
+
+### {.unlisted .unnumbered}
 

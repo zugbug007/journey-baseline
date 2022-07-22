@@ -4,22 +4,36 @@
 
 Timeframe: **`r post_start_date_30` to `r post_end_date`**.
 
-```{r search_console, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+```{r search_console_prod_tbl, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 search_product_table
+```
+
+```{r search_console_prod_clicks, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
 product_clicks
 
+```
+
+```{r search_console_prod_brand_nonbrand, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
 ggplotly(br)
 
+```
+
+```{r search_console_search_terms, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
 search_terms_facet_grid
+```
+
+
+```{r search_console_prod_devices, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
 search_by_device
+```
 
-#brand_non_branded
-#search_term_by_ctr
-#search_term_by_impressions
-#search_term_by_position
-#search_term_clicks
+```{r search_console_prod_total_clicks, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+search_term_clicks
 ```
 
 
@@ -30,12 +44,18 @@ Top Internal Search Terms
 Timeframe: **`r post_start_date_14` to `r post_end_date`**.
 
 ```{r internal_search_terms, echo=FALSE, message=FALSE, warning=FALSE}
-search_terms_trended_flex_table
-# kable(t1) %>% kable_styling(full_width = FALSE, position = "left")
-# kable(t2) %>% kable_styling(full_width = FALSE, position = "center")
-# kable(t3) %>% kable_styling(full_width = FALSE, position = "right")
-# 
-# knitr::kable(list(t1, t2, t3))
+
+datatable(search_term_data_main_site %>%
+  arrange(desc(search_term), day) %>%
+  group_by(search_term) %>%
+  add_count() %>%
+  select(search_term, searches) %>%
+  mutate(total = sum(searches)) %>%
+  select(search_term, total) %>%
+  arrange(desc(total)) %>%
+  distinct() %>%
+  ungroup(), colnames = c('Search Term' = 2, 'Total Searches' = 3))
+
 ```
 
 

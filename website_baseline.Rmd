@@ -21,6 +21,7 @@ editor_options:
 ```{r load_workspace_from_file, echo=FALSE, message=FALSE, warning=FALSE}
 #load("output/baseline-workspace.RData")
 
+# Hex Colour Reference
 # Blue = "#406882"
 # Red = "#f05454"
 # Purple = "#824068"
@@ -31,6 +32,7 @@ editor_options:
 
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
 
+# Set to true to run the extensive data pull, set to false to use the local stored files (much faster).
 update_data <- FALSE
 
 # Capturing the start time -- the final output will include how long
@@ -80,10 +82,10 @@ scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
 #library(adobeanalyticsr)
 #aw_token()
-#aw_auth()
+
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
+#aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
 #rm(aw_segments)
 
 # Test GSheets Connections
@@ -97,6 +99,11 @@ min_instances <- 100
 ##                 Setup Date Ranges and Common Date Variables              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # pre dates will be hard coded when new site launches
+# Adjust post baseline calculation time frame at the same time **IMPORTANT**
+# Build Plots line 15
+# Change top of funnel start pages when new site launches
+# Membership & Renew: 'M|membership'
+# Donate
 pre_start_date <- Sys.Date() - 180 #180
 pre_end_date <- Sys.Date() - 91  #91
 pre_end_date_7 <- pre_end_date - 7
@@ -128,6 +135,7 @@ two_weeks_ago <- c(start_14_days_ago_days, end_7_days_ago)
 # Get Date Starting on a Sunday Two Weeks Ago
 start_14_sun_start <- floor_date(as.Date(start_14_days_ago_days, "%m/%d/%Y"), unit="week")
 end_14_sun_end <- as.Date(start_14_sun_start) + 6
+two_weeks_ago <- c(as.Date(start_14_sun_start), as.Date(end_14_sun_end)) #Starting on a Sunday
 
 #Get Date Starting on a Sunday 1 Week Ago
 start_7_sun_start <- floor_date(as.Date(end_7_days_ago, "%m/%d/%Y"), unit="week")
@@ -136,12 +144,15 @@ last_7_full_week <- c(start_7_sun_start, end_7_sun_end)
 
 # Last two weeks
 last_two_full_weeks <- c(two_weeks_ago[1], last_7_full_week[2])
+last_week <- c(as.Date(start_7_sun_start), as.Date(end_7_sun_end)) # starting on a Sunday
 
 # Previous Week
 previous_week_7 <- lubridate::floor_date(Sys.Date(), "week")
 previous_week_7_end <- previous_week_7
 previous_week_7_start <- previous_week_7 - 7
 previous_week <- c(previous_week_7_start, previous_week_7_end)
+
+# Valid from data dates are set in the post-processing script to determine exact last valid and valid start dates for ranges
 
 website <- "https://www.nationaltrust.org.uk"
 download_dimensions <- c('query')
@@ -152,8 +163,11 @@ df_metrics <- aw_get_metrics(
     rsid = Sys.getenv("AW_REPORTSUITE_ID"))
       if("description" %in% colnames(df_metrics) == FALSE){
     df_metrics$description <- ""
-    }
+      }
 
+# A few different names get used, so add to this if you come across another one
+session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "Session Timeout",
+                           "Browser left open", "Internal Referrer")
 ```
 
 ```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
@@ -180,7 +194,9 @@ source("code/build_plots.R")
 
 
 # Summary
-This tool builds the baseline for many journeys across the website.  
+This tool builds the baseline for multiple journeys across the website. All the data and analysis is automated. As new journeys are added, charts and tables are automatically updated.
+
+Some journeys only exist in the old CMS and are not comparable to the new journeys on the new CMS. 
 
 
 ## Launch Timeline 
@@ -256,6 +272,6 @@ save.image(file = "output/baseline-workspace.RData")
 #write_sheet(journey_data, gsheet, sheet ="Journey_data")
 #write_sheet(anomaly_data, gsheet, sheet ="Anomaly_data")
 #write_sheet(compare_to_day, gsheet, sheet ="compare_to_day")
-#write_sheet(baseline, gsheet, sheet = "Baseline")
+write_sheet(baseline, gsheet, sheet = "Baseline")
 ```
 

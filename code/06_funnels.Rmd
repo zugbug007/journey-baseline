@@ -31,8 +31,8 @@ Evaluating metric: **`r journey.insight$metric_name`**
 **Week on Week performance**
 
 Membership funnel completions through the journey.   
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -45,8 +45,8 @@ Hover over for fallout details at each stage.
 **Week on Week performance**
 
 Membership funnel completions through the checkout journey, this variation includes the Join Us page prior to the start of the Membership funnel journey.  
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -211,8 +211,8 @@ Evaluating metric: **`r journey.insight$metric_name`**
 **Week on Week performance**
 
 Renewal funnel completions through the journey.   
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -225,8 +225,8 @@ renew_pre_post_funnel
 **Week on Week performance**
 
 Renewal funnel completions through the checkout journey, this variation includes the Join or Renew page traffic prior to the start of the funnel journey.  
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -391,8 +391,8 @@ Evaluating metric: **`r journey.insight$metric_name`**
 **Week on Week performance**
 
 Holidays funnel completions through the journey.   
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
  
@@ -405,8 +405,8 @@ holidays_pre_post_funnel
 **Week on Week performance**
 
 Holidays funnel completions through the checkout journey, this variation includes the any page in the Holidays section prior to the start of the funnel journey. 
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -566,8 +566,8 @@ Evaluating metric: **`r journey.insight$metric_name`**
 **Week on Week performance**
 
 Shop funnel completions through the checkout journey.   
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -580,8 +580,8 @@ shop_pre_post_funnel
 **Week on Week performance**
 
 Shop funnel completions through the checkout journey, this variation includes the any page in the Shop section prior to the start of the funnel journey.
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 
@@ -744,8 +744,8 @@ Evaluating metric: **`r journey.insight$metric_name`**
 **Week on Week performance**
 
 Donation funnel completions through the checkout journey.   
-Previous Week: **`r format(start_14_sun_start, "%d-%b")` to `r format(end_14_sun_end, "%d-%b")`**.  
-Last 7 Days: **`r format(start_7_sun_start, "%d-%b")` to `r format(end_7_sun_end, "%d-%b")`**.
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
 

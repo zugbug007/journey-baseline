@@ -33,7 +33,10 @@ get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
                                      top = c(50000),
                                      page = 0,
                                      debug = FALSE
-  )
+  ) %>%  
+    mutate(`Bounce Rate` = percent(`Bounce Rate`, accuracy = 0.1)) %>% 
+    mutate(`Exit Rate` = percent(`Exit Rate`, accuracy = 0.1)) %>% 
+    mutate(across(where(is.numeric), round, 1))
   
 }
 
@@ -440,7 +443,7 @@ if (nrow(journey.spike.most.recent.date) == 0) {
 }
 # Previous Week
 trend.7 <-  insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
-  filter(Day >= start_7_sun_start & Day <= end_7_sun_end) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% 
   summarize(trend.slope.7 = cor(day.x, !!as.name(metric))) %>% 
   mutate(correlation.7 = ifelse(sign(trend.slope.7) == -1, "NEGATIVE",
                                 ifelse(sign(trend.slope.7) == 1, "POSITIVE",
@@ -450,7 +453,7 @@ trend.7 <-  insight.data %>% select(journey_name, Day, !!as.name(metric), day.x)
 
 # Last Week
 trend.14 <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
-  filter(Day >= start_14_sun_start & Day <= end_14_sun_end) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% 
   summarize(trend.slope.14 = cor(day.x, !!as.name(metric))) %>% 
   mutate(correlation.14 = ifelse(sign(trend.slope.14) == -1, "NEGATIVE",
                                  ifelse(sign(trend.slope.14) == 1, "POSITIVE",
@@ -482,9 +485,11 @@ return(journey.insight)
 
 get_events <- function(event_ids){
   end_date <- Sys.Date() - 1
-  start_date <- Sys.Date() - 90
+  start_date <- Sys.Date() - 180
   date_range_local <- c(start_date, end_date)
-  df <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), rsid = Sys.getenv("AW_REPORTSUITE_ID"), date_range = date_range_local,
+  df <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                          rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                          date_range = date_range_local,
                           dimensions = "daterangeday",
                           metrics = event_ids) %>%
     pivot_longer(-daterangeday) %>%
@@ -522,4 +527,154 @@ forecast_data <- journey_data %>%
   gg <- gg + ggplot2::ggtitle(plotname)
   
   return(gg)
+}
+
+# Time on Site ##################################################################
+
+get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title) {
+date_range_tos <- c(start_date, end_date)
+  segment_group_tos = c()
+  segment_group_tos <- c(device_segment_id, "s1957_611e5647d17b6b04401e42d2") # static segment ID for NT Main site + device seegment
+  
+  time_on_site <- aw_anomaly_report(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                    rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+                                    date_range = date_range_tos,
+                                    metrics = "averagetimespentonsite",
+                                    granularity = "day",
+                                    segmentId = segment_group_tos,
+                                    anomalyDetection = TRUE) %>% 
+    mutate(data = round(data, 0)) %>% 
+    arrange(day)
+  
+  avg.tos.two.weeks.ago <- time_on_site %>% 
+    filter(day >= fourteen_days_ago & day <= fourteen_days_ago+6) %>% 
+    arrange(day) %>% select(data) %>% 
+    summarize(mean(data)) %>% 
+    pull()
+  avg.tos.two.weeks.ago  <- lubridate::duration(round(avg.tos.two.weeks.ago,0))
+   
+  avg.tos.last.week <- time_on_site %>% 
+    filter(day >= seven_days_ago & day <= seven_days_ago+6) %>% 
+    arrange(day) %>% select(data) %>% 
+    summarize(mean(data)) %>% 
+    pull()
+  avg.tos.last.week <- lubridate::duration(round(avg.tos.last.week,0))
+  tos.diff <- avg.tos.two.weeks.ago-avg.tos.last.week
+  
+  
+  p2 <- time_on_site %>%  # Use the subset to build the anomaly chart
+    ggplot(aes_string(x = "day")) +
+    geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
+    geom_point(data = time_on_site %>% dplyr::filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T),
+               aes_string(y ='data'), color="red", size = 1.8) +
+    geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
+    geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+    labs(title = plot_title,
+         subtitle = paste0('The average time last week was ',avg.tos.last.week,'. Difference of ',tos.diff,' over the prior week.'),
+         caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies.')) +
+    theme_bw() +
+    theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
+    theme(axis.title.y = element_text(face = "bold", angle = 90), axis.title.x = element_text(face = "bold", angle = 0)) +
+    scale_x_date(date_breaks = "week" , date_labels = "%d-%B")+
+    scale_y_continuous(labels = scales::comma) +
+    expand_limits(y=0) +
+    ylab("Avg. Time on Site (sec)")+
+    xlab("Day")
+  
+  return (p2)
+}
+
+
+get_marketing_channels <- function(start_date_mc, end_date_mc) {
+  #date_range_mc <- c(fourteen_days_ago, fourteen_days_ago+6) #Debug
+  date_range_mc <- c(as.Date(start_date_mc), as.Date(end_date_mc))
+  ## Marketing Channels Data Extract
+  total_visits <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                    rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                    date_range = date_range_mc,
+                                    dimensions = "daterangeyear",
+                                    metrics = "visits") %>% pull(visits) %>% sum()
+  
+  # Get the marketing channel data
+  df_marketing_channels <<- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                             rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                             date_range = date_range_mc,
+                                             dimensions = "marketingchannel",
+                                             metrics = "visits",
+                                             top = 100)
+  
+  # Calculate the % of total visits
+  df_marketing_channels <- df_marketing_channels %>% 
+    mutate(pct_visits = round(visits/total_visits, 4)) %>% 
+    # Convert to a factor for ordering in the plot
+    mutate(marketingchannel = factor(marketingchannel, levels = rev(marketingchannel)))
+  
+  # How many channels have pretty low traffic to the site
+  mc_low <<- paste0("**", df_marketing_channels %>% 
+                     filter(pct_visits < 0.01) %>% 
+                     nrow(), " channels** each account for **less than 1% of total visits** to the site.")
+  
+  mc_none <<- if(df_marketing_channels %>% filter(marketingchannel == "None") %>% nrow() == 0){
+    paste0("**'None'** does not show up at all for marketing channels. This is great!")
+  } else if (df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.01) {
+    paste0("**'None'** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern.")
+  } else if (df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) < 0.05) {
+    paste0("**'None'** appears as a marketing channel accounting for **", df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1)," of traffic**, which is **somewhat concerning**.")
+  } else {
+    paste0("**'None'** appears as a marketing channel accounting for **", df_marketing_channels %>% filter(marketingchannel == "None") %>% pull(pct_visits) %>% percent(accuracy = 0.1)," of traffic**, which is **very concerning**.")
+  }
+    
+   # Find "the one" that is the name used in this case. Get a df with just that one row
+  df_session_refresh <- df_marketing_channels %>% 
+    filter(marketingchannel %in% session_refresh_names)
+  
+  session_refresh_name <- case_when(
+    nrow(df_session_refresh) == 0 ~ "None Found",
+    nrow(df_session_refresh) == 1 ~ as.character(df_session_refresh$marketingchannel[1]),
+    # Having 2 or more rows match would be a surprise. For now, just using the first
+    # row that appears if that happens, but could change later to get fancier
+    TRUE ~ as.character(df_session_refresh$marketingchannel[1])   
+  )
+  
+  
+  mc_session_refresh <<- if(session_refresh_name == "None Found"){ 
+    paste("**Session Refresh** does not appear to show up at all for marketing channels. If such a channel exists and",
+          "is properly configured, this is great! If the channel exists, but with a slightly different name that we",
+          "were not able to detect, check the chart below to confirm that it is not showing up more than expected.")
+  } else {
+    case_when(
+      df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.01 ~
+        paste0("**", session_refresh_name,"** appears as a marketing channel, but it is **less than 1% of total traffic**, so this is of low concern."),
+      
+      df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% pull(pct_visits) < 0.05 ~
+        paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **",
+               df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
+                 pull(pct_visits) %>% percent(accuracy = 0.1),
+               " of traffic**, which is **somewhat concerning**."),
+      TRUE ~ paste0("**", session_refresh_name,"** appears as a marketing channel accounting for **", 
+                    df_marketing_channels %>% filter(marketingchannel == session_refresh_name) %>% 
+                      pull(pct_visits) %>% percent(accuracy = 0.1),
+                    " of traffic**, which is **very concerning**."))
+  }
+  
+  gg_marketing_channels <- ggplot(df_marketing_channels, aes(x = marketingchannel, y = visits, 
+                                                             label = paste0(format(visits, big.mark = ",", trim = TRUE), " (",
+                                                                            percent(pct_visits, accuracy = 0.1), ")"))) +
+    geom_bar(stat = "identity", fill = "#406882") +
+    geom_text(aes(y = visits + max(df_marketing_channels$visits) * 0.02), hjust = 0, size = 2.5, color = "gray30") +
+    coord_flip() +
+    scale_y_continuous(expand = c(0,0), limits = c(0, max(df_marketing_channels$visits) * 1.25)) +
+    labs(title = "Visits by Marketing Channel",
+         subtitle = paste0(rsid, ": ", start_date_mc, " to ", end_date_mc),
+         caption = paste("Source: Adobe Analytics - RSID:", rsid, "-", start_date_mc, "to", end_date_mc)) +
+    theme_minimal() +
+    theme(plot.title.position = "plot",
+          plot.title = element_text(size = 11, color = "gray20"),
+          plot.subtitle = element_text(size = 10, face = "italic", color = "gray40"),
+          plot.caption = element_text(face = "italic", color = "gray40"),
+          axis.title = element_blank(),
+          axis.text.x = element_blank(),
+          panel.grid = element_blank())
+  
+  return(gg_marketing_channels)
 }

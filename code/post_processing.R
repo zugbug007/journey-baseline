@@ -36,3 +36,4 @@ yesterday <- last_valid_date - 1
 three_days_ago <- last_valid_date - 3
 seven_days_ago <- last_valid_date - 7
 fourteen_days_ago <- last_valid_date - 14
+
