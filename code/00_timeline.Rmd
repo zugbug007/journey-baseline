@@ -19,7 +19,7 @@ timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "Post Launch (New 
                             group = c("CMS Launch","CMS Launch", "Baseline", "Baseline"),
                             color = c("#406882", "#f05454", "#688240","#688240"))
                             
-hc_vistime(timeline_data, optimize_y = TRUE, title = "CMS Launch Timeline GANTT") %>% highcharter::hc_size(height = 250) 
+hc_vistime(timeline_data, optimize_y = TRUE, title = "CMS Launch Timeline - GANTT") %>% highcharter::hc_size(height = 250) 
 
 # data <- read.csv(text="event,group,start,end,color
 # All Property Pages,MVP,2022-07-14,2022-07-31,#c8e6c9

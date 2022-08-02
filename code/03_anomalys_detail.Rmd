@@ -2,7 +2,7 @@
 Baseline Dates: **`r pre_start_date` to `r pre_end_date`**. 
 Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 
-```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=7, fig.align='center'}
+```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=9, fig.align='center'}
 #Anomaly Plots for each journey with Ribbon and Pre/Post separations
 for (i in 1:nrow(journey_unique_names)) {
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
@@ -21,6 +21,7 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
                       aes_string(y ='data'),color="red", size = 1.8) +
   geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
   geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+  geom_hline(yintercept = mean(anomaly_subset$data), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
   labs(title = plot_journey_name,
                 subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
                 caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +

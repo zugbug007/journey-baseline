@@ -34,7 +34,6 @@ editor_options:
 
 # Set to true to run the extensive data pull, set to false to use the local stored files (much faster).
 update_data <- FALSE
-
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -81,7 +80,8 @@ gs4_auth(email = params$google_account)
 scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
 #library(adobeanalyticsr)
-#aw_token()
+aw_auth_with('oauth')
+#aw_auth()
 
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)

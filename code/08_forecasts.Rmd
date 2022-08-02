@@ -8,7 +8,7 @@ In the plots below:
 * **[Red Solid]**  Indicates the overall trend of the data. 
 
 
-```{r forecast_plots, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+```{r forecast_plots, echo=FALSE, fig.height=5, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                      Build Forecast for every Journey                  ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

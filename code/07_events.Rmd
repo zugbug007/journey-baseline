@@ -50,7 +50,7 @@ if(evt_minimal_data_ttl != 0){
 
 `r if(evt_ttl != 0 & evt_ttl != evt_no_data_ttl) "Below is a daily trend plot for each event that has any data:"`
 
-```{r event_trends, echo = FALSE, warning = FALSE, fig.align='center',message = FALSE, fig.width = 7, fig.height = 5}
+```{r event_trends, echo = FALSE, warning = FALSE, fig.align='center',message = FALSE, fig.width = 9, fig.height = 5}
 end_date <- Sys.Date() - 1
 start_date <- Sys.Date() - 90
 if(evt_ttl != 0 & evt_ttl != evt_no_data_ttl){
@@ -64,6 +64,7 @@ if(evt_ttl != 0 & evt_ttl != evt_no_data_ttl){
     
     gg <- ggplot(df, aes(x = day, y = value, group = 1)) + 
       geom_line(color = "#69b3a2", size = 0.8) +
+      geom_hline(yintercept = mean(df$value), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
       scale_y_continuous(labels = comma, expand = c(0,0), limits = c(0, max(df$value) * 1.05)) +
       labs(title = paste0(prefix, event_id, ": ", df$name[[1]]),
            subtitle = "Event Total by Day",

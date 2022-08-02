@@ -530,19 +530,29 @@ forecast_data <- journey_data %>%
 }
 
 # Time on Site ##################################################################
-
-get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title) {
-date_range_tos <- c(start_date, end_date)
-  segment_group_tos = c()
-  segment_group_tos <- c(device_segment_id, "s1957_611e5647d17b6b04401e42d2") # static segment ID for NT Main site + device seegment
   
-  time_on_site <- aw_anomaly_report(company_id = Sys.getenv("AW_COMPANY_ID"), 
+get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title) {
+# # # Debug:
+#  start_date <- Sys.Date() - 90
+#  end_date <- Sys.Date()
+#  device_segment_id <- 's1957_6113b90d5f900636dbd9b2ff'
+#  plot_title <- "Time on Site: All Main Site, All Devices"
+# # # End Debug
+
+  date_range_tos <- c(start_date, end_date)
+  segment_group_tos = c()
+  segment_group_tos <- c(device_segment_id, "s1957_611e5647d17b6b04401e42d2") # static segment ID for NT Main site + device segment
+
+    time_on_site <- adobeanalyticsr::aw_anomaly_report(
                                     rsid = Sys.getenv("AW_REPORTSUITE_ID"),
                                     date_range = date_range_tos,
                                     metrics = "averagetimespentonsite",
                                     granularity = "day",
+                                    quickView = FALSE,
+                                    countRepeatInstances = TRUE,
                                     segmentId = segment_group_tos,
-                                    anomalyDetection = TRUE) %>% 
+                                    anomalyDetection = TRUE,
+                                    debug = FALSE) %>% 
     mutate(data = round(data, 0)) %>% 
     arrange(day)
   
@@ -568,19 +578,19 @@ date_range_tos <- c(start_date, end_date)
     geom_point(data = time_on_site %>% dplyr::filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T),
                aes_string(y ='data'), color="red", size = 1.8) +
     geom_ribbon(aes(ymin=dataLowerBound, ymax=dataUpperBound), alpha=0.2) +
-    geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
+    geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha = 0.5) +
+    geom_hline(yintercept = mean(time_on_site$data), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
     labs(title = plot_title,
          subtitle = paste0('The average time last week was ',avg.tos.last.week,'. Difference of ',tos.diff,' over the prior week.'),
          caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies.')) +
     theme_bw() +
-    theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
-    theme(axis.title.y = element_text(face = "bold", angle = 90), axis.title.x = element_text(face = "bold", angle = 0)) +
-    scale_x_date(date_breaks = "week" , date_labels = "%d-%B")+
-    scale_y_continuous(labels = scales::comma) +
+    theme(axis.title.y = element_text(face = "bold", angle = 90), axis.title.x = element_text(face = "bold", angle = 0), axis.text.x = element_text(angle = 90)) +
+    scale_x_date(date_breaks = "week" , date_labels = "%d-%b")+
+    scale_y_continuous(labels = scales::comma, trans = 'log10') +
     expand_limits(y=0) +
     ylab("Avg. Time on Site (sec)")+
     xlab("Day")
-  
+  #p2
   return (p2)
 }
 

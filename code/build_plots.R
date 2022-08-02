@@ -1778,3 +1778,12 @@ page_metrics <- c("visits",
 
 page_data <- get_page_data(page_segment_ids, page_metrics, page_date_range, page_search_criteria)
 
+
+
+
+
+
+
+
+
+
