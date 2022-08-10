@@ -6,10 +6,24 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# adobeanalyticsr::aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"),
+#                                    rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+#                                    date_range = date_range,
+#                                    top = 0,
+#                                    dimensions = "daterangeday",
+#                                    segmentId = "s1957_611e61d91c571948974eb11c", # catch passed comma separated vector segment IDs group to pull data against. 
+#                                    prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
+#                                    metrics = "visits",       # catch the comma separated vector group of metrics specified for this journey
+#                                    debug = FALSE
+# )
+
+
+
 get_segment_data <- function(segment_ids, metrics, date_range) {
   adobeanalyticsr::aw_freeform_table(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
                                      date_range = date_range,
                                      dimensions = "daterangeday",
+                                     top = 0,
                                      segmentId = segment_ids, # catch passed comma separated vector segment IDs group to pull data against. 
                                      prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
                                      metrics = metrics,       # catch the comma separated vector group of metrics specified for this journey
@@ -70,6 +84,7 @@ calculate_means <- function(journey_data) {
 get_events_daily <- function(eventids) {
   events_data <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
                     rsid = rsid, 
+                    top = 0,
                     date_range = date_range,
                     dimensions = "daterangeday",
                     metrics = c("event1","event2")) %>% # change to event ids after testing
@@ -363,8 +378,8 @@ get_insights <- function(journey_name_insight, insight_metric){
 #Testing
 #insight_metric <- "Page Views"
 #journey_name_insight <- "Commercial: Membership Checkout Steps 1-4"
- # use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
-#  journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4"
+#use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+#journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4"
   
 journey.insight <- data.frame()  
 
@@ -491,6 +506,7 @@ get_events <- function(event_ids){
                           rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
                           date_range = date_range_local,
                           dimensions = "daterangeday",
+                          top = 0,
                           metrics = event_ids) %>%
     pivot_longer(-daterangeday) %>%
     arrange(daterangeday, name) %>% 
@@ -688,3 +704,4 @@ get_marketing_channels <- function(start_date_mc, end_date_mc) {
   
   return(gg_marketing_channels)
 }
+

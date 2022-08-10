@@ -59,7 +59,6 @@ df_events_daily <- df_events_daily %>%
 
 # Function to get the anomaly values
 get_anomalies <- function(event_id){
-
 df <- df_events_daily %>%
   filter(id == event_id) %>%
   arrange(day) %>%

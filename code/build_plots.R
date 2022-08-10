@@ -540,7 +540,7 @@ membership_step_labels <- c("Step 1 - Personal Details",
 # Add the Join Us Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Membership: Join Us" & journey_type == "post") %>% 
+  filter(journey_name == "Membership: Join Us") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -549,7 +549,7 @@ add_start_page_value_pre <- journey_data %>%
 
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Membership: Join Us" & journey_type == "post") %>% 
+  filter(journey_name == "Membership: Join Us") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -712,7 +712,7 @@ shop_fun_pre_plot <- shop_fun_pre_plot %>%
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Shop: Any Shop Page to Step 1" & journey_type == "post") %>% 
+  filter(journey_name == "Shop: Any Shop Page to Step 1") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -740,7 +740,7 @@ shop_fun_pre_plot_start <- shop_fun_pre_plot_start %>% layout(yaxis = list(categ
 
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Shop: Any Shop Page to Step 1" & journey_type == "post") %>% 
+  filter(journey_name == "Shop: Any Shop Page to Step 1") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -833,7 +833,7 @@ holidays_fun_pre_plot <- holidays_fun_pre_plot %>% layout(yaxis = list(categorya
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Holidays: Any Holidays Page to Step 1" & journey_type == "post") %>% 
+  filter(journey_name == "Holidays: Any Holidays Page to Step 1") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -888,7 +888,7 @@ holidays_pre_post_funnel <- subplot(holidays_fun_pre_plot, holidays_fun_post_plo
   layout(annotations = annotations, showlegend = FALSE)
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Holidays: Any Holidays Page to Step 1" & journey_type == "post") %>% 
+  filter(journey_name == "Holidays: Any Holidays Page to Step 1") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -953,7 +953,7 @@ renew_fun_pre_plot <- renew_fun_pre_plot %>% layout(yaxis = list(categoryarray =
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Membership: Renew" & journey_type == "post") %>% 
+  filter(journey_name == "Membership: Renew") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -1006,7 +1006,7 @@ renew_pre_post_funnel <- subplot(renew_fun_pre_plot, renew_fun_post_plot, widths
   layout(annotations = annotations, showlegend = FALSE)
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Membership: Renew" & journey_type == "post") %>% 
+  filter(journey_name == "Membership: Renew") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -1777,13 +1777,3 @@ page_metrics <- c("visits",
 )
 
 page_data <- get_page_data(page_segment_ids, page_metrics, page_date_range, page_search_criteria)
-
-
-
-
-
-
-
-
-
-

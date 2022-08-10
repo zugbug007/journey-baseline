@@ -45,6 +45,7 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,
                tidyquant,
                zoo,
+               purrr,
                CausalImpact,
                ggplot2,
                ggalt,
@@ -85,8 +86,7 @@ aw_auth_with('oauth')
 
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
-#aw_segments <- aw_get_segments(rsid = rsid, limit = 3000, page = 2)
-#rm(aw_segments)
+#rm(aw_calculatedmetrics)
 
 # Test GSheets Connections
 gsheet = "https://docs.google.com/spreadsheets/d/18yWHyyWGSxSYc35lIAYvWPBFxZNB04WHnDG0_MmyHEo/edit#gid=0"
@@ -104,14 +104,18 @@ min_instances <- 100
 # Change top of funnel start pages when new site launches
 # Membership & Renew: 'M|membership'
 # Donate
-pre_start_date <- Sys.Date() - 180 #180
-pre_end_date <- Sys.Date() - 91  #91
+launch_date_start <- as.Date("2022-08-01")
+days_since_launch <- as.double(difftime(Sys.Date()-1,launch_date_start, units = "days"))
+reporting_length <- 180
+
+pre_start_date <- Sys.Date() - reporting_length #180
+pre_end_date <- launch_date_start - 1
 pre_end_date_7 <- pre_end_date - 7
 pre_end_date_30 <- pre_end_date - 30
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
-post_start_date <- Sys.Date() - 90 # post start date will set to launch date of the new site
+post_start_date <- launch_date_start # post start date will set to launch date of the new site
 post_end_date <- Sys.Date() - 1
 post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 
