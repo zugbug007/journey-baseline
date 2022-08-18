@@ -33,6 +33,21 @@ baseline <- rbind(pre_baseline, post_baseline)
 baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_name" = "journey_name"), suffix =c(".a.pre", ".b.post")) %>% select(-journey_type.a.pre, -journey_type.b.post) %>% select(journey_name, order(colnames(.))) 
 baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
 
+baseline_post_start_date <- journey_data %>% 
+  filter(Day >= last_valid_date-30 & Day <= last_valid_date) %>% # Tweak based on launch
+  filter(journey_type=="post" & journey_name == "ALL Visits") %>% 
+  arrange(desc(journey_name), Day, journey_type) %>% 
+  select(Day) %>% arrange(Day) %>% slice(1:1) %>% pull(Day)
+
+baseline_post_date_range = c(as.Date(baseline_post_start_date), as.Date(last_valid_date)) 
+# Dynamic calculation of the true baseline date range.
+# this is required so early in launch window e.g 10 days we are using the true data available 
+# which would be ten days in the table for the calculation
+# in the post period to show the correct date in markdown.
+# The maximum would be the 30 days but this should update correctly going forward.
+
+baseline_pre_date_range = c(as.Date(pre_end_date_30), as.Date(pre_end_date))
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##             Build the Anomaly Counts Table                               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -440,7 +455,7 @@ top_bot <- ggplot(top_bot_journeys) +
  labs(
    x = "Journey Name", 
    y = "% Percentage inc./dec. over the baseline", 
- title = "Top 15 Highest & Lowest Performing Journeys", 
+ title = "Highest & Lowest Performing Journeys", 
  fill = "Performance") +
  coord_flip() +
  ggthemes::theme_pander()
@@ -466,9 +481,11 @@ high_low_table <- db_plot_data %>% select(change_0_1) %>%
    select(-change_0_1) %>% distinct() %>%
   pivot_longer(
     everything()
-    ) %>%   
-  kable(col.names = c("Journeys Higher or Lower than Baseline", "# No.")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+    )
+
+journey_high_count <- high_low_table %>% filter(name == "Higher") %>% pull(value)
+journey_low_count <- high_low_table %>% filter(name == "Lower") %>% pull(value)
+
 #high_low_table
 
 # low_detail <- db_plot_data %>% select(journey_name, diff_vs_baseline, change) %>% 

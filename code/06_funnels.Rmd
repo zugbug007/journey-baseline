@@ -17,6 +17,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -71,6 +73,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -100,6 +104,8 @@ journey.insight <- get_insights(journey_name.insight, use_metric)
 Insight for Journey: **`r journey.insight$journey_name`**   
 
 Evaluating metric: **`r journey.insight$metric_name`**
+
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
 
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
@@ -195,6 +201,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -250,6 +258,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -278,6 +288,8 @@ journey.insight <- get_insights(journey_name.insight, use_metric)
 Insight for Journey: **`r journey.insight$journey_name`**   
 
 Evaluating metric: **`r journey.insight$metric_name`**
+
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
 
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
@@ -375,6 +387,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -430,6 +444,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **£`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -458,6 +474,8 @@ journey.insight <- get_insights(journey_name.insight, use_metric)
 Insight for Journey: **`r journey.insight$journey_name`**   
 
 Evaluating metric: **`r journey.insight$metric_name`**
+
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
 
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
@@ -550,6 +568,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -603,6 +623,8 @@ journey.insight <- get_insights(journey_name.insight, use_metric)
 Insight for Journey: **`r journey.insight$journey_name`**   
 
 Evaluating metric: **`r journey.insight$metric_name`**
+
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
 
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **£`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
@@ -728,6 +750,8 @@ Insight for Journey: **`r journey.insight$journey_name`**
 
 Evaluating metric: **`r journey.insight$metric_name`**
 
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
+
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 
 * **[Max]**         During this period, the amount of `r journey.insight$metric_name` peaked at **`r journey.insight$max.metric`** on **`r format(journey.insight$max.metric.Date.Name, "%d %b")`**.
@@ -797,6 +821,8 @@ journey.insight <- get_insights(journey_name.insight, use_metric)
 Insight for Journey: **`r journey.insight$journey_name`**   
 
 Evaluating metric: **`r journey.insight$metric_name`**
+
+Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_valid_date, "%d %b")`**
 
 * **[Min]**         The lowest amount of `r journey.insight$metric_name` was **`r journey.insight$min.metric`** observed on **`r format(journey.insight$min.metric.Date.Name, "%d %b")`**.
 

@@ -33,7 +33,7 @@ editor_options:
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
 
 # Set to true to run the extensive data pull, set to false to use the local stored files (much faster).
-update_data <- FALSE
+update_data <- TRUE
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -113,6 +113,7 @@ pre_end_date <- launch_date_start - 1
 pre_end_date_7 <- pre_end_date - 7
 pre_end_date_30 <- pre_end_date - 30
 pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
+
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
 post_start_date <- launch_date_start # post start date will set to launch date of the new site
@@ -222,38 +223,33 @@ Some journeys only exist in the old CMS and are not comparable to the new journe
 ## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
-
 ```
 
 
 ## Journey Trends
 
 ```{r child = "code/03_anomalys_detail.Rmd"}
-
 ```
 
 
 ## Search Analysis
 
 ```{r child = "code/04_search.Rmd"}
-
 ```
 
 
 ## Events
 
 ```{r child = "code/07_events.Rmd"}
-
 ```
 
 
 ## Forecasts
 
 ```{r child = "code/08_forecasts.Rmd"}
-
 ```
 
-
+## About this App
 
 ```{r runtime, echo=FALSE}
 monitorEndTime_baseline <- Sys.time()
@@ -263,7 +259,7 @@ last_run <- round(last_run)
 lastrunTime_baseline <- paste0("This process took ",last_run," minutes to build this analysis.",sep=" ")
 ```
 
-Last Run Date: '`r format(Sys.time(), "%d %B, %Y")`'  
+Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'  
 `r lastrunTime_baseline`
 
 ```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}

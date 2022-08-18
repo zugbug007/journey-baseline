@@ -1,13 +1,18 @@
 ### Journey Performance
 
+Below is a summary of the percentage differences from old to the new website. 
+Better performing journeys are shown in blue, while those needing deeper investigation are in red.
+There are currently **`r journey_low_count`** journeys performing lower than their baseline. These are flagged below for potential review.  
+Conversely, there are **`r journey_high_count`** performing better than their respective baseline.
+
 ```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
   top_bot
 ```
 
 ### Baseline Summary
 
-Below is a summary of the website journeys looking at data from **`r format(pre_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.  
-This table is sorted by the difference between the baseline and the new site baseline difference percentage.
+Below is a summary of the website journeys looking at data from **`r format(baseline_post_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.  
+This table is sorted by the difference between the old site baseline and the new site baseline difference percentage.
 Poor performing new journeys should come to the top.
 
 ```{r baseline, echo=FALSE}
@@ -30,20 +35,13 @@ datatable(baseline_summary %>%
                                   '% Visits Diff.' = 5), filter = 'top')
 ```
 
-Below is a summary of the total number of journeys which are higher or lower than their baseline.
-
-```{r summary_table_high_low, echo=FALSE}
-
-high_low_table
-
-```
-
 
 ### Journey Heatmap
 
 Below is the journey heat map. Each row represents a journey by day for the last 180 days.  
 Darker colours indicate more traffic to that journey. Hover over the cells to see volumes.  
 Select and drag to zoom into a section.
+Large darker vertical blocks indicate holiday activity such as Easter or Christmas periods.
 
 ```{r journey_heatmap, echo=FALSE, fig.height=10, fig.width=13, message=FALSE, warning=FALSE}
 # OrRd, RdYlGn, BuPu, Blues, Greens, Greys,GnBu, PuBuGn, PuRd, RdPu, YlGn,YlGnBu, YlOrBr, YlOrRd, Oranges, Purples, Reds, Set1
