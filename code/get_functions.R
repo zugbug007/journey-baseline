@@ -44,7 +44,7 @@ get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
                                      filterType = "breakdown",
                                      metricSort = "desc",
                                      search = search_criteria,
-                                     top = c(50000),
+                                     top = c(500),
                                      page = 0,
                                      debug = FALSE
   ) %>%  
@@ -57,6 +57,7 @@ get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
 
 get_anomaly_data <- function(segment_ids, metrics, data_range){
   adobeanalyticsr::aw_anomaly_report(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
+                                     company_id = Sys.getenv("AW_COMPANY_ID"),
                                      date_range = date_range,
                                      metrics = metrics,
                                      segmentId = segment_ids,
@@ -274,48 +275,133 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Hex Colour Reference
+# Blue = "#406882" OR rgb(64, 104, 130)
+# Red = "#f05454" OR rgb(240, 84, 84)
+# Purple = "#824068" OR rgb(130, 64, 104)
+# Green ="#688240" OR rgb(104, 130, 64)
+# Dark Blue = "#4d4082" OR rgb(77, 64, 130)
 
 get_journey_plot <- function(data_journey_plot){
-
-journey_before_after_plot <- plotly::plot_ly(
-  data = data_journey_plot, mode = 'markers') %>% 
-  add_segments(
-    x = ~pre, y = ~journey_name,
-    xend = ~post, yend = ~journey_name, 
-    color = I("gray"), line = list(
-      color = 'rgb(192,192,192)',
-      width = 7
-    ), showlegend = FALSE
-  ) %>%
-  add_markers(
-    x = ~pre, y = ~journey_name, 
-    marker = list(
-      color = 'rgb(64, 104, 130)',
-      size = 10,
-      line = list(
+  
+  journey_before_after_plot <- plotly::plot_ly(
+    data = data_journey_plot, mode = 'markers') %>% 
+    add_segments(
+      x = ~pre, y = ~journey_name,
+      xend = ~post, yend = ~journey_name, 
+      color = I("gray"), line = list(
         color = 'rgb(192,192,192)',
-        width = 0.1
-      )
-    ),
-    name = "Pre"
-  ) %>%
-  add_markers(
-    x = ~post, y = ~journey_name,
-    marker = list(
-      color = 'rgb(240, 84, 84)',
-      size = 10,
-      line = list(
-        color = 'rgb(128,128,128)',
-        width = 0.1
-      )
-    ),
-    name  = "Post"
-  ) %>%
-  layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
-  layout(yaxis = list(title = "Journey Name"))
-
-return (journey_before_after_plot)
+        width = 7
+      ), showlegend = FALSE
+    ) %>%
+    add_markers(
+      x = ~pre, y = ~journey_name, 
+      marker = list(
+        color = 'rgb(64, 104, 130)',
+        size = 10,
+        line = list(
+          color = 'rgb(192,192,192)',
+          width = 0.1
+        )
+      ),
+      name = "Pre"
+    ) %>%
+    add_markers(
+      x = ~post, y = ~journey_name,
+      marker = list(
+        color = 'rgb(240, 84, 84)',
+        size = 10,
+        line = list(
+          color = 'rgb(128,128,128)',
+          width = 0.1
+        )
+      ),
+      name  = "Post"
+    ) %>%
+    layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
+    layout(yaxis = list(title = "Journey Name"))
+  
+  return (journey_before_after_plot)
 }
+
+get_post_only_journey_plot <- function(data_journey_plot){
+  journey_before_after_plot <- plotly::plot_ly(
+    data = data_journey_plot, mode = 'markers') %>% 
+    add_segments(
+      x = ~Visits_mean, y = ~journey_name,
+      xend = ~Visits_mean_last_week, yend = ~journey_name, 
+      color = I("gray"), line = list(
+        color = 'rgb(192,192,192)',
+        width = 7
+      ), showlegend = FALSE
+    ) %>%
+    add_markers(
+      x = ~Visits_mean_last_week, y = ~journey_name, 
+      marker = list(
+        color = 'rgb(64, 104, 130)', # Blue
+        size = 10,
+        line = list(
+          color = 'rgb(192,192,192)',
+          width = 0.1
+        )
+      ),
+      name = "Last Week"
+    ) %>%
+    # add_markers(
+    #   x = ~Visits_min, y = ~journey_name, 
+    #   marker = list(
+    #     color = 'rgb(130, 64, 104)', # Purple
+    #     size = 10,
+    #     line = list(
+    #       color = 'rgb(192,192,192)',
+    #       width = 0.1
+    #     )
+    #   ),
+    #   name = "Min"
+    # ) %>%
+    # add_markers(
+    #   x = ~Visits_max, y = ~journey_name, 
+    #   marker = list(
+    #     color = 'rgb(77, 64, 130)', # Dark Blue
+    #     size = 10,
+    #     line = list(
+    #       color = 'rgb(192,192,192)',
+    #       width = 0.1
+    #     )
+    #   ),
+    #   name = "Max"
+    # ) %>%
+    # add_markers(
+    #   x = ~Visits_median, y = ~journey_name, 
+    #   marker = list(
+    #     color = 'rgb(104, 130, 64)', # Green
+    #     size = 10,
+    #     line = list(
+    #       color = 'rgb(192,192,192)',
+    #       width = 0.1
+    #     )
+    #   ),
+    #   name = "Median"
+    # ) %>%
+    add_markers(
+      x = ~Visits_mean, y = ~journey_name,
+      marker = list(
+        color = 'rgb(240, 84, 84)', # Red
+        size = 10,
+        line = list(
+          color = 'rgb(128,128,128)',
+          width = 0.1
+        )
+      ),
+      name  = "Today"
+    ) %>%
+    layout(xaxis = list(title = "Last Week vs. Today Baseline (Visits)")) %>% 
+    layout(yaxis = list(title = "Journey Name"))
+  
+  return (journey_before_after_plot)
+}
+
+
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

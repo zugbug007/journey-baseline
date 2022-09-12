@@ -22,6 +22,28 @@ post_baseline <- journey_data %>%
   mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>% 
   mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
 
+ mid_baseline <- journey_data %>%
+   filter(post_only == TRUE) %>%
+   arrange(desc(journey_name), Day, journey_type, post_only) %>%
+   group_by(journey_name, .drop=FALSE) %>% add_count(journey_name, name = "day_count") %>%
+   summarise(across(where(is.numeric), list(mean = mean, sd = sd, min = min, max = max, median = median), .names = "{.col}_{.fn}")) %>%
+   add_column(post_only = TRUE, .after = "journey_name") %>%
+   mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>%
+   mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0))
+
+ last_week_mid_baseline <- journey_data %>%
+   filter(Day >= previous_week_7_start & Day <= previous_week_7_end) %>% # Tweak based on launch
+   filter(post_only == TRUE) %>%
+   arrange(desc(journey_name), Day, journey_type, post_only) %>%
+   group_by(journey_name, .drop=FALSE) %>% add_count(journey_name, name = "day_count") %>%
+   summarise(across(where(is.numeric), list(mean = mean, sd = sd, min = min, max = max, median = median), .names = "{.col}_{.fn}")) %>%
+   add_column(post_only = TRUE, .after = "journey_name") %>%
+   mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>%
+   mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0)) %>% 
+   select(Visits_mean) %>% pull(Visits_mean)
+  
+ mid_baseline <- mid_baseline %>% add_column(Visits_mean_last_week = last_week_mid_baseline, .after = "Visits_mean")
+ 
 baseline <- rbind(pre_baseline, post_baseline)
 
  baseline_flex_table <- baseline %>% 
@@ -52,7 +74,6 @@ baseline_pre_date_range = c(as.Date(pre_end_date_30), as.Date(pre_end_date))
 ##             Build the Anomaly Counts Table                               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Pre column - good
 pre_anomaly_good <- anomaly_data %>% 
   select(day, metric, journey_name, journey_type, dataAnomalyDetected_0_1, anomalies_good) %>% 
   filter(metric =='visits' & journey_type == 'pre') %>% 
@@ -359,6 +380,11 @@ db1 <- baseline %>%
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels()
 
+post_only_plot <- mid_baseline %>% 
+  select(journey_name, starts_with("Visits_")) %>%
+  arrange("Visits_max") %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
 
 all_journeys_before_after_plot <- left_join(db1, journey_data %>% 
         dplyr::select(journey_name, journey_desc, category, sub_category), by = "journey_name") %>% 
@@ -518,7 +544,7 @@ journey_low_count <- high_low_table %>% filter(name == "Lower") %>% pull(value)
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 heatmap_visits_by_day <- journey_data %>% 
-  filter(Day >= last_valid_date-180 & Day < last_valid_date) %>% 
+  filter(Day >= last_valid_date-90 & Day < last_valid_date) %>% 
   select(journey_name, Day, Visits) %>% 
   group_by(journey_name) %>% 
   arrange(desc(journey_name), Day) %>% 
@@ -527,15 +553,15 @@ heatmap_visits_by_day <- journey_data %>%
     values_from = 'Visits')
 
 
-heatmap_anomalies_by_day <- anomaly_data %>%  
-  filter(day >= last_valid_date-180 & day < last_valid_date) %>% 
-  filter(metric == 'visits') %>% 
-  select(journey_name, day, dataAnomalyDetected_0_1) %>% 
-  group_by(journey_name) %>% 
-  arrange(desc(journey_name), day) %>% 
-  tidyr::pivot_wider(
-    names_from = 'day',
-    values_from = 'dataAnomalyDetected_0_1')
+# heatmap_anomalies_by_day <- anomaly_data %>%  
+#   filter(day >= last_valid_date-180 & day < last_valid_date) %>% 
+#   filter(metric == 'visits') %>% 
+#   select(journey_name, day, dataAnomalyDetected_0_1) %>% 
+#   group_by(journey_name) %>% 
+#   arrange(desc(journey_name), day) %>% 
+#   tidyr::pivot_wider(
+#     names_from = 'day',
+#     values_from = 'dataAnomalyDetected_0_1')
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

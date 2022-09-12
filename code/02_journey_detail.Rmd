@@ -38,7 +38,7 @@ datatable(baseline_summary %>%
 
 ### Journey Heatmap
 
-Below is the journey heat map. Each row represents a journey by day for the last 180 days.  
+Below is the journey heat map. Each row represents a journey by day for the last 90 days.  
 Darker colours indicate more traffic to that journey. Hover over the cells to see volumes.  
 Select and drag to zoom into a section.
 Large darker vertical blocks indicate holiday activity such as Easter or Christmas periods.

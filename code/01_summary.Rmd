@@ -20,9 +20,24 @@ This is currently **`r days_since_launch`** days since the launch on **`r format
 get_journey_plot(all_journeys_before_after_plot)
 
 ```
+
+
+#### New Site
+
+Journeys that only exist in the new CMS. Due to their being no backward comparison, these journeys are monitored by using a previous week performance as their baseline measures.
+
+
+```{r all_post_only_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_post_only_journey_plot(post_only_plot)
+
+```
+
+
 #### Landing Pages
 
 First pages of a user journey. 
+
 
 ```{r all_landing_page_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 

@@ -14,12 +14,12 @@ knitr::opts_chunk$set(echo = TRUE)
 Overview of the reporting time frame within this analysis. Major milestones or changes will be added to the time line below as the site gains new or changed content.
 
 The pre launch baseline is created from **`r format(baseline_pre_date_range[1], "%b %d")` to `r format(baseline_pre_date_range[2], "%b %d")`**.
-The post launch baseline is created from the available data since launch **`r format(baseline_post_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.
+The post launch baseline is created from the available data since launch **`r format(baseline_post_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.  
 This is currently **`r days_since_launch`** days since the launch on **`r format(launch_date_start, "%b %d")`**.
 
 ```{r timeline, echo=FALSE, fig.width=12}
-timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "Post Launch (New CMS)", "Pre Baseline", "Post Baseline"),
-                            start = c(first_valid_date, post_start_date, pre_end_date_30, launch_date_start),
+timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "New CMS", "Pre Baseline", "Post Baseline"),
+                            start = c(first_valid_date, post_start_date, pre_end_date_30, baseline_post_start_date),
                             end = c(pre_end_date, last_valid_date, pre_end_date, last_valid_date),
                             group = c("CMS Launch","CMS Launch", "Baseline", "Baseline"),
                             color = c("#406882", "#f05454", "#688240","#688240"))

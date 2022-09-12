@@ -22,18 +22,19 @@ editor_options:
 #load("output/baseline-workspace.RData")
 
 # Hex Colour Reference
-# Blue = "#406882"
-# Red = "#f05454"
-# Purple = "#824068"
-# Green ="#688240"
-# Dark Blue = "#4d4082"
+# Blue = "#406882" OR rgb(64, 104, 130)
+# Red = "#f05454" OR rgb(240, 84, 84)
+# Purple = "#824068" OR rgb(130, 64, 104)
+# Green ="#688240" OR rgb(104, 130, 64)
+# Dark Blue = "#4d4082" OR rgb(77, 64, 130)
 
 ```
 
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
 
 # Set to true to run the extensive data pull, set to false to use the local stored files (much faster).
-update_data <- TRUE
+update_data <- FALSE
+
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -179,20 +180,12 @@ session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "S
 # Update the Data
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
-
-if(update_data == TRUE) {
-  print("Running Data Load")
-  source("code/get_journey_data.R") #Log out of VPN, very slow to pull data.
-  source("code/get_events_data.R")
-} else {
-  print("Loading local Files")
-  journey_data <- readRDS("output/df_journey_data.rds")
-  anomaly_data <- readRDS("output/df_anomaly_data.rds")
-  df_events <- readRDS("output/df_events.rds")
-  df_events_daily <- readRDS("output/df_events_daily.rds")
-}
-
-source("code/post_processing.R")
+journey_data <- readRDS("output/df_journey_data.rds")
+anomaly_data <- readRDS("output/df_anomaly_data.rds")
+#df_events <- readRDS("output/df_events.rds")
+#df_events_daily <- readRDS("output/df_events_daily.rds")
+source("code/get_journey_data.R")
+source("code/get_events_data.R")
 source("code/build_plots.R")
 
 ```
