@@ -106,6 +106,7 @@ min_instances <- 100
 # Membership & Renew: 'M|membership'
 # Donate
 launch_date_start <- as.Date("2022-08-01")
+year_start <- ymd("2022-01-01")
 days_since_launch <- as.double(difftime(Sys.Date()-1,launch_date_start, units = "days"))
 reporting_length <- 180
 
@@ -182,22 +183,21 @@ source("code/get_g_sheets.R")
 source("code/get_functions.R")
 journey_data <- readRDS("output/df_journey_data.rds")
 anomaly_data <- readRDS("output/df_anomaly_data.rds")
-#df_events <- readRDS("output/df_events.rds")
-#df_events_daily <- readRDS("output/df_events_daily.rds")
+df_events <- readRDS("output/df_events.rds")
+df_events_daily <- readRDS("output/df_events_daily.rds")
 source("code/get_journey_data.R")
 source("code/get_events_data.R")
 source("code/build_plots.R")
 
 ```
 
-
 # Summary
+
 This tool builds the baseline for multiple journeys across the website. All the data and analysis is automated. As new journeys are added, charts and tables are automatically updated.
 
-Some journeys only exist in the old CMS and are not comparable to the new journeys on the new CMS. 
+Some journeys only exist in the old CMS and are not comparable to the new journeys on the new CMS.
 
-
-## Launch Timeline 
+## Launch Timeline
 
 ```{r child = "code/00_timeline.Rmd"}
 ```
@@ -212,30 +212,25 @@ Some journeys only exist in the old CMS and are not comparable to the new journe
 ```{r child = "code/02_journey_detail.Rmd"}
 ```
 
-
 ## Commercial Analysis
 
 ```{r child = "code/06_funnels.Rmd"}
 ```
-
 
 ## Journey Trends
 
 ```{r child = "code/03_anomalys_detail.Rmd"}
 ```
 
-
 ## Search Analysis
 
 ```{r child = "code/04_search.Rmd"}
 ```
 
-
 ## Events
 
 ```{r child = "code/07_events.Rmd"}
 ```
-
 
 ## Forecasts
 
@@ -252,7 +247,7 @@ last_run <- round(last_run)
 lastrunTime_baseline <- paste0("This process took ",last_run," minutes to build this analysis.",sep=" ")
 ```
 
-Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'  
+Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'\
 `r lastrunTime_baseline`
 
 ```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}
@@ -267,4 +262,3 @@ save.image(file = "output/baseline-workspace.RData")
 #write_sheet(compare_to_day, gsheet, sheet ="compare_to_day")
 write_sheet(baseline, gsheet, sheet = "Baseline")
 ```
-

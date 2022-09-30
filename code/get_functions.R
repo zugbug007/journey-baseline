@@ -600,6 +600,30 @@ get_events <- function(event_ids){
 }
 
 
+get_marketing_channel_metrics <- function(){
+# Debug
+# end_date <- Sys.Date() - 1
+# start_date <- Sys.Date() - 30
+  
+  current_week_no <- week(last_valid_date)
+  last_complete_week <- current_week_no-1
+  last_week_end <- year_start+last_complete_week*weeks()
+  
+  start_week_no <- last_complete_week-4
+  start_date <- year_start+start_week_no*weeks()+1
+  
+  date_range_local <- c(start_date, last_week_end)
+  df <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                          rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                          date_range = date_range_local,
+                          dimensions = c("marketingchannel","daterangeday"),
+                          page = 0,
+                          top = c(15, 30),
+                          metrics = c('visits', 'event5','revenue','event79', 'event125', 'cm1957_5fc4b9a2b5895e0644b9120e')
+  )
+}
+
+
 get_forecast <- function(journey_name_forecast, forecast_metric){
 #options(scipen = 999)
 # Debug

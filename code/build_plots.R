@@ -387,7 +387,7 @@ post_only_plot <- mid_baseline %>%
   droplevels()
 
 all_journeys_before_after_plot <- left_join(db1, journey_data %>% 
-        dplyr::select(journey_name, journey_desc, category, sub_category), by = "journey_name") %>% 
+        dplyr::select(journey_name, category, sub_category), by = "journey_name") %>% 
         distinct() %>% 
         arrange(post) %>% 
         mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
@@ -550,7 +550,8 @@ heatmap_visits_by_day <- journey_data %>%
   arrange(desc(journey_name), Day) %>% 
   tidyr::pivot_wider(
     names_from = 'Day',
-    values_from = 'Visits')
+    values_from = 'Visits',
+    names_sort = TRUE)
 
 
 # heatmap_anomalies_by_day <- anomaly_data %>%  
@@ -1820,3 +1821,35 @@ page_metrics <- c("visits",
 )
 
 page_data <- get_page_data(page_segment_ids, page_metrics, page_date_range, page_search_criteria)
+
+# Marketing Channels Data Pull and Clean up
+marketing_channels <- get_marketing_channel_metrics()
+
+marketing_channels_by_day <- marketing_channels %>% # Includes Daily breakdown
+  rename(all_revenue = cm1957_5fc4b9a2b5895e0644b9120e) %>% 
+  group_by(week = week(daterangeday-1), marketingchannel)
+
+marketing_channels_by_week_channel <- marketing_channels_by_day %>% select(-daterangeday) %>% #Summarized by work week and channel name
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>%
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  rename("Week Num" = week) %>% 
+  rename("Marketing Channel" = marketingchannel) %>% 
+  rename("Visits" = visits) %>% 
+  rename("Mem. Revenue" = event5) %>% 
+  rename("Shop Revenue" = revenue) %>% 
+  rename("Renew Revenue" = event79) %>% 
+  rename("Holiday Revenue" = event125) %>% 
+  rename("Total Revenue" = all_revenue)
+
+paid_search_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Paid Search") %>% 
+  arrange(`Week Num`)
+  
+paid_social_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Paid Social") %>% 
+  arrange(`Week Num`)
+
+affiliates_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Affiliates") %>% 
+  arrange(`Week Num`)
+

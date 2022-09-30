@@ -38,5 +38,6 @@ seven_days_ago <- last_valid_date - 7
 fourteen_days_ago <- last_valid_date - 14
 
 
+
 # journey_data <- journey_data %>% mutate(post_only = case_when(post_only == 0 ~ "FALSE",
 #                                                               post_only == 1 ~ "TRUE"))

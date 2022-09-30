@@ -239,69 +239,56 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 ### {.unlisted .unnumbered}
 
 
-### Paid Media {.tabset}
-
-#### Paid Search
-```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
-#Last Week
-path <- paste0(getwd(),"/json/paid_search_commercial_last_week.json")
-column_names <- c('Marketing Channel' = 2, 
-                                  'Mem. Revenue' = 3,
-                                  'Shop Revenue' = 4,
-                                  'Donate Revenue' = 5,
-                                  'Renew Revenue' = 6,
-                                  'Holidays Revenue' = 7)
+### Marketing Channel Revenue {.tabset}
 
 
-paid_search_last_week <- aw_workspace_report(req_body = path,
-  company_id = Sys.getenv("AW_COMPANY_ID")
-)
+#### All Channels
 
-datatable(paid_search_last_week, colnames = column_names, caption = 'Last Week: Paid Search Revenue for Commercial Channels.') %>% 
-                        formatCurrency(2:6, currency = "£")
+Revenue by Channel for last week
 
-#Two Weeks Ago
-path <- paste0(getwd(),"/json/paid_search_commercial_two_weeks_ago.json")
-paid_search_two_weeks_ago <- aw_workspace_report(req_body = path,
-  company_id = Sys.getenv("AW_COMPANY_ID")
-)
+```{r all_channels_revenue, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+current_week_no <- week(last_valid_date)
+last_complete_week_no <- current_week_no-1
 
-datatable(paid_search_two_weeks_ago, colnames = column_names, caption = 'Two Weeks Ago: Paid Search Revenue for Commercial Channels.') %>% 
-                        formatCurrency(2:6, currency = "£")
-
+datatable(marketing_channels_by_week_channel %>% 
+            filter(`Week Num` == last_complete_week_no) %>% 
+  arrange(desc(`Total Revenue`))) %>% formatCurrency(4:8, currency = "£")
 
 ```
 
+
+#### Paid Search
+
+Paid Search Revenue - Last 4 Weeks
+
+```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(paid_search_last_week) %>% formatCurrency(4:8, currency = "£")
+
+
+```
 
 
 #### Paid Social
+
+Paid Social Revenue - Last 4 Weeks
+
 ```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
-#Last Week
-path <- paste0(getwd(),"/json/paid_social_commercial_last_week.json")
-column_names <- c('Marketing Channel' = 2, 
-                                  'Mem. Revenue' = 3,
-                                  'Shop Revenue' = 4,
-                                  'Donate Revenue' = 5,
-                                  'Renew Revenue' = 6,
-                                  'Holidays Revenue' = 7)
 
-paid_social_last_week <- aw_workspace_report(req_body = path,
-  company_id = Sys.getenv("AW_COMPANY_ID")
-)
-
-datatable(paid_social_last_week, colnames = column_names, caption = 'Last Week: Paid Social Revenue for Commercial Channels.') %>% 
-                        formatCurrency(2:6, currency = "£")
-
-#Two Weeks Ago
-path <- paste0(getwd(),"/json/paid_social_commercial_two_weeks_ago.json")
-paid_social_two_weeks_ago <- aw_workspace_report(req_body = path,
-  company_id = Sys.getenv("AW_COMPANY_ID")
-)
-
-datatable(paid_social_two_weeks_ago, colnames = column_names, caption = 'Two Weeks Ago: Paid Social Revenue for Commercial Channels.') %>% 
-                        formatCurrency(2:6, currency = "£")
+datatable(paid_social_last_week) %>% formatCurrency(4:8, currency = "£")
 
 ```
+#### Affiliates
+
+Affiliates Revenue - Last 4 Weeks
+
+```{r affiliates_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(affiliates_last_week) %>% formatCurrency(4:8, currency = "£")
+
+```
+
+
 
 
 ### {.unlisted .unnumbered}
