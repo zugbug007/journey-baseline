@@ -1,6 +1,28 @@
-### Internal & External Search {.tabset}
+#### Internal Site Search
 
-#### Google Search Console
+Top Internal Search Terms
+
+Timeframe: **`r post_start_date_14` to `r post_end_date`**.
+
+```{r internal_search_terms, echo=FALSE, message=FALSE, warning=FALSE}
+
+datatable(search_term_data_main_site %>%
+  arrange(desc(search_term), day) %>%
+  group_by(search_term) %>%
+  add_count() %>%
+  select(search_term, searches) %>%
+  mutate(total = sum(searches)) %>%
+  select(search_term, total) %>%
+  arrange(desc(total)) %>%
+  distinct() %>%
+  ungroup(), rownames = FALSE, colnames = c('Search Term' = 1, 'Total Searches' = 2))
+
+```
+
+
+#### External Search
+
+Google Search Console
 
 Timeframe: **`r post_start_date_30` to `r post_end_date`**.
 
@@ -35,28 +57,3 @@ search_by_device
 
 search_term_clicks
 ```
-
-
-#### Internal Site Search
-
-Top Internal Search Terms
-
-Timeframe: **`r post_start_date_14` to `r post_end_date`**.
-
-```{r internal_search_terms, echo=FALSE, message=FALSE, warning=FALSE}
-
-datatable(search_term_data_main_site %>%
-  arrange(desc(search_term), day) %>%
-  group_by(search_term) %>%
-  add_count() %>%
-  select(search_term, searches) %>%
-  mutate(total = sum(searches)) %>%
-  select(search_term, total) %>%
-  arrange(desc(total)) %>%
-  distinct() %>%
-  ungroup(), colnames = c('Search Term' = 2, 'Total Searches' = 3))
-
-```
-
-
-### {.unlisted .unnumbered}

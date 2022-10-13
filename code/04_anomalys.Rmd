@@ -4,6 +4,8 @@ Launch Dated (Red Line): **`r post_start_date` to `r post_end_date`**.
 
 ```{r anomaly_plots,echo=FALSE,fig.height=5, fig.width=9, fig.align='center'}
 #Anomaly Plots for each journey with Ribbon and Pre/Post separations
+#i = 69
+
 for (i in 1:nrow(journey_unique_names)) {
 plot_journey_name <- journey_unique_names$journey_name[i]    # Get the journey name
 
@@ -23,8 +25,9 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
   geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
   geom_hline(yintercept = mean(anomaly_subset$data), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
   labs(title = plot_journey_name,
-                subtitle = paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
-                caption =paste0('There are ',nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.')) +
+                subtitle = paste0('There are ',
+                                  nrow(anomaly_data %>% filter(metric == plot_metric_name & dataAnomalyDetected == T & journey_name == plot_journey_name)), ' anomalies.'),
+                caption = paste0('The average number of ',plot_metric_name, ' during this period were: ', round(mean(anomaly_subset$data), 0))) +
   theme_bw() +
   theme(axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = 'none') +
   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold")) +
@@ -35,6 +38,8 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
   facet_wrap(~journey_name, dir = "v")
 print(p2)
 }
+
+
 ```
 
 

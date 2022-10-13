@@ -28,7 +28,7 @@ if(exists("journey_data")) {
   first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))
   date_diff <- as.double(Sys.Date()-last_valid_date)
   
-  if(date_diff > 3) {
+  if(date_diff > 5) {
   message("Last update was more than 3 days ago - running delta update")
   
   last_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange(desc(Day)) %>% slice(1:1) %>% pull(Day))
@@ -291,7 +291,7 @@ journey_data <- data.table::rbindlist(journey_datalist, fill = TRUE)
 anomaly_data <- data.table::rbindlist(anomaly_datalist, fill = TRUE)
 anomaly_data <- rbind(anomaly_data,anomaly_data_output)
 }
-# Write out to a .csv for use if the script craps out and put a message to the console
+# Write out to a .rds for use if the script craps out and put a message to the console
 write_rds(journey_data, "output/df_journey_data.rds")
 write_rds(anomaly_data, "output/df_anomaly_data.rds")
 rm(anomaly_datalist)
@@ -308,11 +308,11 @@ rm(anomaly_table_list)
 message("Journey & Anomaly processing completed.")
 print("Journey & Anomaly processing completed.")
 
-# POST PROCESSING DELETE WHEN DONE
+# POST PROCESSING
 # Process the journey data however it got loaded into the environment.
 # Create the metrics and variables required for the next steps of processing pipeline.
 
-journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_names <- journey_segments %>% filter(category != 'skip_summary') %>%  select(journey_name) %>% distinct()
 journey_unique_count <- nrow(journey_unique_names)
 time.points <- as.Date(seq(pre_start_date, post_end_date, by = "day"))
 

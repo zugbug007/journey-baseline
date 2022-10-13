@@ -32,7 +32,8 @@ editor_options:
 
 ```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
 
-# Set to true to run the extensive data pull, set to false to use the local stored files (much faster).
+# Set to true to delete the existing files and run the extensive data pull, set to false to use the local stored files (much faster).
+# If new journeys or config was changed, use TRUE to delete the data and pull all new data.
 update_data <- FALSE
 
 # Capturing the start time -- the final output will include how long
@@ -82,8 +83,8 @@ gs4_auth(email = params$google_account)
 scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
 #library(adobeanalyticsr)
-aw_auth_with('oauth')
-#aw_auth()
+aw_auth_with('oauth') # Use with Rmarkdown
+#aw_auth()            # Use to refresh authentication
 
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
@@ -105,7 +106,9 @@ min_instances <- 100
 # Change top of funnel start pages when new site launches
 # Membership & Renew: 'M|membership'
 # Donate
-launch_date_start <- as.Date("2022-08-01")
+launch_date_start <- as.Date("2022-10-01")
+#launch_date_start <- as.Date("2022-11-02") # GO LIVE!
+
 year_start <- ymd("2022-01-01")
 days_since_launch <- as.double(difftime(Sys.Date()-1,launch_date_start, units = "days"))
 reporting_length <- 180
@@ -181,10 +184,31 @@ session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "S
 # Update the Data
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
-journey_data <- readRDS("output/df_journey_data.rds")
-anomaly_data <- readRDS("output/df_anomaly_data.rds")
-df_events <- readRDS("output/df_events.rds")
-df_events_daily <- readRDS("output/df_events_daily.rds")
+
+if (update_data == TRUE) {
+  print("Deleting Files")
+  file.remove("output/df_journey_data.rds")
+  file.remove("output/df_anomaly_data.rds")
+  file.remove("output/df_events.rds")
+  file.remove("output/df_events_daily.rds")
+}
+
+if (file.exists("output/df_journey_data.rds")) {
+  journey_data <- readRDS("output/df_journey_data.rds")
+} 
+
+if (file.exists("output/df_anomaly_data.rds")) {
+  anomaly_data <- readRDS("output/df_anomaly_data.rds")
+} 
+
+if (file.exists("output/df_events.rds")) {
+	df_events <- readRDS("output/df_events.rds")
+} 
+
+if (file.exists("output/df_events_daily.rds")) {
+	df_events_daily <- readRDS("output/df_events_daily.rds")
+}
+
 source("code/get_journey_data.R")
 source("code/get_events_data.R")
 source("code/build_plots.R")
@@ -196,6 +220,9 @@ source("code/build_plots.R")
 This tool builds the baseline for multiple journeys across the website. All the data and analysis is automated. As new journeys are added, charts and tables are automatically updated.
 
 Some journeys only exist in the old CMS and are not comparable to the new journeys on the new CMS.
+
+Date Created:     **'`r format(Sys.Date(), "%a %b %d")`'**   
+Data Valid To:    **'`r format(Sys.Date()+7 , "%a %b %d")`'**
 
 ## Launch Timeline
 
@@ -209,33 +236,40 @@ Some journeys only exist in the old CMS and are not comparable to the new journe
 
 ## Journeys in Detail
 
-```{r child = "code/02_journey_detail.Rmd"}
+```{r child = "code/02_journeys.Rmd"}
 ```
 
 ## Commercial Analysis
 
-```{r child = "code/06_funnels.Rmd"}
+```{r child = "code/03_funnels.Rmd"}
 ```
 
 ## Journey Trends
 
-```{r child = "code/03_anomalys_detail.Rmd"}
+```{r child = "code/04_anomalys.Rmd"}
 ```
 
 ## Search Analysis
 
-```{r child = "code/04_search.Rmd"}
+```{r child = "code/05_search.Rmd"}
 ```
 
 ## Events
 
-```{r child = "code/07_events.Rmd"}
+```{r child = "code/06_events.Rmd"}
 ```
 
 ## Forecasts
 
-```{r child = "code/08_forecasts.Rmd"}
+```{r child = "code/07_forecasts.Rmd"}
 ```
+
+
+## Definitions
+
+```{r child = "code/08_definitions.Rmd"}
+```
+
 
 ## About this App
 
@@ -247,7 +281,7 @@ last_run <- round(last_run)
 lastrunTime_baseline <- paste0("This process took ",last_run," minutes to build this analysis.",sep=" ")
 ```
 
-Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'\
+Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'
 `r lastrunTime_baseline`
 
 ```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}

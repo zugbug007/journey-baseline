@@ -115,13 +115,13 @@ get_journey_plot(all_browser_journeys)
 
 
 ```{r baseline_journeys_table, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
-
-baseline_flex_table
-
+  datatable(baseline_flex_table, rownames = FALSE, colnames = c('Journey Name' = 1, 
+                                  'Type' = 2,
+                                  'Avg. Visits' = 3,
+                                  '% New Visits' = 4,
+                                  '% Repeat Visits' = 5,
+                                  'Avg. New Visits' = 6,
+                                  'Avg. Repeat Visits' = 7), filter = 'none')
 ```
-
-
-
-
 
 ### {.unlisted .unnumbered}

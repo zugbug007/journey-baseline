@@ -1,0 +1,20 @@
+
+In the table below:     
+
+```{r journey_definitions, echo=FALSE, fig.height=5, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                      Build Table for Journey Definitions                ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+journey_definitions <- journey_segments %>% select(-id & journey_type:end_point & -segment_name_adobe)
+  datatable(journey_definitions, rownames = FALSE,colnames = c('Type' = 1, 
+                                  'Journey Name' = 2,
+                                  'Desc.' = 3,
+                                  'Inc.' = 4,
+                                  'Category' = 5,
+                                  'Sub Cat.' = 6,
+                                  'Start' = 7,
+                                  'End' = 8), filter = 'none')
+
+
+```

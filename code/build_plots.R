@@ -48,9 +48,9 @@ baseline <- rbind(pre_baseline, post_baseline)
 
  baseline_flex_table <- baseline %>% 
    select(journey_name, journey_type, contains("Visits_mean")) %>% 
-   arrange(journey_name) %>% 
-   kbl() %>%
-   kable_styling(bootstrap_options = c("striped", "condensed"))
+   arrange(journey_name)# %>% 
+   #kbl() %>%
+   #kable_styling(bootstrap_options = c("striped", "condensed"))
 
 baseline_summary <- pre_baseline %>% full_join(post_baseline, by = c("journey_name" = "journey_name"), suffix =c(".a.pre", ".b.post")) %>% select(-journey_type.a.pre, -journey_type.b.post) %>% select(journey_name, order(colnames(.))) 
 baseline_visits <- baseline_summary %>% select(journey_name, contains("Visits"))
@@ -111,13 +111,14 @@ post_anomaly <- post_anomaly %>% mutate(post_net = post_good - post_bad)
 
 anomaly_count <- merge(x = pre_anomaly, y = post_anomaly, by = "journey_name", all = TRUE)
 
-anomaly_count <- anomaly_count %>% arrange(post_net) %>% # Run the merge line above before running this block for testing
-  kable(col.names = c("Journey Name", "Positive", "Negative", "Net", "Positive", "Negative", "Net")) %>% 
-  add_header_above(c(" " = 1, "Pre Launch Anomalies" = 3, "Post Launch Anomalies" = 3)) %>% 
-  column_spec(7, color = "white", bold = T,
-              background = spec_color(1:journey_unique_count, end = 1, option = "viridis", direction = 1),
-              popover = paste("am:", anomaly_count$post_net[1:journey_unique_count])) %>% 
-  kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
+anomaly_count <- anomaly_count %>% arrange(post_net)
+# %>% # Run the merge line above before running this block for testing
+  # kable(col.names = c("Journey Name", "Positive", "Negative", "Net", "Positive", "Negative", "Net")) %>% 
+  # add_header_above(c(" " = 1, "Pre Launch Anomalies" = 3, "Post Launch Anomalies" = 3)) %>% 
+  # column_spec(7, color = "white", bold = T,
+  #             background = spec_color(1:journey_unique_count, end = 1, option = "viridis", direction = 1),
+  #             popover = paste("am:", anomaly_count$post_net[1:journey_unique_count])) %>% 
+  # kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -388,6 +389,7 @@ post_only_plot <- mid_baseline %>%
 
 all_journeys_before_after_plot <- left_join(db1, journey_data %>% 
         dplyr::select(journey_name, category, sub_category), by = "journey_name") %>% 
+        filter(category != "skip_summary") %>% 
         distinct() %>% 
         arrange(post) %>% 
         mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
@@ -456,7 +458,7 @@ top_10_journeys <- db_plot_data %>%
 #   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
 
 # Bottom 10 Journeys with Highest Differences to their Baseline
-bot_10_journeys <- db_plot_data %>% 
+bot_10_journeys <- db_plot_data %>% filter(post > 0) %>% 
   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
   arrange(diff_vs_baseline) %>% slice(1:15)
 
@@ -483,9 +485,10 @@ top_bot <- ggplot(top_bot_journeys) +
    y = "% Percentage inc./dec. over the baseline", 
  title = "Highest & Lowest Performing Journeys", 
  fill = "Performance") +
+  #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
  coord_flip() +
  ggthemes::theme_pander()
-
+top_bot
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##            Total Number of Journeys Higher or Lower than Baseline        ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -584,7 +587,7 @@ membership_step_labels <- c("Step 1 - Personal Details",
 # Add the Join Us Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Membership: Join Us") %>% 
+  filter(journey_name == "Membership: Join Us Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -593,7 +596,7 @@ add_start_page_value_pre <- journey_data %>%
 
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Membership: Join Us") %>% 
+  filter(journey_name == "Membership: Join Us Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -651,8 +654,8 @@ membership_fun_pre_plot <- membership_fun_pre_plot %>%
 
 # Build Pre with a start Page
 membership_funnel_pre_start_values <- c()
-membership_funnel_pre_start_values <- c(add_start_page_value_pre, membership_funnel_pre)
-membership_step_labels_start <- c("Join Us Page", membership_step_labels)
+membership_funnel_pre_start_values <- c(add_start_page_value_pre, membership_funnel_pre[1])
+membership_step_labels_start <- c("Join Us Page", membership_step_labels[1])
 
 membership_fun_pre_plot_start <- plot_ly() 
 membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
@@ -673,7 +676,7 @@ membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>% layout(yaxis 
 # Post Plot
 # Membership Post Funnel Plot
 membership_funnel_post <- journey_data %>% 
-  filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
+ filter(journey_name == "Commercial: Membership Checkout Steps 1-4") %>% 
   select(Day, journey_name, 
          `Membership Step 1.0 (Serialized) (ev30)`,
          `Membership Step 2.0 (Serialized) (ev24)`,
@@ -704,7 +707,7 @@ membership_pre_post_funnel <- subplot(membership_fun_pre_plot, membership_fun_po
 
 # Build Post with a start Page
 membership_funnel_post_start_values <- c()
-membership_funnel_post_start_values <- c(add_start_page_value_post, membership_funnel_post)
+membership_funnel_post_start_values <- c(add_start_page_value_post, membership_funnel_post[1])
 
 membership_fun_post_plot_start <- plot_ly() 
 membership_fun_post_plot_start <- membership_fun_post_plot_start %>%
@@ -756,7 +759,7 @@ shop_fun_pre_plot <- shop_fun_pre_plot %>%
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Shop: Any Shop Page to Step 1") %>% 
+  filter(journey_name == "Shop: Any Shop Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -766,8 +769,8 @@ add_start_page_value_pre <- journey_data %>%
 
 # Build Pre with a start Page
 shop_funnel_pre_start_values <- c()
-shop_funnel_pre_start_values <- c(add_start_page_value_pre, shop_funnel_pre)
-shop_step_labels_start <- c("Any Shop Page", shop_step_labels)
+shop_funnel_pre_start_values <- c(add_start_page_value_pre, shop_funnel_pre[1])
+shop_step_labels_start <- c("Any Shop Page", shop_step_labels[1])
 
 shop_fun_pre_plot_start <- plot_ly() 
 shop_fun_pre_plot_start <- shop_fun_pre_plot_start %>%
@@ -784,7 +787,7 @@ shop_fun_pre_plot_start <- shop_fun_pre_plot_start %>% layout(yaxis = list(categ
 
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Shop: Any Shop Page to Step 1") %>% 
+  filter(journey_name == "Shop: Any Shop Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -821,7 +824,7 @@ shop_pre_post_funnel <- subplot(shop_fun_pre_plot, shop_fun_post_plot, widths = 
 
 # Build Post with a start Page
 shop_funnel_post_start_values <- c()
-shop_funnel_post_start_values <- c(add_start_page_value_post, shop_funnel_post)
+shop_funnel_post_start_values <- c(add_start_page_value_post, shop_funnel_post[1])
 
 shop_fun_post_plot_start <- plot_ly() 
 shop_fun_post_plot_start <- shop_fun_post_plot_start %>%
@@ -877,7 +880,7 @@ holidays_fun_pre_plot <- holidays_fun_pre_plot %>% layout(yaxis = list(categorya
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Holidays: Any Holidays Page to Step 1") %>% 
+  filter(journey_name == "Holidays: Any Holidays Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -886,8 +889,8 @@ add_start_page_value_pre <- journey_data %>%
 
 # Build Pre with a start Page
 holidays_funnel_pre_start_values <- c()
-holidays_funnel_pre_start_values <- c(add_start_page_value_pre, holidays_funnel_pre)
-holidays_step_labels_start <- c("Any Holidays Page", holidays_step_labels)
+holidays_funnel_pre_start_values <- c(add_start_page_value_pre, holidays_funnel_pre[1])
+holidays_step_labels_start <- c("Any Holidays Page", holidays_step_labels[1])
 
 holidays_fun_pre_plot_start <- plot_ly() 
 holidays_fun_pre_plot_start <- holidays_fun_pre_plot_start %>%
@@ -932,7 +935,7 @@ holidays_pre_post_funnel <- subplot(holidays_fun_pre_plot, holidays_fun_post_plo
   layout(annotations = annotations, showlegend = FALSE)
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Holidays: Any Holidays Page to Step 1") %>% 
+  filter(journey_name == "Holidays: Any Holidays Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -941,7 +944,7 @@ add_start_page_value_post <- journey_data %>%
 
 # Build Post with a start Page
 holidays_funnel_post_start_values <- c()
-holidays_funnel_post_start_values <- c(add_start_page_value_post, holidays_funnel_post)
+holidays_funnel_post_start_values <- c(add_start_page_value_post, holidays_funnel_post[1])
 
 
 holidays_fun_post_plot_start <- plot_ly() 
@@ -997,7 +1000,7 @@ renew_fun_pre_plot <- renew_fun_pre_plot %>% layout(yaxis = list(categoryarray =
 # Add the Start Page to the top of the funnel
 # Set to use the post page so rolling tracking of the funnel can be monitored.
 add_start_page_value_pre <- journey_data %>% 
-  filter(journey_name == "Membership: Renew") %>% 
+  filter(journey_name == "Membership: Renew or Join Us Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -1006,8 +1009,8 @@ add_start_page_value_pre <- journey_data %>%
 
 # Build Pre with a start Page
 renew_funnel_pre_start_values <- c()
-renew_funnel_pre_start_values <- c(add_start_page_value_pre, renew_funnel_pre)
-renew_step_labels_start <- c("Join or Renew Page", renew_step_labels)
+renew_funnel_pre_start_values <- c(add_start_page_value_pre, renew_funnel_pre[1])
+renew_step_labels_start <- c("Join or Renew Page", renew_step_labels[1])
 
 renew_fun_pre_plot_start <- plot_ly() 
 renew_fun_pre_plot_start <- renew_fun_pre_plot_start %>%
@@ -1050,7 +1053,7 @@ renew_pre_post_funnel <- subplot(renew_fun_pre_plot, renew_fun_post_plot, widths
   layout(annotations = annotations, showlegend = FALSE)
 
 add_start_page_value_post <- journey_data %>% 
-  filter(journey_name == "Membership: Renew") %>% 
+  filter(journey_name == "Membership: Renew or Join Us Page") %>% 
   select(Day, journey_name, Visits) %>% 
   filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
@@ -1060,7 +1063,7 @@ add_start_page_value_post <- journey_data %>%
 
 # Build Post with a start Page
 renew_funnel_post_start_values <- c()
-renew_funnel_post_start_values <- c(add_start_page_value_post, renew_funnel_post)
+renew_funnel_post_start_values <- c(add_start_page_value_post, renew_funnel_post[1])
 
 renew_fun_post_plot_start <- plot_ly() 
 renew_fun_post_plot_start <- renew_fun_post_plot_start %>%
@@ -1082,6 +1085,64 @@ renew_pre_post_start_funnel <- subplot(renew_fun_pre_plot_start, renew_fun_post_
   layout(annotations = annotations, showlegend = FALSE)
 
 #=========================================================================================================
+
+# Renew - Email Only Funnel
+
+renew_step_labels <- c()
+renew_step_labels <- c("Renew Step 2 - Details", 
+                       "Renew Step 3 - Renewal Confirmation")
+
+
+renew_funnel_pre <- journey_data %>% 
+  filter(journey_name == "Commercial: Email Renew Checkout Steps 2-3") %>% 
+  select(Day, journey_name, 
+         `Renew Step 2.0 (ev72)`, 
+         `Renew Step 3.0 - Confirmation - Serialized (ev76)`) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+renew_fun_pre_plot <- plot_ly() 
+renew_fun_pre_plot <- renew_fun_pre_plot %>%
+  add_trace(
+    type = "funnel",
+    y = renew_step_labels,
+    x = renew_funnel_pre, 
+    textposition = "inside",
+    textinfo = "value+percent initial",
+    opacity = 0.8,
+    marker = list(color = c("#406882")))
+renew_fun_pre_plot <- renew_fun_pre_plot %>% layout(yaxis = list(categoryarray = renew_step_labels))
+
+# Renew Post Funnel Plot
+renew_funnel_post <- journey_data %>% 
+  filter(journey_name == "Commercial: Email Renew Checkout Steps 2-3") %>% 
+  select(Day, journey_name, 
+         `Renew Step 2.0 (ev72)`, 
+         `Renew Step 3.0 - Confirmation - Serialized (ev76)`) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% arrange(Day) %>% 
+  summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(across(where(is.numeric), round, 0)) %>% 
+  c(., recursive=TRUE)
+
+renew_fun_post_plot <- plot_ly() 
+renew_fun_post_plot <- renew_fun_post_plot %>%
+  add_trace(
+    type = "funnel",
+    y = renew_step_labels,
+    x = renew_funnel_post, 
+    textposition = "inside",
+    textinfo = "value+percent initial",
+    opacity = 0.8,
+    marker = list(color = c("#406882")))
+renew_fun_post_plot <- renew_fun_post_plot %>% layout(yaxis = list(categoryarray = renew_step_labels))
+
+# Build the side by side funnel plot
+renew_pre_post_email_funnel <- subplot(renew_fun_pre_plot, renew_fun_post_plot, widths = c(0.5, 0.5), shareY = TRUE) %>% 
+  layout(annotations = annotations, showlegend = FALSE)
+
+# --------------------------------------------------------------------------------------------------------------------------
 
 # Donate Pre Funnel Plots
 

@@ -65,9 +65,10 @@ if(evt_ttl != 0 & evt_ttl != evt_no_data_ttl){
     gg <- ggplot(df, aes(x = day, y = value, group = 1)) + 
       geom_line(color = "#69b3a2", size = 0.8) +
       geom_hline(yintercept = mean(df$value), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
+      geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha=0.5) +
       scale_y_continuous(labels = comma, expand = c(0,0), limits = c(0, max(df$value) * 1.05)) +
       labs(title = paste0(prefix, event_id, ": ", df$name[[1]]),
-           subtitle = "Event Total by Day",
+           subtitle = paste0('Daily average of ',event_id, ' was: ', round(mean(df$value), 0)),
            caption = paste("Source: Adobe Analytics. Report Suite:", rsid, "-", format(start_date, "%d %b"), "to", format(end_date, "%b %d"))) +
       theme_bw() +
       theme(plot.title.position = "plot",
@@ -87,5 +88,4 @@ if(evt_ttl != 0 & evt_ttl != evt_no_data_ttl){
   df_events %>% filter(assessment != "No Data") %>% pull(id) %>% walk(get_event_daily_trend)
   
 }
-
 ```

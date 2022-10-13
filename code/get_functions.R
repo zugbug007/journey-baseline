@@ -6,18 +6,12 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# adobeanalyticsr::aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"),
-#                                    rsid = Sys.getenv("AW_REPORTSUITE_ID"),
-#                                    date_range = date_range,
-#                                    top = 0,
-#                                    dimensions = "daterangeday",
-#                                    segmentId = "s1957_611e61d91c571948974eb11c", # catch passed comma separated vector segment IDs group to pull data against. 
-#                                    prettynames = TRUE,      # Don't change this as many following variables names depend on this naming
-#                                    metrics = "visits",       # catch the comma separated vector group of metrics specified for this journey
-#                                    debug = FALSE
-# )
-
-
+# Hex Colour Reference
+# Blue = "#406882" OR rgb(64, 104, 130)
+# Red = "#f05454" OR rgb(240, 84, 84)
+# Purple = "#824068" OR rgb(130, 64, 104)
+# Green ="#688240" OR rgb(104, 130, 64)
+# Dark Blue = "#4d4082" OR rgb(77, 64, 130)
 
 get_segment_data <- function(segment_ids, metrics, date_range) {
   adobeanalyticsr::aw_freeform_table(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
@@ -31,7 +25,6 @@ get_segment_data <- function(segment_ids, metrics, date_range) {
   )
   
 }
-
 
 get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
   adobeanalyticsr::aw_freeform_table(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
@@ -53,7 +46,6 @@ get_page_data <- function(segment_ids, metrics, date_range, search_criteria) {
     mutate(across(where(is.numeric), round, 1))
   
 }
-
 
 get_anomaly_data <- function(segment_ids, metrics, data_range){
   adobeanalyticsr::aw_anomaly_report(rsid = Sys.getenv("AW_REPORTSUITE_ID"),
@@ -94,7 +86,6 @@ get_events_daily <- function(eventids) {
                     select(day = daterangeday, 
                     id = name, value)
 }
-
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -265,8 +256,6 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
   return (s2)
 }
 
-
-
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                                                            ~~
@@ -275,12 +264,7 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Hex Colour Reference
-# Blue = "#406882" OR rgb(64, 104, 130)
-# Red = "#f05454" OR rgb(240, 84, 84)
-# Purple = "#824068" OR rgb(130, 64, 104)
-# Green ="#688240" OR rgb(104, 130, 64)
-# Dark Blue = "#4d4082" OR rgb(77, 64, 130)
+
 
 get_journey_plot <- function(data_journey_plot){
   
@@ -401,8 +385,6 @@ get_post_only_journey_plot <- function(data_journey_plot){
   return (journey_before_after_plot)
 }
 
-
-
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                                                            ~~
@@ -439,7 +421,6 @@ get_search_data <- function(date_range) {
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 get_search_console_data <- function(start, end) {
   search_analytics(siteURL = website, 
                    startDate = start, 
@@ -447,10 +428,6 @@ get_search_console_data <- function(start, end) {
                    dimensions = download_dimensions, 
                    searchType = type)
 }
-
-
-
-
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -464,7 +441,7 @@ get_insights <- function(journey_name_insight, insight_metric){
 #Testing
 #insight_metric <- "Page Views"
 #journey_name_insight <- "Commercial: Membership Checkout Steps 1-4"
-#use_metric <- "Holidays Booking Total Revenue (Serialised) (ev125)"
+#use_metric <- "Holidays Booking Total Revenue (Serialized) (ev125)"
 #journey_name.insight <- "Commercial: Holidays Checkout Steps 1-4"
   
 journey.insight <- data.frame()  
@@ -720,6 +697,78 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
   return (p2)
 }
 
+get_cms_page_metrics <- function(page_name_exact, date_range) {
+  search_page <- paste0("MATCH '",page_name_exact,"'")
+   aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                      rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                      date_range = date_range,
+                      dimensions = c("page", "daterangeday"),
+                      metrics = c("visits"),
+                      top = c(180),
+                      page = 0,
+                      filterType = "breakdown",
+                      segmentId = NA,
+                      include_unspecified = TRUE,
+                      search = search_page,
+                      prettynames = FALSE,
+                      debug = FALSE,
+                      check_components = TRUE)
+}
+
+get_cms_segment_metrics <- function(segment_id, date_range) {
+  # get segment id and journey to secure site
+  aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                      rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                      date_range = date_range,
+                      dimensions = c("daterangeday"),
+                      metrics = c("visits"),
+                      top = c(180),
+                      page = 0,
+                      filterType = "breakdown",
+                      segmentId = segment_id,
+                      include_unspecified = TRUE,
+                      search = NA,
+                      prettynames = FALSE,
+                      debug = FALSE,
+                      check_components = TRUE)
+}
+
+get_cms_summary <- function(product_name){
+# Merge the data frames
+  cms_to_secure <- merge(x = cms_page_metrics, y = cms_segment_metrics, by = "daterangeday")
+  cms_to_secure <- cms_to_secure %>% rename(Day = "daterangeday",
+                                            page_visits = visits.x, 
+                                            step_1_visits = visits.y)
+  
+  # calculate the conversion to the secure site
+  cms_to_secure_day <<- cms_to_secure %>% 
+    mutate(conv_to_secure = round(step_1_visits / page_visits, 4))
+                      
+  cms_to_secure_pre <- cms_to_secure_day %>% 
+    filter(Day >= pre_end_date_30 & Day <= pre_end_date) %>% 
+    summarise(across(where(is.numeric), list(sum = sum, mean = mean), .names = "{.col}_{.fn}")) %>% 
+    mutate(period = "pre_baseline",
+           product = product_name) %>% 
+    relocate(period, .before = page_visits_sum) %>% 
+    relocate(product, .before = period) %>% 
+    mutate(conversion = step_1_visits_sum / page_visits_sum)
+  
+  cms_to_secure_post <- cms_to_secure_day %>% 
+    filter(Day >= last_valid_date-30 & Day <= last_valid_date) %>% 
+    summarise(across(where(is.numeric), list(sum = sum, mean = mean), .names = "{.col}_{.fn}")) %>% 
+    mutate(period = "post_baseline",
+           product = product_name) %>% 
+    relocate(period, .before = page_visits_sum) %>% 
+    relocate(product, .before = period) %>% 
+    mutate(conversion = step_1_visits_sum / page_visits_sum)
+  
+  cms_to_secure_summary <- rbind(cms_to_secure_pre, cms_to_secure_post)
+  return(cms_to_secure_summary)
+  rm(cms_segment_metrics)
+  rm(cms_page_metrics)
+  rm(cms_to_secure_post)
+  rm(cms_to_secure_pre)
+}
 
 get_marketing_channels <- function(start_date_mc, end_date_mc) {
   #date_range_mc <- c(fourteen_days_ago, fourteen_days_ago+6) #Debug
@@ -737,7 +786,8 @@ get_marketing_channels <- function(start_date_mc, end_date_mc) {
                                              date_range = date_range_mc,
                                              dimensions = "marketingchannel",
                                              metrics = "visits",
-                                             top = 100)
+                                             top = c(15)
+                                             )
   
   # Calculate the % of total visits
   df_marketing_channels <- df_marketing_channels %>% 

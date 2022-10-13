@@ -168,7 +168,6 @@ In the plots below:
 
 ```{r membership_traffic_forecast, echo=FALSE, fig.height=5, fig.width=7, fig.align='center', message=FALSE, warning=FALSE}
 journey_name_forecast <- "Commercial: Membership Checkout Steps 1-4"
-
 forecast_metric <- "Membership Revenue (ev5)"
 get_forecast(journey_name_forecast, forecast_metric)
 
@@ -217,6 +216,9 @@ Period: From: **`r format(first_valid_date, "%d %b")`** To: **`r format(last_val
 #### Funnel
 
 **Week on Week performance**
+**All traffic through the Renewal Funnel, see note below.**  
+
+**NOTE** Due to Renewals from emails linking directly into step 2 of the funnel, this may cause some over inflation of step 2 as renewals are sent out to customers in the first or second week of the month.
 
 Renewal funnel completions through the journey.   
 Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
@@ -224,9 +226,29 @@ Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6
 
 Hover over for fallout details at each stage.  
 
+
+
 ```{r renew_funnel_pre, fig.align='center',echo=FALSE}
 
 renew_pre_post_funnel
+#renew_pre_post_email_funnel
+```
+
+**Week on Week performance**
+**EMAIL ONLY traffic through the Renewal Funnel, see note below.**  
+
+**NOTE** Due to Renewals from emails linking directly into step 2 of the funnel, this funnel isolates only those renewals that have come via the email renewal message. These visitors skip step one and enter directly into step 2 due to the pre-authentication email link.
+
+Renewal funnel completions through the journey.   
+Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_days_ago+6, "%d-%b")`**.  
+Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
+
+Hover over for fallout details at each stage.  
+
+
+```{r renew_funnel_pre_post_email, fig.align='center',echo=FALSE}
+
+renew_pre_post_email_funnel
 
 ```
 
@@ -591,6 +613,9 @@ Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6
 
 Hover over for fallout details at each stage.  
 
+**NOTE:** Due to Touring Pass sales requiring no delivery address, these sales skip over step 2 (delivery details), and move directly to step 3.
+This may cause some under counting in step 2 and over inflation of step 3.
+
 ```{r shop_funnel_pre, fig.align='center',echo=FALSE}
 
 shop_pre_post_funnel
@@ -604,6 +629,9 @@ Previous Week: **`r format(fourteen_days_ago, "%d-%b")` to `r format(fourteen_da
 Last 7 Days: **`r format(seven_days_ago, "%d-%b")` to `r format(seven_days_ago+6, "%d-%b")`**.
 
 Hover over for fallout details at each stage.  
+
+**NOTE** Due to Touring Pass sales requiring no delivery address, these sale skip over step 2 and move directly to step 3.
+This may cause some under counting in step 2 and over inflation of step 3.
 
 ```{r shop_funnel_pre_start,fig.align='center',echo=FALSE}
 

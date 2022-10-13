@@ -13,7 +13,7 @@ In the plots below:
 ##                      Build Forecast for every Journey                  ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 options(scipen = 999)
-journey_unique_names <- journey_segments %>% select(journey_name) %>% distinct()
+journey_unique_names <- journey_segments %>% filter(category != 'skip_summary') %>% select(journey_name) %>% distinct()
 journey_unique_count <- nrow(journey_unique_names)
 
 for (i in 1:nrow(journey_unique_names)) {

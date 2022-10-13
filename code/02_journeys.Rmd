@@ -29,10 +29,10 @@ Poor performing new journeys should come to the top.
 datatable(baseline_summary %>% 
   select(journey_name, Visits_mean.a.pre, Visits_mean.b.post) %>% 
   mutate(visits_diff = round(((Visits_mean.b.post - Visits_mean.a.pre)/Visits_mean.a.pre)*100, digits = 1)) %>% 
-  arrange(visits_diff), colnames = c('Journey Name' = 2, 
-                                  'Baseline Visits' = 3,
-                                  'New Site Visits Avg.' = 4,
-                                  '% Visits Diff.' = 5), filter = 'top')
+  arrange(desc(visits_diff)), rownames = FALSE, colnames = c('Journey Name' = 1, 
+                                  'Baseline Visits' = 2,
+                                  'New Site Visits Avg.' = 3,
+                                  '% Visits Diff.' = 4), filter = 'none')
 ```
 
 
@@ -98,7 +98,23 @@ Higher negative values for Net columns indicate the journey fell below the expec
 ```{r anomaly_net_table, echo=FALSE, fig.height=7, fig.width=9}
 # Build Cont Table of Anomalies for each journey. Get the number POST change so identify biggest differences after the cut over.
 
-anomaly_count
+# Custom table container
+sketch = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, 'Journey Name'),
+      th(colspan = 3, 'Pre Launch Anomalies'),
+      th(colspan = 3, 'Post Launch Anomalies')
+    ),
+    tr(
+      lapply(rep(c('Good', 'Bad', 'Net'), 2), th)
+    )
+  )
+))
+#print(sketch)
+
+datatable(anomaly_count[1:7], container = sketch, rownames = FALSE)
 
 ```
 
@@ -126,12 +142,12 @@ Looking for pages with long load times? Look for pages with more than 1000 page 
 
 ```{r page_analysis, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(page_data, colnames = c('Page Name' = 2, 
-                                  'Avg. Load Time (Sec)' = 6,
-                                  'Avg. Time on Page (Sec)' = 7,
-                                  'Bounce Rate %' = 8,
-                                  'Repeated Actions' = 9,
-                                  'Exit Rate %' = 10), filter = 'top')
+datatable(page_data, rownames = FALSE, colnames = c('Page Name' = 1, 
+                                  'Avg. Load Time (Sec)' = 5,
+                                  'Avg. Time on Page (Sec)' = 6,
+                                  'Bounce Rate %' = 7,
+                                  'Repeated Actions' = 8,
+                                  'Exit Rate %' = 9), filter = 'top')
   
 ```
 
@@ -209,6 +225,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 get_marketing_channels(seven_days_ago, seven_days_ago+6)
 
 ```
+
 Insights:
 
 Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded visits:
@@ -220,13 +237,12 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 
 #### Last Week
 
-
 ```{r marketing_channels_last_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
 
 get_marketing_channels(fourteen_days_ago, fourteen_days_ago+6)
 
-
 ```
+
 Insights:
 
 Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded visits:
@@ -234,7 +250,6 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 -   `r mc_low`
 -   `r mc_none`
 -   `r mc_session_refresh`
-
 
 ### {.unlisted .unnumbered}
 
@@ -249,10 +264,11 @@ Revenue by Channel for last week
 ```{r all_channels_revenue, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 current_week_no <- week(last_valid_date)
 last_complete_week_no <- current_week_no-1
+marketing_channels_by_week_channel <-  marketing_channels_by_week_channel %>% 
+  filter(`Week Num` == last_complete_week_no) %>% arrange(desc(`Total Revenue`))
 
-datatable(marketing_channels_by_week_channel %>% 
-            filter(`Week Num` == last_complete_week_no) %>% 
-  arrange(desc(`Total Revenue`))) %>% formatCurrency(4:8, currency = "£")
+datatable(marketing_channels_by_week_channel[1:8],options = list(pageLength = 25), rownames = FALSE) %>% 
+   formatCurrency(4:8, currency = "£")
 
 ```
 
@@ -263,7 +279,7 @@ Paid Search Revenue - Last 4 Weeks
 
 ```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(paid_search_last_week) %>% formatCurrency(4:8, currency = "£")
+datatable(paid_search_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
 
 
 ```
@@ -275,7 +291,7 @@ Paid Social Revenue - Last 4 Weeks
 
 ```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(paid_social_last_week) %>% formatCurrency(4:8, currency = "£")
+datatable(paid_social_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
 
 ```
 #### Affiliates
@@ -284,11 +300,9 @@ Affiliates Revenue - Last 4 Weeks
 
 ```{r affiliates_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(affiliates_last_week) %>% formatCurrency(4:8, currency = "£")
+datatable(affiliates_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
 
 ```
-
-
 
 
 ### {.unlisted .unnumbered}
