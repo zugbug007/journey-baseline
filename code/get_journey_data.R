@@ -28,8 +28,8 @@ if(exists("journey_data")) {
   first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))
   date_diff <- as.double(Sys.Date()-last_valid_date)
   
-  if(date_diff > 5) {
-  message("Last update was more than 3 days ago - running delta update")
+  if(date_diff >= max_days) {
+  message(paste("Last update was more than",max_days,"days ago - running delta update"))
   
   last_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange(desc(Day)) %>% slice(1:1) %>% pull(Day))
   first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))

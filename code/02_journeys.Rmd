@@ -1,4 +1,6 @@
-### Journey Performance
+### Journey Performance {.tabset}
+
+#### Summary
 
 Below is a summary of the percentage differences from old to the new website. 
 Better performing journeys are shown in blue, while those needing deeper investigation are in red.
@@ -8,6 +10,25 @@ Conversely, there are **`r journey_high_count`** performing better than their re
 ```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
   top_bot
 ```
+
+#### Higher Performing
+
+
+```{r top_journeys, echo=FALSE, fig.height=7, fig.width=9}
+  top_10_only
+
+```
+
+#### Lower Performing
+
+
+```{r bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
+  bottom_10_only
+
+```
+
+### {.unlisted .unnumbered}
+
 
 ### Baseline Summary
 

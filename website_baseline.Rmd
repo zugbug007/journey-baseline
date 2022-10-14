@@ -36,6 +36,14 @@ editor_options:
 # If new journeys or config was changed, use TRUE to delete the data and pull all new data.
 update_data <- FALSE
 
+if (update_data == TRUE) {
+  print("Deleting Files")
+  file.remove("output/df_journey_data.rds")
+  file.remove("output/df_anomaly_data.rds")
+  file.remove("output/df_events.rds")
+  file.remove("output/df_events_daily.rds")
+}
+
 # Capturing the start time -- the final output will include how long
 # it took for the process to run.
 monitorStartTime_baseline <- Sys.time()
@@ -97,6 +105,9 @@ journey_segments_googlesheet <- read_sheet(gsheet, range = "journey")
 # Cutoff for total instances (or occurrences) below which will flag as "Minimal Data"
 min_instances <- 100
 
+# Max Days before Refreshing the data (delta update Kick off)
+max_days <- 3
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,7 +121,7 @@ launch_date_start <- as.Date("2022-10-01")
 #launch_date_start <- as.Date("2022-11-02") # GO LIVE!
 
 year_start <- ymd("2022-01-01")
-days_since_launch <- as.double(difftime(Sys.Date()-1,launch_date_start, units = "days"))
+days_since_launch <- as.double(difftime(Sys.Date(),launch_date_start, units = "days"))
 reporting_length <- 180
 
 pre_start_date <- Sys.Date() - reporting_length #180
@@ -184,14 +195,6 @@ session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "S
 # Update the Data
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
-
-if (update_data == TRUE) {
-  print("Deleting Files")
-  file.remove("output/df_journey_data.rds")
-  file.remove("output/df_anomaly_data.rds")
-  file.remove("output/df_events.rds")
-  file.remove("output/df_events_daily.rds")
-}
 
 if (file.exists("output/df_journey_data.rds")) {
   journey_data <- readRDS("output/df_journey_data.rds")

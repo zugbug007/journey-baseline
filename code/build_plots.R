@@ -449,27 +449,55 @@ top_10_journeys <- db_plot_data %>%
   arrange(desc(diff_vs_baseline)) %>% 
   slice(1:15)
 
-# top10 <- ggplot(top_10_journeys) +
-#   aes(x = journey_name, weight = diff_vs_baseline*100) +
-#   geom_bar(fill = "#228B22") +
-#   labs(x = "Journey Name", y = "% Percentage Increase over Baseline", title = "Top 10 Journeys by Improvement") +
-#   coord_flip() +
-#   theme_bw() +
-#   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+top_journeys <- db_plot_data %>% 
+  mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline)) %>% 
+  arrange(desc(diff_vs_baseline)) %>% 
+  filter(change == 'Higher') %>% 
+  slice(1:30)
+
+top_10_only <- ggplot(top_journeys) +
+  aes(
+    x = journey_name, 
+    fill = change, 
+    weight = diff_vs_baseline*100) +
+  geom_bar() +
+  scale_fill_manual(values = c(Higher = "#406882")) +
+  labs(
+    x = "Journey Name", 
+    y = "% Percentage inc./dec. over the baseline", 
+    title = "Highest Performing Journeys", 
+    fill = "Performance") +
+  #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
+  coord_flip() +
+  ggthemes::theme_pander()
 
 # Bottom 10 Journeys with Highest Differences to their Baseline
 bot_10_journeys <- db_plot_data %>% filter(post > 0) %>% 
   mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
-  arrange(diff_vs_baseline) %>% slice(1:15)
+  arrange(diff_vs_baseline) %>% 
+  slice(1:15)
 
-# bot10 <- ggplot(bot_10_journeys) +
-#   aes(x = journey_name, weight = diff_vs_baseline*100) +
-#   geom_bar(fill = "#B22222") +
-#   labs(x = "Journey Name", y = "% Percentage Decrease over Baseline", title = "Bottom 20 Journeys by Decrease") +
-#   coord_flip() +
-#   theme_bw() +
-#   theme(axis.title.y = element_text(face = "bold"), axis.title.x = element_text(face = "bold"))
+bot_journeys <- db_plot_data %>% filter(post > 0) %>% 
+  mutate(journey_name = fct_reorder(journey_name, diff_vs_baseline, .desc = TRUE)) %>% 
+  arrange(diff_vs_baseline) %>% 
+  filter(change == 'Lower') %>% 
+  slice(1:30)
 
+bottom_10_only <- ggplot(bot_journeys) +
+  aes(
+    x = journey_name, 
+    fill = change, 
+    weight = diff_vs_baseline*100) +
+  geom_bar() +
+  scale_fill_manual(values = c(Lower = "#F05454")) +
+  labs(
+    x = "Journey Name", 
+    y = "% Percentage inc./dec. over the baseline", 
+    title = "Lowest Performing Journeys", 
+    fill = "Performance") +
+  #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
+  coord_flip() +
+  ggthemes::theme_pander()
 
 top_bot_journeys <- rbind(top_10_journeys,bot_10_journeys)
 
@@ -488,7 +516,7 @@ top_bot <- ggplot(top_bot_journeys) +
   #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
  coord_flip() +
  ggthemes::theme_pander()
-top_bot
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##            Total Number of Journeys Higher or Lower than Baseline        ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
