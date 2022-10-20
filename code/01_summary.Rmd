@@ -34,6 +34,20 @@ get_post_only_journey_plot(post_only_plot)
 ```
 
 
+#### Significant
+
+Journeys with the most significant changes in their journey data. This is based on the equal number of days in the post and pre period.  
+E.g. 15 days after launch will also include the 15 days prior to launch.  
+
+
+```{r all_journeys_signifcant, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+
+get_journey_plot(all_journeys_significant)
+
+```
+
+
+
 #### Landing Pages
 
 First pages of a user journey. 
@@ -78,16 +92,6 @@ get_journey_plot(all_top_level_journeys)
 
 ```
 
-#### Property
-
-Journeys to a NT property page.
-
-```{r all_property_page_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
-
-get_journey_plot(all_property_page_journeys)
-
-```
-
 #### Discovery
 
 Journeys categorised as a research or discovery journey.
@@ -101,7 +105,7 @@ get_journey_plot(all_discovery_journeys)
 
 #### Browser
 
-Journeys categorised as a browser specific journey across the entire website.
+Journeys categorized as a browser specific journey across the entire website.
 
 ```{r all_browser_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 

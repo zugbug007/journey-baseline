@@ -144,7 +144,7 @@ datatable(anomaly_count[1:7], container = sketch, rownames = FALSE)
 In the table below:   
 **Note:** All Shop & Holidays pages are filtered out of this report. This is for the National Trust Main Site only.
 
-Page Data from: **`r format(last_valid_date-30, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
+Page Data from: **`r format(last_valid_date-7, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
 Total Number of Pages: **`r nrow(page_data)`**.
 
  * **[Page Name]** Page name of the Main site page.   
@@ -191,7 +191,7 @@ datatable(page_data, rownames = FALSE, colnames = c('Page Name' = 1,
 start_date_tos <- first_valid_date
 end_date_tos <- last_valid_date
 plot_title_tos <- "Time on Site: All Main Site, All Devices"
-device_segment_id <- 's1957_6113b90d5f900636dbd9b2ff'
+device_segment_id <- "s1957_6113b90d5f900636dbd9b2ff"
 
 get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
@@ -205,7 +205,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 # Mobile
 plot_title_tos <- "Time on Site: All Main Site, Mobile Devices"
-device_segment_id <- 's1957_5cf4febff0f34a6c7c321976'
+device_segment_id <- "s1957_5cf4febff0f34a6c7c321976"
 get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ```
@@ -217,7 +217,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 ```{r site_wide_page_all_desktop, echo=FALSE, fig.height=5, fig.width=9, fig.align='center', message=FALSE, warning=FALSE}
 # Desktop
 plot_title_tos <- "Time on Site: All Main Site, Desktop Devices"
-device_segment_id <- 's1957_5cf4ff035b9ab413eed80b7f'
+device_segment_id <- "s1957_5cf4ff035b9ab413eed80b7f"
 get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 ```
 
@@ -228,7 +228,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 ```{r site_wide_page_all_tablet, echo=FALSE, fig.height=5, fig.width=9, fig.align='center', message=FALSE, warning=FALSE}
 #Tablet
 plot_title_tos <- "Time on Site: All Main Site, Tablet Devices"
-device_segment_id <- 's1957_5cf4ff610f47c76f4e45d26b'
+device_segment_id <- "s1957_5cf4ff610f47c76f4e45d26b"
 get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ```
@@ -286,10 +286,10 @@ Revenue by Channel for last week
 current_week_no <- week(last_valid_date)
 last_complete_week_no <- current_week_no-1
 marketing_channels_by_week_channel <-  marketing_channels_by_week_channel %>% 
-  filter(`Week Num` == last_complete_week_no) %>% arrange(desc(`Total Revenue`))
+  filter(`Week Num` == last_complete_week_no) %>% arrange(desc(`Total Rev.`))
 
-datatable(marketing_channels_by_week_channel[1:8],options = list(pageLength = 25), rownames = FALSE) %>% 
-   formatCurrency(4:8, currency = "£")
+datatable(marketing_channels_by_week_channel,options = list(pageLength = 25), rownames = FALSE) %>% 
+   formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
 
 ```
 
@@ -300,7 +300,7 @@ Paid Search Revenue - Last 4 Weeks
 
 ```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(paid_search_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
+datatable(paid_search_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
 
 
 ```
@@ -312,7 +312,7 @@ Paid Social Revenue - Last 4 Weeks
 
 ```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(paid_social_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
+datatable(paid_social_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
 
 ```
 #### Affiliates
@@ -321,10 +321,25 @@ Affiliates Revenue - Last 4 Weeks
 
 ```{r affiliates_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-datatable(affiliates_last_week[1:8], rownames = FALSE) %>% formatCurrency(4:8, currency = "£")
+datatable(affiliates_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
 
 ```
 
 
 ### {.unlisted .unnumbered}
+
+### Significant Change
+
+Journeys with the most significant changes in their journey data. This is based on the equal number of days in the post and pre period.  
+E.g. 15 days after launch will also include the 15 days prior to launch.  
+
+```{r significant_journeys, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(journey_stats %>% select(journey_name, journey_sig, normality_sig), rownames = FALSE, colnames =
+                                  c('Journey Name' = 1, 
+                                  'Significant Change' = 2,
+                                  'Data Normality' = 3), filter = 'top')
+
+```
+
 

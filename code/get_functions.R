@@ -586,7 +586,7 @@ get_marketing_channel_metrics <- function(){
   last_complete_week <- current_week_no-1
   last_week_end <- year_start+last_complete_week*weeks()
   
-  start_week_no <- last_complete_week-4
+  start_week_no <- last_complete_week-10
   start_date <- year_start+start_week_no*weeks()+1
   
   date_range_local <- c(start_date, last_week_end)
@@ -595,8 +595,8 @@ get_marketing_channel_metrics <- function(){
                           date_range = date_range_local,
                           dimensions = c("marketingchannel","daterangeday"),
                           page = 0,
-                          top = c(15, 30),
-                          metrics = c('visits', 'event5','revenue','event79', 'event125', 'cm1957_5fc4b9a2b5895e0644b9120e')
+                          top = c(15, 70),
+                          metrics = c('visits', 'event5','revenue','event79', 'event125', 'event114','cm1957_5fc4b9a2b5895e0644b9120e')
   )
 }
 

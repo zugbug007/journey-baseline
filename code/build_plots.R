@@ -350,8 +350,94 @@ donate_events <- donate_events %>%
   kable_styling(bootstrap_options = c("striped", "condensed", full_width = F)) #%>% scroll_box(width = "100%", height = "400px")
 
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                                                            --
+##              Build stats table for significance and normality              --
+##                                                                            --
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+stats_list = list()
+
+for (i in 1:nrow(journey_unique_names)) {
+  journey_name_stats <- journey_unique_names$journey_name[i] 
+  journey_subset <- journey_data %>% select(Day, journey_name, journey_type, Visits) %>% filter(journey_name == journey_name_stats)
+  
+  before_count_rows <- nrow(journey_subset %>% filter(journey_type == "pre") %>% arrange((Day)))
+  after_count_rows <- nrow(journey_subset %>% filter(journey_type == "post") %>% arrange((Day)))
+  cut_off_date <- pre_end_date - after_count_rows
+  # Get the equivalent number of days in the pre period as in the post period 
+  # This is necessary for the two sided test to have equal numbers on both pre and post.
+  
+  before <- journey_subset %>% 
+    filter(journey_type == "pre") %>% 
+    arrange((Day)) %>% 
+    filter(Day > cut_off_date & Day <= pre_end_date) 
+  
+  after <- journey_subset %>% filter(journey_type == "post") %>% arrange((Day))
+  
+  # Welch's Test for unequal variances
+  t_stat <- t.test(before$Visits, after$Visits, paired = TRUE) # Compare means between groups (pre/post)
+  p_val <- t_stat[["p.value"]]
+  # A p Value of less than 0.05 (typically <= 0.05 is statistically significant)
+  
+  # Preliminary test to check paired t-test assumptions
+  # Shapiro-Wilk normality test.
+  # Above p = 0.05 = data is of normal distribution
+  
+  d <- journey_subset %>% arrange((Day)) %>% filter(Day > cut_off_date & Day <= last_valid_date) 
+  
+  shaprio_data <- with(d, Visits[journey_type == "pre"] - Visits[journey_type == "post"])
+  shapiro <- shapiro.test(shaprio_data)
+  shap_p_value <- shapiro[["p.value"]]
+  # Above p = 0.05 = data is of normal distribution
+  
+  # Plots
+  # qqnorm(shaprio_data)   # QQPlot
+  # truehist(shaprio_data) # Does the histogram look normally distributed?
+  
+  stats_table <- data.frame(journey_name_stats, p_val, shap_p_value)
+  stats_list[[i]] <- stats_table
+  
+}
+
+journey_stats = do.call(rbind, stats_list)
+
+journey_stats <- journey_stats %>% 
+  rename(journey_name = journey_name_stats) %>% 
+  mutate(journey_sig = ifelse(p_val <= 0.05, "Significant", "Not Significant"),
+         normality_sig = ifelse(shap_p_value >= 0.05, "Normal Distribution", "Non-Normal Distribution")) %>% 
+  arrange(desc(journey_sig))
+
+
+# A p Value of less than 0.05 (typically <= 0.05 is statistically significant)
+# effectively indicates that the differences between old and new journeys are statistically significant.
+# Reject the Null hypothesis of the no differences between old site and new site.
+# Higher than 0.05 p indicates that no statistical difference.
+# Retain the Null hypothesis that there is no difference in the journeys between the old site and new site.
+# 
+# Shapiro Test
+# Above p = 0.05 = data is of normal distribution
+
+# Summary Data
+# 
+# journey_data %>% select(Day, journey_name, journey_type, Visits) %>% 
+#   filter(journey_name == "ALL Desktop") %>% 
+#   group_by(journey_type) %>% 
+#   summarize(
+#     count = n(),
+#     mean = mean(Visits, na.rm = TRUE),
+#     sd = sd(Visits, na.rm = TRUE)
+#   )
+# 
+# 
+# library("ggpubr")
+# md <- journey_data %>% select(Day, journey_name, journey_type, Visits) %>% 
+#   filter(journey_name == "ALL Desktop")
+# ggboxplot(md, x = "journey_type", y = "Visits", 
+#           color = "journey_type", palette = c("#00AFBB", "#E7B800"),
+#           order = c("pre", "post"),
+#           ylab = "All Visits", xlab = "Journey Type")
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -387,13 +473,19 @@ post_only_plot <- mid_baseline %>%
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels()
 
-all_journeys_before_after_plot <- left_join(db1, journey_data %>% 
-        dplyr::select(journey_name, category, sub_category), by = "journey_name") %>% 
+all_journeys_before_after_plot <- left_join(db1, journey_data %>% dplyr::select(journey_name, category, sub_category), by = "journey_name") %>% 
+        left_join(journey_stats, by = "journey_name") %>% 
         filter(category != "skip_summary") %>% 
         distinct() %>% 
         arrange(post) %>% 
         mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
         droplevels()
+
+all_journeys_significant <- all_journeys_before_after_plot %>% filter(journey_sig == "Significant") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
 
 all_landing_page_journeys <- all_journeys_before_after_plot %>% filter(category == "landing") %>% 
   arrange(post) %>% 
@@ -464,7 +556,7 @@ top_10_only <- ggplot(top_journeys) +
   scale_fill_manual(values = c(Higher = "#406882")) +
   labs(
     x = "Journey Name", 
-    y = "% Percentage inc./dec. over the baseline", 
+    y = "% Percentage increase over the baseline", 
     title = "Highest Performing Journeys", 
     fill = "Performance") +
   #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
@@ -492,7 +584,7 @@ bottom_10_only <- ggplot(bot_journeys) +
   scale_fill_manual(values = c(Lower = "#F05454")) +
   labs(
     x = "Journey Name", 
-    y = "% Percentage inc./dec. over the baseline", 
+    y = "% Percentage decline over the baseline", 
     title = "Lowest Performing Journeys", 
     fill = "Performance") +
   #scale_y_continuous(breaks = seq(-200, 200, by = 50)) +
@@ -1896,7 +1988,7 @@ search_by_device <- ggplot(search_console_devices) +
   theme_minimal()
 
 # Get Page Data metrics and page names
-page_date_range <- c(last_valid_date - 30, last_valid_date)
+page_date_range <- c(last_valid_date - 7, last_valid_date)
 page_segment_ids <- "s1957_6113b90d5f900636dbd9b2ff"
 page_search_criteria <- c("(CONTAINS 'M|')")
 page_metrics <- c("visits", 
@@ -1918,21 +2010,37 @@ marketing_channels_by_day <- marketing_channels %>% # Includes Daily breakdown
   rename(all_revenue = cm1957_5fc4b9a2b5895e0644b9120e) %>% 
   group_by(week = week(daterangeday-1), marketingchannel)
 
+marketing_week <- marketing_channels_by_day %>% ungroup() %>% 
+  select(daterangeday, week) %>% 
+  group_by(week) %>% 
+  mutate(week_start_sunday = min(daterangeday),
+         week_end_saturday = max(daterangeday)) %>% 
+  select(-daterangeday) %>% distinct() %>% 
+  arrange(week) %>% 
+  mutate(days_between = (week_end_saturday - week_start_sunday)+1) %>% 
+  filter(days_between == "7") %>% 
+  mutate(date_text = paste0(format(week_start_sunday,"%d-%b"),' to ',format(week_end_saturday, "%d-%b"))) %>% 
+  select(week, date_text)
+
 marketing_channels_by_week_channel <- marketing_channels_by_day %>% select(-daterangeday) %>% #Summarized by work week and channel name
   summarise(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>%
   mutate(across(where(is.numeric), round, 0)) %>% 
+  right_join(marketing_week, by = 'week') %>% 
   rename("Week Num" = week) %>% 
   rename("Marketing Channel" = marketingchannel) %>% 
   rename("Visits" = visits) %>% 
-  rename("Mem. Revenue" = event5) %>% 
-  rename("Shop Revenue" = revenue) %>% 
-  rename("Renew Revenue" = event79) %>% 
-  rename("Holiday Revenue" = event125) %>% 
-  rename("Total Revenue" = all_revenue)
+  rename("Mem. Rev." = event5) %>% 
+  rename("Shop Rev." = revenue) %>% 
+  rename("Renew Rev." = event79) %>% 
+  rename("Holiday Rev." = event125) %>% 
+  rename("Donate Rev." = event114) %>% 
+  rename("Total Rev." = all_revenue) %>% 
+  rename("Date" = date_text) %>% 
+  relocate("Date", .before = "Week Num")
 
 paid_search_last_week <- marketing_channels_by_week_channel %>% 
   filter(`Marketing Channel` == "Paid Search") %>% 
-  arrange(`Week Num`)
+  arrange(`Week Num`) 
   
 paid_social_last_week <- marketing_channels_by_week_channel %>% 
   filter(`Marketing Channel` == "Paid Social") %>% 
@@ -1941,4 +2049,3 @@ paid_social_last_week <- marketing_channels_by_week_channel %>%
 affiliates_last_week <- marketing_channels_by_week_channel %>% 
   filter(`Marketing Channel` == "Affiliates") %>% 
   arrange(`Week Num`)
-
