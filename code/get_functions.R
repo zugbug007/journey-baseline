@@ -770,8 +770,13 @@ get_cms_summary <- function(product_name){
   rm(cms_to_secure_pre)
 }
 
-get_marketing_channels <- function(start_date_mc, end_date_mc) {
-  #date_range_mc <- c(fourteen_days_ago, fourteen_days_ago+6) #Debug
+get_marketing_channels <- function(start_date_mc, end_date_mc, bar_colour) {
+  #Debug
+  # date_range_mc <- c(fourteen_days_ago, fourteen_days_ago+6) 
+  # bar_colour <- "#f05454"
+  # start_date_mc <- seven_days_ago 
+  # end_date_mc <- seven_days_ago+6
+  #End Debug
   date_range_mc <- c(as.Date(start_date_mc), as.Date(end_date_mc))
   ## Marketing Channels Data Extract
   total_visits <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
@@ -846,8 +851,8 @@ get_marketing_channels <- function(start_date_mc, end_date_mc) {
   gg_marketing_channels <- ggplot(df_marketing_channels, aes(x = marketingchannel, y = visits, 
                                                              label = paste0(format(visits, big.mark = ",", trim = TRUE), " (",
                                                                             percent(pct_visits, accuracy = 0.1), ")"))) +
-    geom_bar(stat = "identity", fill = "#406882") +
-    geom_text(aes(y = visits + max(df_marketing_channels$visits) * 0.02), hjust = 0, size = 2.5, color = "gray30") +
+    geom_bar(stat = "identity", fill = bar_colour) +
+    geom_text(aes(y = visits + max(visits) * 0.02), hjust = 0, size = 2.5, color = "gray30") +
     coord_flip() +
     scale_y_continuous(expand = c(0,0), limits = c(0, max(df_marketing_channels$visits) * 1.25)) +
     labs(title = "Visits by Marketing Channel",
@@ -865,3 +870,88 @@ get_marketing_channels <- function(start_date_mc, end_date_mc) {
   return(gg_marketing_channels)
 }
 
+get_marketing_channels_comparision <- function(start_date_mc, end_date_mc, bar_colour) {
+  date_range_tw <- c(seven_days_ago, seven_days_ago+6)
+  total_visits_tw <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                       rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                       date_range = date_range_tw,
+                                       dimensions = "daterangeyear",
+                                       metrics = "visits") %>% pull(visits) %>% sum()
+  
+  # Get the marketing channel data
+  tw_marketing_channels <<- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                              rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                              date_range = date_range_tw,
+                                              dimensions = "marketingchannel",
+                                              metrics = "visits",
+                                              top = c(15)
+  )
+  
+  # Calculate the % of total visits
+  tw_marketing_channels <- tw_marketing_channels %>% 
+    mutate(pct_visits_tw = round(visits/total_visits_tw, 4)) %>% 
+    mutate(pct_visits_tw = percent(pct_visits_tw, accuracy = 0.1)) %>% 
+    mutate(text_visits_tw = paste0(as.character(format(visits, big.mark = ",", trim = TRUE)), " (", as.character(pct_visits_tw),")")) %>% 
+    rename(this_week = visits) %>% 
+    # Convert to a factor for ordering in the plot
+    mutate(marketingchannel = factor(marketingchannel, levels = rev(marketingchannel)))
+  
+  # Get Comparison Week
+  date_range_lw <- c(fourteen_days_ago, fourteen_days_ago+6)
+  total_visits_lw <- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                       rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                       date_range = date_range_lw,
+                                       dimensions = "daterangeyear",
+                                       metrics = "visits") %>% pull(visits) %>% sum()
+  # Get the marketing channel data
+  lw_marketing_channels <<- aw_freeform_table(company_id = Sys.getenv("AW_COMPANY_ID"), 
+                                              rsid = Sys.getenv("AW_REPORTSUITE_ID"), 
+                                              date_range = date_range_lw,
+                                              dimensions = "marketingchannel",
+                                              metrics = "visits",
+                                              top = c(15)
+  )
+  
+  # Calculate the % of total visits
+  lw_marketing_channels <- lw_marketing_channels %>% 
+    mutate(pct_visits_lw = round(visits/total_visits_lw, 4)) %>% 
+    mutate(pct_visits_lw = percent(pct_visits_lw, accuracy = 0.1)) %>% 
+    mutate(text_visits_lw = paste0(as.character(format(visits, big.mark = ",", trim = TRUE)), " (", as.character(pct_visits_lw),")")) %>% 
+    rename(last_week = visits) %>% 
+    
+    mutate(marketingchannel = factor(marketingchannel, levels = rev(marketingchannel))) # Convert to a factor for ordering in the plot
+  
+  df <- merge(tw_marketing_channels, lw_marketing_channels, by = 'marketingchannel')
+
+  fig <- plot_ly(df, orientation = 'h') %>% 
+    add_trace(x = ~this_week, 
+                           y = ~marketingchannel,
+                           type = 'bar',
+                           text = ~text_visits_tw, 
+                           textposition = 'auto',
+                           marker = list(color = 'rgb(240, 84, 84)',
+                                         line = list(color = 'rgb(192,192,192)', 
+                                                     width = 0.5)), 
+                           name = paste0("This Week (", format(date_range_tw[1], "%b %d"), " to ", format(date_range_tw[2], "%b %d"),")")) %>% 
+  
+    add_trace(x = ~last_week, y = ~marketingchannel, 
+                           type = 'bar',
+                           text = ~text_visits_lw, textposition = 'auto',
+                           marker = list(color = 'rgb(64, 104, 130)',
+                                         line = list(color = 'rgb(192,192,192)', 
+                                                     width = 0.5)), 
+                           name = paste0("Last Week (", format(date_range_lw[1], "%b %d"), " to ", format(date_range_lw[2], "%b %d"),")")) %>% 
+  
+    layout(title = "Marketing Channels Visits - Weekly Comparison",
+                        barmode = 'group',
+                        xaxis = list(title = ""),
+                        yaxis = list(title = ""),
+                        legend = list(x =1, y = 1, 
+                                      bgcolor = 'rgba(255, 255, 255, 0)', 
+                                      bordercolor = 'rgba(255, 255, 255, 0)')) %>%
+    config(displayModeBar = FALSE)
+  
+  #fig
+  
+  return(fig)
+}

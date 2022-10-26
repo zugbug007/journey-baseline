@@ -18,7 +18,7 @@ The post launch baseline is created from the available data since launch **`r fo
 This is currently **`r days_since_launch`** days since the launch on **`r format(launch_date_start, "%b %d")`**.
 
 ```{r timeline, echo=FALSE, fig.width=12}
-timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "New CMS", "Pre Baseline", "Post Baseline"),
+timeline_data <- data.frame(event = c("Pre Launch (Old CMS)", "New CMS", "Pre Baseline (30 Days)", paste0("Post Baseline (",days_since_launch," Days)")),
                             start = c(first_valid_date, post_start_date, pre_end_date_30, baseline_post_start_date),
                             end = c(pre_end_date, last_valid_date, pre_end_date, last_valid_date),
                             group = c("CMS Launch","CMS Launch", "Baseline", "Baseline"),

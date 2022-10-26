@@ -239,11 +239,23 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ### Marketing Channels {.tabset}
 
+
+#### Comparision
+
+```{r marketing_channels_compared, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+
+get_marketing_channels_comparision()
+
+```
+
+
+
+
 #### This Week
 
 ```{r marketing_channels_this_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
 
-get_marketing_channels(seven_days_ago, seven_days_ago+6)
+get_marketing_channels(seven_days_ago, seven_days_ago+6, "#f05454")
 
 ```
 
@@ -260,7 +272,7 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 
 ```{r marketing_channels_last_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
 
-get_marketing_channels(fourteen_days_ago, fourteen_days_ago+6)
+get_marketing_channels(fourteen_days_ago, fourteen_days_ago+6, "#406882")
 
 ```
 

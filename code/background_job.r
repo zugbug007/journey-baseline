@@ -1,44 +1,4 @@
----
-title: ""
-output:
-  html_document: 
-    theme: flatly
-    toc: true
-    toc_float: true
-    css: styles.css
-    self_contained: true
-    includes:
-        after_body: footer.html
-params:
-  company_id: "thenat3"
-  rsid: "nationaltrustmainsiteprod"
-  google_account: "alan.millington@nationaltrust.org.uk"
-  alt_google_account: "alan.d.millington@gmail.com"
-editor_options: 
-  chunk_output_type: inline
----
-
-```{r load_workspace_from_file, echo=FALSE, message=FALSE, warning=FALSE}
-
 update_data <- FALSE
-# Set to true to delete the existing files and run the extensive data pull, set to false to use the local stored files (much faster).
-# If new journeys or config was changed, use TRUE to delete the data and pull all new data.
-
-# Max Days before Refreshing the data (run the delta update)
-max_days <- 3
-
-# Hex Colour Reference
-# Blue = "#406882" OR rgb(64, 104, 130)
-# Red = "#f05454" OR rgb(240, 84, 84)
-# Purple = "#824068" OR rgb(130, 64, 104)
-# Green ="#688240" OR rgb(104, 130, 64)
-# Dark Blue = "#4d4082" OR rgb(77, 64, 130)
-
-```
-
-```{r setup_libraries, include=FALSE, warning =FALSE, message=FALSE}
-
-#load("output/baseline-workspace.RData")
 
 if (update_data == TRUE) {
   print("Deleting Files")
@@ -108,6 +68,9 @@ journey_segments_googlesheet <- read_sheet(gsheet, range = "journey")
 
 # Cutoff for total instances (or occurrences) below which will flag as "Minimal Data"
 min_instances <- 100
+
+# Max Days before Refreshing the data (delta update Kick off)
+max_days <- 3
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 Setup Date Ranges and Common Date Variables              ----
@@ -190,10 +153,8 @@ df_metrics <- aw_get_metrics(
 # A few different names get used, so add to this if you come across another one
 session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "Session Timeout",
                            "Browser left open", "Internal Referrer")
-```
-
-```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
-# Update the Data
+						   
+						   # Update the Data
 source("code/get_g_sheets.R")
 source("code/get_functions.R")
 
@@ -217,78 +178,12 @@ source("code/get_journey_data.R")
 source("code/get_events_data.R")
 source("code/build_plots.R")
 
-```
-
-# Summary
-
-This tool builds the baseline for multiple journeys across the website. All the data and analysis is automated. As new journeys are added, charts and tables are automatically updated.
-
-Some journeys only exist in the old CMS and are not comparable to the new journeys on the new CMS.
-
-Date Created:     **'`r format(Sys.Date(), "%A %B %d")`'**   
-Data Valid To:    **'`r format(Sys.Date()+7 , "%A %B %d")`'**
-
-## Launch Timeline
-
-```{r child = "code/00_timeline.Rmd"}
-```
-
-## Summary of Website Journeys
-
-```{r child = "code/01_summary.Rmd"}
-```
-
-## Journeys in Detail
-
-```{r child = "code/02_journeys.Rmd"}
-```
-
-## Commercial Analysis
-
-```{r child = "code/03_funnels.Rmd"}
-```
-
-## Journey Trends
-
-```{r child = "code/04_anomalys.Rmd"}
-```
-
-## Search Analysis
-
-```{r child = "code/05_search.Rmd"}
-```
-
-## Events
-
-```{r child = "code/06_events.Rmd"}
-```
-
-## Forecasts
-
-```{r child = "code/07_forecasts.Rmd"}
-```
-
-
-## Definitions
-
-```{r child = "code/08_definitions.Rmd"}
-```
-
-
-## About this App
-
-```{r runtime, echo=FALSE}
 monitorEndTime_baseline <- Sys.time()
 # Write out to the console how long it took for the entire process to run.
 last_run <- as.numeric(monitorEndTime_baseline - monitorStartTime_baseline, units = "mins")
 last_run <- round(last_run)
 lastrunTime_baseline <- paste0("This process took ",last_run," minutes to build this analysis.",sep=" ")
-```
 
-Last Run Date & Time: '`r format(Sys.time(), "%a %b %d %Y %X")`'
-`r lastrunTime_baseline`
-
-```{r save_workspace_image, echo=FALSE, message=FALSE, warning=FALSE}
 save.image(file = "output/baseline-workspace.RData")
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -299,4 +194,3 @@ save.image(file = "output/baseline-workspace.RData")
 #write_sheet(anomaly_data, gsheet, sheet ="Anomaly_data")
 #write_sheet(compare_to_day, gsheet, sheet ="compare_to_day")
 write_sheet(baseline, gsheet, sheet = "Baseline")
-```

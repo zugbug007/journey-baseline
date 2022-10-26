@@ -322,7 +322,8 @@ holidays_events <- holidays_events %>%
 # Donate =========================================================================
 donate_events_pre <- journey_data %>% 
   filter(journey_name == "Commercial: Donate Checkout Steps 1-2") %>% 
-  select(Day, journey_name, `Donate Step 1.0 (Serialized) (ev115)`,
+  select(Day, journey_name, 
+         `Donate Step 1.0 (Serialized) (ev115)`,
          `Donate Step 2.0 - Complete (Serialized) (ev116)`,
          `Donate Revenue (Serialized) (ev114)`) %>% 
   filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% arrange(Day) %>% 
