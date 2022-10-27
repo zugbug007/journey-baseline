@@ -242,7 +242,9 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 #### Comparision
 
-```{r marketing_channels_compared, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+Click the legend to show or hide the data for each week. Percentages in brackets are the share of the week's visit volumes. 
+
+```{r marketing_channels_compared, echo=FALSE, fig.height=9, fig.width=11, fig.align='center',message=FALSE, warning=FALSE}
 
 get_marketing_channels_comparision()
 

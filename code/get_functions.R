@@ -931,16 +931,16 @@ get_marketing_channels_comparision <- function(start_date_mc, end_date_mc, bar_c
                            textposition = 'auto',
                            marker = list(color = 'rgb(240, 84, 84)',
                                          line = list(color = 'rgb(192,192,192)', 
-                                                     width = 0.5)), 
-                           name = paste0("This Week (", format(date_range_tw[1], "%b %d"), " to ", format(date_range_tw[2], "%b %d"),")")) %>% 
+                                                     width = 0)), 
+                           name = paste0("Visits This Week (", format(date_range_tw[1], "%b %d"), " to ", format(date_range_tw[2], "%b %d"),")")) %>% 
   
     add_trace(x = ~last_week, y = ~marketingchannel, 
                            type = 'bar',
                            text = ~text_visits_lw, textposition = 'auto',
                            marker = list(color = 'rgb(64, 104, 130)',
                                          line = list(color = 'rgb(192,192,192)', 
-                                                     width = 0.5)), 
-                           name = paste0("Last Week (", format(date_range_lw[1], "%b %d"), " to ", format(date_range_lw[2], "%b %d"),")")) %>% 
+                                                     width = 0)), 
+                           name = paste0("Visits Last Week (", format(date_range_lw[1], "%b %d"), " to ", format(date_range_lw[2], "%b %d"),")")) %>% 
   
     layout(title = "Marketing Channels Visits - Weekly Comparison",
                         barmode = 'group',
