@@ -264,10 +264,7 @@ get_conversion_flow <- function(date_range_sankey, metric_sankey, segment_name_s
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
-get_journey_plot <- function(data_journey_plot){
-  
+get_journey_plot <- function(data_journey_plot, metric_name){
   journey_before_after_plot <- plotly::plot_ly(
     data = data_journey_plot, mode = 'markers') %>% 
     add_segments(
@@ -302,11 +299,31 @@ get_journey_plot <- function(data_journey_plot){
       ),
       name  = "Post"
     ) %>%
-    layout(xaxis = list(title = "Pre vs. Post Baseline (Visits)")) %>% 
+    layout(xaxis = list(title = paste0("Pre vs. Post Baseline (",metric_name,")"))) %>% 
     layout(yaxis = list(title = "Journey Name"))
   
   return (journey_before_after_plot)
 }
+
+
+get_metric_plot <- function(metric_name, title_text){
+  df <- baseline %>% select(journey_name, journey_type, {{metric_name}}) %>% 
+    pivot_wider(
+      names_from = journey_type,
+      values_from = {{metric_name}}) %>% 
+    arrange(desc(post)) %>%
+    mutate(journey_name = fct_reorder(journey_name, post)) %>% 
+    mutate(diff_vs_baseline = ((post - pre)/pre)) %>% 
+    mutate(metric_name = {{metric_name}}) %>% 
+    arrange(desc(diff_vs_baseline)) %>% 
+    slice(1:15) %>% 
+    droplevels()
+  
+  plot <-  get_journey_plot(df, title_text)
+  
+  return(plot)
+  
+  }
 
 get_post_only_journey_plot <- function(data_journey_plot){
   journey_before_after_plot <- plotly::plot_ly(
@@ -331,42 +348,6 @@ get_post_only_journey_plot <- function(data_journey_plot){
       ),
       name = "Last Week"
     ) %>%
-    # add_markers(
-    #   x = ~Visits_min, y = ~journey_name, 
-    #   marker = list(
-    #     color = 'rgb(130, 64, 104)', # Purple
-    #     size = 10,
-    #     line = list(
-    #       color = 'rgb(192,192,192)',
-    #       width = 0.1
-    #     )
-    #   ),
-    #   name = "Min"
-    # ) %>%
-    # add_markers(
-    #   x = ~Visits_max, y = ~journey_name, 
-    #   marker = list(
-    #     color = 'rgb(77, 64, 130)', # Dark Blue
-    #     size = 10,
-    #     line = list(
-    #       color = 'rgb(192,192,192)',
-    #       width = 0.1
-    #     )
-    #   ),
-    #   name = "Max"
-    # ) %>%
-    # add_markers(
-    #   x = ~Visits_median, y = ~journey_name, 
-    #   marker = list(
-    #     color = 'rgb(104, 130, 64)', # Green
-    #     size = 10,
-    #     line = list(
-    #       color = 'rgb(192,192,192)',
-    #       width = 0.1
-    #     )
-    #   ),
-    #   name = "Median"
-    # ) %>%
     add_markers(
       x = ~Visits_mean, y = ~journey_name,
       marker = list(

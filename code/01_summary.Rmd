@@ -17,7 +17,7 @@ This is currently **`r days_since_launch`** full days since the launch on **`r f
 
 ```{r all_journeys_before_after, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_journeys_before_after_plot)
+get_journey_plot(all_journeys_before_after_plot, "Visits")
 
 ```
 
@@ -42,7 +42,7 @@ E.g. 15 days after launch will also include the 15 days prior to launch.
 
 ```{r all_journeys_signifcant, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_journeys_significant)
+get_journey_plot(all_journeys_significant,"Visits")
 
 ```
 
@@ -55,7 +55,7 @@ First pages of a user journey.
 
 ```{r all_landing_page_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_landing_page_journeys)
+get_journey_plot(all_landing_page_journeys,"Visits")
 
 ```
 
@@ -66,7 +66,7 @@ Journeys from specfic devices or operating systems.
 
 ```{r all_device_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_device_journeys)
+get_journey_plot(all_device_journeys, "Visits")
 
 ```
 
@@ -77,7 +77,7 @@ Any journey that contains a commercial journey.
 
 ```{r all_commercial_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_commercial_journeys)
+get_journey_plot(all_commercial_journeys, "Visits")
 
 ```
 
@@ -88,7 +88,7 @@ Journeys from the home page onward to other significant areas of the website.
 
 ```{r all_top_level_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_top_level_journeys)
+get_journey_plot(all_top_level_journeys, "Visits")
 
 ```
 
@@ -98,7 +98,7 @@ Journeys categorised as a research or discovery journey.
 
 ```{r all_discovery_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_discovery_journeys)
+get_journey_plot(all_discovery_journeys, "Visits")
 
 ```
 
@@ -109,7 +109,7 @@ Journeys categorized as a browser specific journey across the entire website.
 
 ```{r all_browser_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_browser_journeys)
+get_journey_plot(all_browser_journeys, "Visits")
 
 ```
 

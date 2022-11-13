@@ -530,7 +530,35 @@ all_discovery_journeys <- all_journeys_before_after_plot %>% filter(category == 
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels() 
 
+metric_name <- 'Average Time Spent on Site (seconds)_mean'
+title_text <- "Average Time Spent on Site (Sec.)"
+time_on_site <- get_metric_plot(metric_name, title_text)
 
+metric_name <- 'Bounces_mean'
+title_text <- "Bounces"
+bounces_mean <- get_metric_plot (metric_name, title_text)
+
+metric_name <- 'Page Views_mean'
+title_text <- "Page Views"
+pageviews_mean <- get_metric_plot (metric_name, title_text)
+
+metric_name <- 'Unique Visitors_mean'
+title_text <- "Unique Visitors"
+unique_visitors_mean <- get_metric_plot (metric_name, title_text)
+
+metric_name <- 'New Visits_mean'
+title_text <- "New Visits"
+new_visits_mean <- get_metric_plot (metric_name, title_text)
+
+metric_name <- 'Repeat Visits_mean'
+title_text <- "Repeat Visits"
+repeat_visits_mean <- get_metric_plot (metric_name, title_text)
+
+metric_name <- 'Reloads_mean'
+title_text <- "Reloads"
+reloads_mean <- get_metric_plot (metric_name, title_text)
+
+#temp <- baseline %>% select(journey_name, journey_type, contains('_mean'))
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                      Top/Bottom 10 Journeys By Improvement               ----
@@ -2050,3 +2078,6 @@ paid_social_last_week <- marketing_channels_by_week_channel %>%
 affiliates_last_week <- marketing_channels_by_week_channel %>% 
   filter(`Marketing Channel` == "Affiliates") %>% 
   arrange(`Week Num`)
+
+
+

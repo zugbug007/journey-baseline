@@ -341,6 +341,8 @@ anomaly_data$anomalies_bad <- ifelse(anomaly_data$dataAnomalyDetected == "TRUE",
 last_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange(desc(Day)) %>% slice(1:1) %>% pull(Day))
 first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))
 
+baseline_days_count <- as.double(difftime(last_valid_date,last_valid_date-30, units = "days"))
+
 today <- last_valid_date
 yesterday <- last_valid_date - 1
 three_days_ago <- last_valid_date - 3

@@ -173,6 +173,54 @@ datatable(page_data, rownames = FALSE, colnames = c('Page Name' = 1,
 ```
 
 
+### Metrics by Journey {.tabset}
+Each journey analysed by a specific metric. Sorted by the largest differences between the pre and post data, top to bottom.
+
+#### Page Views
+
+```{r pageviews_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+pageviews_mean
+```
+
+#### Unique Visitors
+
+```{r unique_visitors_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+unique_visitors_mean
+```
+
+#### Time on Site
+
+```{r tos_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+time_on_site
+```
+
+#### Bounces
+
+```{r bounces_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+bounces_mean
+```
+
+#### Reloads
+
+```{r reloads_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+reloads_mean
+```
+
+#### New Visits
+
+```{r new_visits_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+new_visits_mean
+```
+
+#### Repeat Visits
+
+```{r repeat_visits_metrics, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
+repeat_visits_mean
+```
+
+### {.unlisted .unnumbered}
+
+
 ### Time on Site {.tabset}
 
 
