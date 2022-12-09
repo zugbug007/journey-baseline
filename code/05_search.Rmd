@@ -43,8 +43,7 @@ ggplotly(br)
 ```
 
 ```{r search_console_search_terms, echo=FALSE, fig.align='center', fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
-
-search_terms_facet_grid
+#search_terms_facet_grid
 ```
 
 

@@ -3,6 +3,23 @@
 ##                                The Big Loop                              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Update the Data
+if (file.exists("output/df_journey_data.rds")) {
+  journey_data <- readRDS("output/df_journey_data.rds")
+} 
+
+if (file.exists("output/df_anomaly_data.rds")) {
+  anomaly_data <- readRDS("output/df_anomaly_data.rds")
+} 
+
+if (file.exists("output/df_events.rds")) {
+  df_events <- readRDS("output/df_events.rds")
+} 
+
+if (file.exists("output/df_events_daily.rds")) {
+  df_events_daily <- readRDS("output/df_events_daily.rds")
+}
+
 journey_datalist = list()
 anomaly_datalist = list()
 anomaly_events_datalist = list()
@@ -28,7 +45,7 @@ if(exists("journey_data")) {
   first_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange((Day)) %>% slice(1:1) %>% pull(Day))
   date_diff <- as.double(Sys.Date()-last_valid_date)
   
-  if(date_diff >= max_days) {
+  if(date_diff > max_days) {
   message(paste("Last update was more than",max_days,"days ago - running delta update"))
   
   last_valid_date <- as.Date(journey_data %>% select(Day) %>% arrange(desc(Day)) %>% slice(1:1) %>% pull(Day))
@@ -39,7 +56,7 @@ if(exists("journey_data")) {
   
   date_range <- c(as.Date(last_valid_date+1), as.Date(Sys.Date() - 1))
   date_range
-  anomaly_date_range <- c(as.Date(last_valid_date_anomaly+1),as.Date(Sys.Date()))
+  anomaly_date_range <- c(as.Date(last_valid_date_anomaly+1),as.Date(Sys.Date()-1))
   anomaly_date_range
   update_type <- "Delta" # DELTA- update since last last refresh (Faster)
   

@@ -15,7 +15,7 @@ This is currently **`r days_since_launch`** full days since the launch on **`r f
 #### All Journeys
 
 
-```{r all_journeys_before_after, echo=FALSE, fig.height=9, fig.width=12, message=FALSE, warning=FALSE}
+```{r all_journeys_before_after, echo=FALSE, fig.height=12, fig.width=12, message=FALSE, warning=FALSE}
 
 get_journey_plot(all_journeys_before_after_plot, "Visits")
 
@@ -25,7 +25,6 @@ get_journey_plot(all_journeys_before_after_plot, "Visits")
 #### New Site
 
 Journeys that only exist in the new CMS. Due to their being no backward comparison, these journeys are monitored by using a previous week performance as their baseline measures.
-
 
 ```{r all_post_only_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
@@ -62,7 +61,7 @@ get_journey_plot(all_landing_page_journeys,"Visits")
 
 #### Device
 
-Journeys from specfic devices or operating systems.
+Journeys from specific devices or operating systems.
 
 ```{r all_device_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
@@ -103,13 +102,13 @@ get_journey_plot(all_discovery_journeys, "Visits")
 ```
 
 
-#### Browser
+#### Help
 
-Journeys categorized as a browser specific journey across the entire website.
+Journeys categorised as a help centre activity.
 
 ```{r all_browser_journeys, echo=FALSE, fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
 
-get_journey_plot(all_browser_journeys, "Visits")
+get_journey_plot(all_help_journeys, "Visits")
 
 ```
 

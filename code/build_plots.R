@@ -41,8 +41,9 @@ post_baseline <- journey_data %>%
    mutate(`% New Visits_mean` = percent(`% New Visits_mean`, accuracy = 0.1)) %>%
    mutate(`% Repeat Visits_mean` = percent(`% Repeat Visits_mean`, accuracy = 0.1)) %>% mutate(across(where(is.numeric), round, 0)) %>% 
    select(Visits_mean) %>% pull(Visits_mean)
-  
- mid_baseline <- mid_baseline %>% add_column(Visits_mean_last_week = last_week_mid_baseline, .after = "Visits_mean")
+
+ # Need more data, uncomment in week 2
+  mid_baseline <- mid_baseline %>% add_column(Visits_mean_last_week = last_week_mid_baseline, .after = "Visits_mean")
  
 baseline <- rbind(pre_baseline, post_baseline)
 
@@ -469,10 +470,11 @@ db1 <- baseline %>%
   droplevels()
 
 post_only_plot <- mid_baseline %>% 
-  select(journey_name, starts_with("Visits_")) %>%
-  arrange("Visits_max") %>% 
-  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
-  droplevels()
+   select(journey_name, starts_with("Visits_")) %>%
+   ungroup() %>% 
+   arrange(Visits_max) %>% 
+   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+   droplevels()
 
 all_journeys_before_after_plot <- left_join(db1, journey_data %>% dplyr::select(journey_name, category, sub_category), by = "journey_name") %>% 
         left_join(journey_stats, by = "journey_name") %>% 
@@ -483,7 +485,9 @@ all_journeys_before_after_plot <- left_join(db1, journey_data %>% dplyr::select(
         droplevels()
 
 all_journeys_significant <- all_journeys_before_after_plot %>% filter(journey_sig == "Significant") %>% 
-  arrange(post) %>% 
+  mutate(diff = post - pre) %>%
+  filter(diff < -1000) %>% 
+  arrange(post) %>%
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels()
 
@@ -521,6 +525,11 @@ all_property_page_journeys <- all_journeys_before_after_plot %>% filter(sub_cate
   droplevels()
 
 all_browser_journeys <- all_journeys_before_after_plot %>% filter(sub_category == "browser") %>% 
+  arrange(post) %>% 
+  mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
+  droplevels()
+
+all_help_journeys <- all_journeys_before_after_plot %>% filter(sub_category == "help_centre") %>% 
   arrange(post) %>% 
   mutate(journey_name = factor(journey_name, levels=journey_name)) %>% 
   droplevels()
@@ -704,7 +713,7 @@ heatmap_visits_by_day <- journey_data %>%
     names_from = 'Day',
     values_from = 'Visits',
     names_sort = TRUE)
-
+write_sheet(heatmap_visits_by_day, gsheet, "Heatmap")
 
 # heatmap_anomalies_by_day <- anomaly_data %>%  
 #   filter(day >= last_valid_date-180 & day < last_valid_date) %>% 
@@ -804,7 +813,7 @@ membership_fun_pre_plot <- membership_fun_pre_plot %>%
 # Build Pre with a start Page
 membership_funnel_pre_start_values <- c()
 membership_funnel_pre_start_values <- c(add_start_page_value_pre, membership_funnel_pre[1])
-membership_step_labels_start <- c("Join Us Page", membership_step_labels[1])
+membership_step_labels_start <- c("Membership Page", membership_step_labels[1])
 
 membership_fun_pre_plot_start <- plot_ly() 
 membership_fun_pre_plot_start <- membership_fun_pre_plot_start %>%
@@ -2079,5 +2088,35 @@ affiliates_last_week <- marketing_channels_by_week_channel %>%
   filter(`Marketing Channel` == "Affiliates") %>% 
   arrange(`Week Num`)
 
+natural_search_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Natural Search") %>% 
+  arrange(`Week Num`)
 
+social_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Social") %>% 
+  arrange(`Week Num`)
+
+direct_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Direct") %>% 
+  arrange(`Week Num`)
+
+email_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Email") %>% 
+  arrange(`Week Num`)
+
+websites_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Other Websites") %>% 
+  arrange(`Week Num`)
+
+mobile_app_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Mobile App") %>% 
+  arrange(`Week Num`)
+
+print_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Print") %>% 
+  arrange(`Week Num`)
+
+display_last_week <- marketing_channels_by_week_channel %>% 
+  filter(`Marketing Channel` == "Display") %>% 
+  arrange(`Week Num`)
 

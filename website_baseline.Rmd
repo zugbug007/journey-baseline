@@ -25,7 +25,7 @@ update_data <- FALSE
 # If new journeys or config was changed, use TRUE to delete the data and pull all new data.
 
 # Max Days before Refreshing the data (run the delta update)
-max_days <- 3
+max_days <- 20
 
 # Hex Colour Reference
 # Blue = "#406882" OR rgb(64, 104, 130)
@@ -41,7 +41,7 @@ max_days <- 3
 #load("output/baseline-workspace.RData")
 
 if (update_data == TRUE) {
-  print("Deleting Files")
+ message("Deleting Files")
   file.remove("output/df_journey_data.rds")
   file.remove("output/df_anomaly_data.rds")
   file.remove("output/df_events.rds")
@@ -96,7 +96,7 @@ scr_auth(email = params$alt_google_account)
 # Test Token has been refreshed and is up to date.
 #library(adobeanalyticsr)
 aw_auth_with('oauth') # Use with Rmarkdown
-#aw_auth()            # Use to refresh authentication
+aw_auth()            # Use to refresh authentication
 
 # Check Adobe API Token Access Now
 #aw_calculatedmetrics <- aw_get_calculatedmetrics(rsid = rsid)
@@ -118,8 +118,8 @@ min_instances <- 100
 # Change top of funnel start pages when new site launches
 # Membership & Renew: 'M|membership'
 # Donate
-launch_date_start <- as.Date("2022-10-01")
-#launch_date_start <- as.Date("2022-11-02") # GO LIVE!
+
+launch_date_start <- as.Date("2022-11-15") # GO LIVE!
 
 year_start <- ymd("2022-01-01")
 days_since_launch <- as.double(difftime(Sys.Date(),launch_date_start, units = "days"))
@@ -134,7 +134,7 @@ pre_date_range = c(as.Date(pre_start_date), as.Date(pre_end_date))
 
 # Post Launch Date Prep, Adjust date after launch date is known and ~90 days back.
 post_start_date <- launch_date_start # post start date will set to launch date of the new site
-post_end_date <- Sys.Date() - 1
+post_end_date <- Sys.Date()-1
 post_date_range = c(as.Date(post_start_date), as.Date(post_end_date))
 
 # Post Launch Date Improvement Monitoring Dates. Use start dates below and post_end_date for comparison.
@@ -193,30 +193,11 @@ session_refresh_names <- c("Session Refresh", "Internal", "Internal Refresh", "S
 ```
 
 ```{r get_data, include=FALSE, warning=FALSE, message=FALSE, cache=FALSE}
-# Update the Data
-source("code/get_g_sheets.R")
-source("code/get_functions.R")
-
-if (file.exists("output/df_journey_data.rds")) {
-  journey_data <- readRDS("output/df_journey_data.rds")
-} 
-
-if (file.exists("output/df_anomaly_data.rds")) {
-  anomaly_data <- readRDS("output/df_anomaly_data.rds")
-} 
-
-if (file.exists("output/df_events.rds")) {
-	df_events <- readRDS("output/df_events.rds")
-} 
-
-if (file.exists("output/df_events_daily.rds")) {
-	df_events_daily <- readRDS("output/df_events_daily.rds")
-}
-
-source("code/get_journey_data.R")
-source("code/get_events_data.R")
-source("code/build_plots.R")
-
+source("code/get_g_sheets.R")       # Load the Google sheets with the journey configurations
+source("code/get_functions.R")      # Load the Functions to do the operations
+source("code/get_journey_data.R")   # Run the loops to get the data from the API
+source("code/get_events_data.R")    # Run the events data
+source("code/build_plots.R")        # Build all the data and visual objects prior to the Markdown scripts being built
 ```
 
 # Summary

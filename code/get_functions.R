@@ -627,7 +627,7 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
   segment_group_tos = c()
   segment_group_tos <- c(device_segment_id, "s1957_611e5647d17b6b04401e42d2") # static segment ID for NT Main site + device segment
 
-    time_on_site <- adobeanalyticsr::aw_anomaly_report(
+    time_on_site <<- adobeanalyticsr::aw_anomaly_report(
                                     rsid = Sys.getenv("AW_REPORTSUITE_ID"),
                                     date_range = date_range_tos,
                                     metrics = "averagetimespentonsite",
@@ -654,7 +654,7 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
     pull()
   avg.tos.last.week <- lubridate::duration(round(avg.tos.last.week,0))
   tos.diff <- avg.tos.two.weeks.ago-avg.tos.last.week
-  
+  yesterday_sec <- time_on_site %>% select(day, data) %>% filter(day >= last_valid_date-7 & day <= last_valid_date) %>% arrange(desc(day)) %>% slice(1:1) %>% pull(data)
   
   p2 <- time_on_site %>%  # Use the subset to build the anomaly chart
     ggplot(aes_string(x = "day")) +
@@ -666,15 +666,17 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
     geom_hline(yintercept = mean(time_on_site$data), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
     labs(title = plot_title,
          subtitle = paste0('The average time last week was ',avg.tos.last.week,'. Difference of ',tos.diff,' over the prior week.'),
-         caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies.')) +
+         caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies. Yesterdays average was ',yesterday_sec,' seconds.')) +
     theme_bw() +
-    theme(axis.title.y = element_text(face = "bold", angle = 90), axis.title.x = element_text(face = "bold", angle = 0), axis.text.x = element_text(angle = 90)) +
+    theme(axis.title.y = element_text(face = "bold", angle = 90), 
+          axis.title.x = element_text(face = "bold", angle = 0), 
+          axis.text.x = element_text(angle = 90)) +
     scale_x_date(date_breaks = "week" , date_labels = "%d-%b")+
     scale_y_continuous(labels = scales::comma, trans = 'log10') +
     expand_limits(y=0) +
     ylab("Avg. Time on Site (sec)")+
     xlab("Day")
-  #p2
+ # p2
   return (p2)
 }
 

@@ -1,10 +1,18 @@
+---
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
 ### Journey Performance {.tabset}
 
 #### Summary
 
-Below is a summary of the percentage differences from old to the new website. 
+Below is a summary of the percentage differences from old to the new website.
 Better performing journeys are shown in blue, while those needing deeper investigation are in red.
-There are currently **`r journey_low_count`** journeys performing lower than their baseline. These are flagged below for potential review.  
+There are currently **`r journey_low_count`** journeys performing lower than their baseline.
+These are flagged below for potential review.\
+
 Conversely, there are **`r journey_high_count`** performing better than their respective baseline.
 
 ```{r top_bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
@@ -13,7 +21,6 @@ Conversely, there are **`r journey_high_count`** performing better than their re
 
 #### Higher Performing
 
-
 ```{r top_journeys, echo=FALSE, fig.height=7, fig.width=9}
   top_10_only
 
@@ -21,18 +28,17 @@ Conversely, there are **`r journey_high_count`** performing better than their re
 
 #### Lower Performing
 
-
 ```{r bot_journeys, echo=FALSE, fig.height=7, fig.width=9}
   bottom_10_only
 
 ```
 
-### {.unlisted .unnumbered}
-
+###  {.unlisted .unnumbered}
 
 ### Baseline Summary
 
-Below is a summary of the website journeys looking at data from **`r format(baseline_post_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.  
+Below is a summary of the website journeys looking at data from **`r format(baseline_post_start_date, "%b %d")` to `r format(last_valid_date, "%b %d")`**.\
+
 This table is sorted by the difference between the old site baseline and the new site baseline difference percentage.
 Poor performing new journeys should come to the top.
 
@@ -56,11 +62,14 @@ datatable(baseline_summary %>%
                                   '% Visits Diff.' = 4), filter = 'none')
 ```
 
-
 ### Journey Heatmap
 
-Below is the journey heat map. Each row represents a journey by day for the last 90 days.  
-Darker colours indicate more traffic to that journey. Hover over the cells to see volumes.  
+Below is the journey heat map.
+Each row represents a journey by day for the last 90 days.\
+
+Darker colours indicate more traffic to that journey.
+Hover over the cells to see volumes.\
+
 Select and drag to zoom into a section.
 Large darker vertical blocks indicate holiday activity such as Easter or Christmas periods.
 
@@ -104,16 +113,16 @@ library (d3heatmap)
 
 ```
 
-
 ### Anomaly Analysis By Journey
+
 Below is the count of anomalies detected for each journey, this is sorted by the number detected in the post launch period.
-Journeys higher up this list will need more investigation than lower journeys.  
+Journeys higher up this list will need more investigation than lower journeys.
 
 Positive anomalies are where the visit data exceeded the upper boundary of the data window.
 Negative anomalies are where the visit data fell below the lower boundary of the data window.
 The Net value is an overall count of the anomalies: (Positive Anomalies - Negative Anomalies = Net).
 
-Higher negative values for Net columns indicate the journey fell below the expected amounts for the journey. 
+Higher negative values for Net columns indicate the journey fell below the expected amounts for the journey.
 1 Anomaly = 1 day where the data was above or below expectations.
 
 ```{r anomaly_net_table, echo=FALSE, fig.height=7, fig.width=9}
@@ -141,25 +150,28 @@ datatable(anomaly_count[1:7], container = sketch, rownames = FALSE)
 
 ### Page Metrics
 
-In the table below:   
-**Note:** All Shop & Holidays pages are filtered out of this report. This is for the National Trust Main Site only.
+In the table below:\
+**Note:** All Shop & Holidays pages are filtered out of this report.
+This is for the National Trust Main Site only.
 
-Page Data from: **`r format(last_valid_date-7, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.  
+Page Data from: **`r format(last_valid_date-7, "%d-%b")` to `r format(last_valid_date, "%d-%b")`**.\
+
 Total Number of Pages: **`r nrow(page_data)`**.
 
- * **[Page Name]** Page name of the Main site page.   
- * **[Visits]** Visits made to the page in the time frame.        
- * **[Page Views]** Page Views made to the page in the time frame.      
- * **[Unique Visitors]** Unique Visits made to the page in the time frame.    
- * **[Average Load Time]**  Calculation of the average Page Load time. Based on the Adobe Performance timing data.   
- * **[Average Time on Page]**  Calculation of the average time spent on a page.   
- * **[Bounce Rate]**  Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.   
- * **[Exit Rate]**  Percentage of users who this page was the last piece of content seen before leaving the site.   
- * **[Repeated Actions]** Higher the number the stronger the potential for users stuck in a loop. 
-    
- **[Tip]** Use the sorting functions to filter the table.       
-Looking for pages with long load times? Look for pages with more than 1000 page views or visits.    
+-   **[Page Name]** Page name of the Main site page.\
+-   **[Visits]** Visits made to the page in the time frame.\
+-   [**Page Views**] Page Views made to the page in the time frame.\
+-   [**Unique Visitors**] Unique Visits made to the page in the time frame.\
+-   **[Average Load Time]** Calculation of the average Page Load time. Based on the Adobe Performance timing data.\
+-   **[Average Time on Page]** Calculation of the average time spent on a page.\
+-   **[Bounce Rate]** Bounce Rate of the page. Calculated from the Bounces divided by Entries to the page.\
+-   **[Exit Rate]** Percentage of users who this page was the last piece of content seen before leaving the site.\
+-   **[Repeated Actions]** Higher the number the stronger the potential for users stuck in a loop.
 
+**[Tip]** Use the sorting functions to filter the table.\
+
+Looking for pages with long load times?
+Look for pages with more than 1000 page views or visits.
 
 ```{r page_analysis, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
@@ -172,9 +184,10 @@ datatable(page_data, rownames = FALSE, colnames = c('Page Name' = 1,
   
 ```
 
-
 ### Metrics by Journey {.tabset}
-Each journey analysed by a specific metric. Sorted by the largest differences between the pre and post data, top to bottom.
+
+Each journey analysed by a specific metric.
+Sorted by the largest differences between the pre and post data, top to bottom.
 
 #### Page Views
 
@@ -218,11 +231,9 @@ new_visits_mean
 repeat_visits_mean
 ```
 
-### {.unlisted .unnumbered}
-
+###  {.unlisted .unnumbered}
 
 ### Time on Site {.tabset}
-
 
 #### All Visits
 
@@ -245,9 +256,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ```
 
-
 #### Mobile
-
 
 ```{r site_wide_page_all_mobile, echo=FALSE, fig.height=5, fig.width=9, fig.align='center', message=FALSE, warning=FALSE}
 
@@ -258,9 +267,7 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ```
 
-
 #### Desktop
-
 
 ```{r site_wide_page_all_desktop, echo=FALSE, fig.height=5, fig.width=9, fig.align='center', message=FALSE, warning=FALSE}
 # Desktop
@@ -269,9 +276,7 @@ device_segment_id <- "s1957_5cf4ff035b9ab413eed80b7f"
 get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 ```
 
-
 #### Tablet
-
 
 ```{r site_wide_page_all_tablet, echo=FALSE, fig.height=5, fig.width=9, fig.align='center', message=FALSE, warning=FALSE}
 #Tablet
@@ -281,25 +286,20 @@ get_time_onsite(device_segment_id, start_date_tos, end_date_tos, plot_title_tos)
 
 ```
 
-
-### {.unlisted .unnumbered}
-
+###  {.unlisted .unnumbered}
 
 ### Marketing Channels {.tabset}
 
-
 #### Comparision
 
-Click the legend to show or hide the data for each week. Percentages in brackets are the share of the week's visit volumes. 
+Click the legend to show or hide the data for each week.
+Percentages in brackets are the share of the week's visit volumes.
 
 ```{r marketing_channels_compared, echo=FALSE, fig.height=9, fig.width=11, fig.align='center',message=FALSE, warning=FALSE}
 
 get_marketing_channels_comparision()
 
 ```
-
-
-
 
 #### This Week
 
@@ -317,7 +317,6 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 -   `r mc_none`
 -   `r mc_session_refresh`
 
-
 #### Last Week
 
 ```{r marketing_channels_last_week, echo=FALSE, fig.height=7, fig.width=9, fig.align='center',message=FALSE, warning=FALSE}
@@ -334,11 +333,9 @@ Of the **`r df_marketing_channels %>% nrow()` marketing channels** that recorded
 -   `r mc_none`
 -   `r mc_session_refresh`
 
-### {.unlisted .unnumbered}
-
+###  {.unlisted .unnumbered}
 
 ### Marketing Channel Revenue {.tabset}
-
 
 #### All Channels
 
@@ -355,10 +352,20 @@ datatable(marketing_channels_by_week_channel,options = list(pageLength = 25), ro
 
 ```
 
+#### Natural Search
+
+Natural Search Revenue - Last 10 Weeks
+
+```{r natural_search_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(natural_search_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
 
 #### Paid Search
 
-Paid Search Revenue - Last 4 Weeks
+Paid Search Revenue - Last 10 Weeks
 
 ```{r paid_media_search, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
@@ -367,19 +374,20 @@ datatable(paid_search_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10
 
 ```
 
+#### Direct
 
-#### Paid Social
+Direct Revenue - Last 10 Weeks
 
-Paid Social Revenue - Last 4 Weeks
+```{r direct_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
-```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
-
-datatable(paid_social_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+datatable(direct_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
 
 ```
+
+
 #### Affiliates
 
-Affiliates Revenue - Last 4 Weeks
+Affiliates Revenue - Last 10 Weeks
 
 ```{r affiliates_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
@@ -387,13 +395,86 @@ datatable(affiliates_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10,
 
 ```
 
+#### Email
 
-### {.unlisted .unnumbered}
+Email Revenue - Last 10 Weeks
+
+```{r email_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(email_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+
+#### Other Websites
+
+Other Websites Revenue - Last 10 Weeks
+
+```{r other_websites_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(websites_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+#### Mobile
+
+Mobile App Revenue - Last 10 Weeks
+
+```{r mobile_app_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(mobile_app_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+#### Paid Social
+
+Paid Social Revenue - Last 10 Weeks
+
+```{r paid_media_social, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(paid_social_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+#### Print
+
+Print Revenue - Last 10 Weeks
+
+```{r print_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(print_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+
+#### Social
+
+Social Revenue - Last 10 Weeks
+
+```{r social_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(social_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+#### Display
+
+Display Revenue - Last 10 Weeks
+
+```{r display_channel, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
+
+datatable(display_last_week[1:10], rownames = FALSE) %>% formatCurrency(5:10, currency = "£") %>% DT::formatStyle(columns = 1:10, `font-size` = '12px')
+
+```
+
+###  {.unlisted .unnumbered}
 
 ### Significant Change
 
-Journeys with the most significant changes in their journey data. This is based on the equal number of days in the post and pre period.  
-E.g. 15 days after launch will also include the 15 days prior to launch.  
+Journeys with the most significant changes in their journey data.
+This is based on the equal number of days in the post and pre period.\
+
+E.g. 15 days after launch will also include the 15 days prior to launch.
 
 ```{r significant_journeys, echo=FALSE, fig.height=5, fig.width=7, fig.align='center',message=FALSE, warning=FALSE}
 
@@ -403,5 +484,3 @@ datatable(journey_stats %>% select(journey_name, journey_sig, normality_sig), ro
                                   'Data Normality' = 3), filter = 'top')
 
 ```
-
-

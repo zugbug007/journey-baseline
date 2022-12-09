@@ -16,6 +16,16 @@ plot_metric_name <- anomaly_subset %>%
   filter(row_number()==1) %>% 
   pull(metric)                       # Get the metric name from the first row
 
+d1 <- journey_segments %>% select(-id & journey_type:end_point & -segment_name_adobe) %>% filter(journey_name == plot_journey_name)
+  d2 <- datatable(d1, rownames = FALSE,colnames = c('Type' = 1, 
+                                  'Journey Name' = 2,
+                                  'Desc.' = 3,
+                                  'Inc.' = 4,
+                                  'Category' = 5,
+                                  'Sub Cat.' = 6,
+                                  'Start' = 7,
+                                  'End' = 8), filter = 'none')
+
 p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name == plot_journey_name) %>%  # Use the subset to build the anomaly chart
   ggplot(aes_string(x = "day")) +
   geom_line(aes_string( y = 'data'), color="#69b3a2", size = 0.8) +
@@ -37,6 +47,7 @@ p2 <- anomaly_subset %>% dplyr::filter(metric == plot_metric_name & journey_name
   ylab("Visits") +
   facet_wrap(~journey_name, dir = "v")
 print(p2)
+d2
 }
 
 
