@@ -509,6 +509,12 @@ trend.7 <-  insight.data %>% select(journey_name, Day, !!as.name(metric), day.x)
                                        ifelse(sign(trend.slope.7) == 0, "FLAT")))
   )
 
+volume.7.sum <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
+  filter(Day >= seven_days_ago & Day <= seven_days_ago+6) %>% 
+  summarize(metric.sum.7.days = sum(!!as.name(metric))
+  )
+
+trend.7  <- merge(x = trend.7, y = volume.7.sum, by = 'journey_name')
 
 # Last Week
 trend.14 <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
@@ -518,13 +524,20 @@ trend.14 <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x)
                                  ifelse(sign(trend.slope.14) == 1, "POSITIVE",
                                         ifelse(sign(trend.slope.14) == 0, "FLAT")))
   )
+
+volume.14.sum <- insight.data %>% select(journey_name, Day, !!as.name(metric), day.x) %>% group_by(journey_name) %>% 
+  filter(Day >= fourteen_days_ago & Day <= fourteen_days_ago+6) %>% 
+  summarize(metric.sum.14.days = sum(!!as.name(metric))
+  )
+trend.14 <- merge(x = trend.14, y = volume.14.sum, by = 'journey_name')
+
 # Merge the two tables together to build a trend comparison over the last two weeks.
 trend <- merge(x = trend.14, y = trend.7, by = 'journey_name')
 # Merge into the main journey insight table 
 journey.insight <- merge(x = journey.insight, y = trend, by= 'journey_name')
 # Calculate the change values in slope.
 journey.insight <- journey.insight %>% mutate(trend.change = round((trend.slope.7 / trend.slope.14), digits = 1),
-                                              trend.change.relative = round(((trend.slope.14 - trend.slope.7) / trend.slope.14), digits = 1))
+                                              trend.change.relative = round(((metric.sum.14.days - metric.sum.7.days) / metric.sum.14.days)*100, digits = 1))
 
 journey.insight <- merge(x = journey.insight, y = journey.spike.most.recent.date, by = 'journey_name')
 
@@ -560,11 +573,20 @@ get_events <- function(event_ids){
 
 get_marketing_channel_metrics <- function(){
 # Debug
-# end_date <- Sys.Date() - 1
+# end_date <- Sys.Date()
 # start_date <- Sys.Date() - 30
+# year_start <- ymd("2023-01-01")
   
   current_week_no <- week(last_valid_date)
   last_complete_week <- current_week_no-1
+  
+  if (last_complete_week == 0) {
+    last_complete_week = 52
+  }
+  if (last_complete_week != 1) {
+    year_start <- ymd("2022-01-01")
+  }
+  
   last_week_end <- year_start+last_complete_week*weeks()
   
   start_week_no <- last_complete_week-10
@@ -617,10 +639,10 @@ forecast_data <- journey_data %>%
   
 get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title) {
 # # # Debug:
-#  start_date <- Sys.Date() - 90
-#  end_date <- Sys.Date()
-#  device_segment_id <- 's1957_6113b90d5f900636dbd9b2ff'
-#  plot_title <- "Time on Site: All Main Site, All Devices"
+#  start_date_tos <- first_valid_date
+#  end_date_tos <- last_valid_date
+#  plot_title_tos <- "Time on Site: All Main Site, Desktop Devices"
+#  device_segment_id <- "s1957_5cf4ff035b9ab413eed80b7f"
 # # # End Debug
 
   date_range_tos <- c(start_date, end_date)
@@ -646,15 +668,21 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
     summarize(mean(data)) %>% 
     pull()
   avg.tos.two.weeks.ago  <- lubridate::duration(round(avg.tos.two.weeks.ago,0))
+  
    
   avg.tos.last.week <- time_on_site %>% 
     filter(day >= seven_days_ago & day <= seven_days_ago+6) %>% 
     arrange(day) %>% select(data) %>% 
     summarize(mean(data)) %>% 
     pull()
+  avg.tos.last.week.hms <- seconds_to_period(round(avg.tos.last.week,0))
+  
   avg.tos.last.week <- lubridate::duration(round(avg.tos.last.week,0))
+  
   tos.diff <- avg.tos.two.weeks.ago-avg.tos.last.week
   yesterday_sec <- time_on_site %>% select(day, data) %>% filter(day >= last_valid_date-7 & day <= last_valid_date) %>% arrange(desc(day)) %>% slice(1:1) %>% pull(data)
+  yesterday_hms <- seconds_to_period(yesterday_sec)
+  
   
   p2 <- time_on_site %>%  # Use the subset to build the anomaly chart
     ggplot(aes_string(x = "day")) +
@@ -665,8 +693,8 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
     geom_vline(xintercept = as.numeric(as.Date(post_start_date)), color = "red", linetype='dotted', lwd = .8, alpha = 0.5) +
     geom_hline(yintercept = mean(time_on_site$data), color = "blue", linetype='dotted', lwd = .8, alpha = 0.5) +
     labs(title = plot_title,
-         subtitle = paste0('The average time last week was ',avg.tos.last.week,'. Difference of ',tos.diff,' over the prior week.'),
-         caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies. Yesterdays average was ',yesterday_sec,' seconds.')) +
+         subtitle = paste0('The average time last week was ',avg.tos.last.week.hms,'. Difference of ',tos.diff,' over the prior week.'),
+         caption =paste0('There are ',nrow(time_on_site %>% filter(metric == 'averagetimespentonsite' & dataAnomalyDetected == T)), ' anomalies. Yesterdays average was ',yesterday_hms,' (',yesterday_sec,'sec.)')) +
     theme_bw() +
     theme(axis.title.y = element_text(face = "bold", angle = 90), 
           axis.title.x = element_text(face = "bold", angle = 0), 
@@ -676,7 +704,7 @@ get_time_onsite <- function(device_segment_id, start_date, end_date, plot_title)
     expand_limits(y=0) +
     ylab("Avg. Time on Site (sec)")+
     xlab("Day")
- # p2
+  #p2
   return (p2)
 }
 

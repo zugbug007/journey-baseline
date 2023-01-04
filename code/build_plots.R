@@ -2120,3 +2120,6 @@ display_last_week <- marketing_channels_by_week_channel %>%
   filter(`Marketing Channel` == "Display") %>% 
   arrange(`Week Num`)
 
+# Voice of the Supporter Table
+voice_of_the_supporter_googlesheet$Date <- as.Date(voice_of_the_supporter_googlesheet$Date)
+vos_comments <- voice_of_the_supporter_googlesheet %>% select(Date, Category, Feedback) %>% arrange(desc(Date))

@@ -171,7 +171,7 @@ if(exists("journey_data")) {
     segment_group <- NULL                           # Clear the segment group at the end of the loop
     metrics_list <- NULL
     message(paste0("Journey ", i, " of ", post_journey_count, " Completed: ",post_journey_segments$journey_name[i], " Type: ", post_journey_segments$journey_type[i]))
-    print(paste0("Journey ", i, " of ", post_journey_count, " Completed: ",post_journey_segments$journey_name[i], " Type: ", post_journey_segments$journey_type[i]))
+    #print(paste0("Journey ", i, " of ", post_journey_count, " Completed: ",post_journey_segments$journey_name[i], " Type: ", post_journey_segments$journey_type[i]))
     
   }
   
@@ -300,7 +300,7 @@ for (i in 1:nrow(journey_segments)) {
   segment_group <- NULL                           # Clear the segment group at the end of the loop
   metrics_list <- NULL
   message(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i], " Type: ", journey_segments$journey_type[i]))
-  print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i], " Type: ", journey_segments$journey_type[i]))
+  #print(paste0("Journey ", i, " of ", journey_count, " Completed: ",journey_segments$journey_name[i], " Type: ", journey_segments$journey_type[i]))
   
 }
 
@@ -323,7 +323,7 @@ rm(journey_new_data)
 rm(table_list)
 rm(anomaly_table_list)
 message("Journey & Anomaly processing completed.")
-print("Journey & Anomaly processing completed.")
+#print("Journey & Anomaly processing completed.")
 
 # POST PROCESSING
 # Process the journey data however it got loaded into the environment.
